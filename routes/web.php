@@ -2,14 +2,20 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Livewire\Barang\Index as BarangIndex;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified','cek.jam.kerja'])->name('dashboard');
+Route::middleware(['auth', 'verified', 'cek.jam.kerja'])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    // Rute untuk Manajemen Barang
+    Route::get('/barang', BarangIndex::class)->name('barang.index');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
