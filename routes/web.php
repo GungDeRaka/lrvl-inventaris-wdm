@@ -9,9 +9,7 @@ Route::get('/', function () {
 });
 
 Route::middleware(['auth', 'verified', 'cek.jam.kerja'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', \App\Livewire\Dashboard\Index::class)->name('dashboard');
 
     // Rute untuk Manajemen Barang
     Route::get('/barang', BarangIndex::class)->name('barang.index');
@@ -23,4 +21,4 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

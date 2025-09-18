@@ -1,6 +1,5 @@
+{{-- resources/views/dashboard.blade.php --}}
 <x-layouts.app>
-    <h1 class="text-2xl font-semibold text-gray-800">Selamat Datang, {{ Auth::user()->name }}!</h1>
-    <p class="text-gray-600">Ini adalah halaman dashboard Anda.</p>
-
-    {{-- Nanti kita akan isi dengan komponen Livewire untuk peminjaman --}}
+    {{-- Kosongkan saja atau beri pesan --}}
+    <p>Harap akses dashboard melalui komponen Livewire.</p>
 </x-layouts.app>

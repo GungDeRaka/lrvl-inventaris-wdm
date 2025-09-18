@@ -1,5 +1,6 @@
 <?php
 
+namespace App\Models;
 use App\Models\Barang;
 use App\Models\Siswa;
 use App\Models\User;
