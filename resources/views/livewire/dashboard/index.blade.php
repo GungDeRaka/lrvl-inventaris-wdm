@@ -1,10 +1,10 @@
 <div>
-    <h1 class="text-2xl font-semibold text-gray-800">Selamat Datang, {{ Auth::user()->name }}!</h1>
-    <p class="text-gray-600">Ini adalah halaman dashboard Anda.</p>
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">Selamat Datang, {{ Auth::user()->name }}!</h1>
 
+    <hr class="border-black mb-2">
     {{-- Nanti kita akan isi dengan komponen Livewire untuk peminjaman --}}
     {{-- Ganti bagian "MELAKUKAN PEMINJAMAN" dengan kode ini --}}
-    <div>
+    <div class="mt-3">
         <h2 class="text-xl font-semibold text-gray-700 mb-4">MELAKUKAN PEMINJAMAN</h2>
         <div class="bg-white p-6 rounded-lg shadow">
 
@@ -15,7 +15,7 @@
                     <span class="block sm:inline">{{ session('message') }}</span>
                 </div>
             @endif
-            
+
             @if (session()->has('error'))
                 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
                     <strong class="font-bold">Terjadi Kesalahan!</strong>
@@ -116,4 +116,82 @@
             </form>
         </div>
     </div>
+    <hr class="bt-4 border-black mb-2 mt-6">
+
+    <div>
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-700">HISTORY PEMINJAMAN</h2>
+        </div>
+
+        <div class="bg-white shadow-md rounded-lg overflow-x-auto">
+            <table class="min-w-full leading-normal">
+                <thead class="bg-[#620F55]">
+                    <tr>
+                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Nama
+                            Barang</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Nama
+                            Peminjam</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Waktu
+                            Pinjam</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Waktu
+                            Kembali</th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Status
+                        </th>
+                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Aksi
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($transaksis as $transaksi)
+                        <tr class="hover:bg-gray-50 border-b border-gray-200">
+                            <td class="px-5 py-4 bg-white text-sm">{{ $transaksi->barang->nama_barang }}</td>
+                            <td class="px-5 py-4 bg-white text-sm">{{ $transaksi->siswa->nama }}</td>
+                            <td class="px-5 py-4 bg-white text-sm">
+                                {{ \Carbon\Carbon::parse($transaksi->waktu_pinjam)->format('d M Y, H:i') }}</td>
+                            <td class="px-5 py-4 bg-white text-sm">
+                                {{ \Carbon\Carbon::parse($transaksi->waktu_kembali)->format('d M Y, H:i') }}</td>
+                            <td class="px-5 py-4 bg-white text-sm">
+                                <span
+                                    class="px-2 py-1 font-semibold leading-tight rounded-full {{ $transaksi->status == 'dipinjam' ? 'bg-yellow-200 text-yellow-900' : 'bg-green-200 text-green-900' }}">
+                                    {{ ucfirst($transaksi->status) }}
+                                </span>
+                            </td>
+                            <td class="px-5 py-4 bg-white text-sm">
+                                @if ($transaksi->status == 'dipinjam')
+                                    <button wire:click="konfirmasiPengembalian({{ $transaksi->id }})"
+                                        class="text-indigo-600 hover:text-indigo-900 font-semibold">
+                                        Kembalikan
+                                    </button>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="text-center py-6 text-gray-500">Belum ada riwayat peminjaman.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+            <div class="p-4">
+                {{ $transaksis->links() }}
+            </div>
+        </div>
+    </div>
+    @if ($transaksiIdUntukDikembalikan)
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Konfirmasi Pengembalian</h3>
+                <p class="text-sm text-gray-600 mb-4">
+                    Anda yakin ingin menandai barang **"{{ $transaksiTerpilih->barang->nama_barang }}"** yang dipinjam
+                    oleh **"{{ $transaksiTerpilih->siswa->nama }}"** telah dikembalikan?
+                </p>
+                <div class="mt-4 flex justify-end space-x-2">
+                    <button wire:click="$set('transaksiIdUntukDikembalikan', null)"
+                        class="px-4 py-2 bg-gray-200 rounded">Batal</button>
+                    <button wire:click="prosesPengembalian" class="px-4 py-2 bg-purple-700 text-white rounded">Ya, Sudah
+                        Kembali</button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

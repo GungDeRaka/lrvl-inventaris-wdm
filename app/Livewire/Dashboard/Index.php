@@ -25,6 +25,8 @@ class Index extends Component
 
     public $ruang_pemakaian = '';
     public $waktu_kembali;
+    public $transaksiIdUntukDikembalikan;
+    public $transaksiTerpilih;
 
     // Fungsi yang akan dijalankan saat properti $nis diperbarui
     public function updatedNis($value)
@@ -63,7 +65,7 @@ class Index extends Component
     public function simpanPeminjaman()
     {
         // dd('method dipanggil');
-       $this->validate([
+        $this->validate([
             'nis' => 'required',
             'selectedBarangId' => 'required',
             'ruang_pemakaian' => 'required|string|min:3',
@@ -104,7 +106,6 @@ class Index extends Component
             // Langkah 4: Beri notifikasi dan reset form
             session()->flash('message', 'Data peminjaman berhasil disimpan!');
             $this->resetForm();
-
         } catch (\Exception $e) {
             session()->flash('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
         }
@@ -122,6 +123,37 @@ class Index extends Component
         $this->waktu_kembali = null;
     }
 
+    // Metode untuk menyiapkan pengembalian barang
+    public function konfirmasiPengembalian($id)
+    {
+        $this->transaksiIdUntukDikembalikan = $id;
+        $this->transaksiTerpilih = Transaksi::find($id);
+    }
+
+    public function prosesPengembalian()
+    {
+        if ($this->transaksiIdUntukDikembalikan) {
+            try {
+                DB::transaction(function () {
+                    $transaksi = Transaksi::find($this->transaksiIdUntukDikembalikan);
+
+                    // 1. Ubah status transaksi
+                    $transaksi->update(['status' => 'dikembalikan']);
+
+                    // 2. Kembalikan stok barang (tambah 1)
+                    $transaksi->barang->increment('jumlah_saat_ini');
+                });
+
+                session()->flash('message', 'Barang berhasil ditandai telah kembali!');
+            } catch (\Exception $e) {
+                session()->flash('error', 'Gagal memproses pengembalian barang.');
+            }
+        }
+
+        // Reset properti untuk menutup modal
+        $this->transaksiIdUntukDikembalikan = null;
+        $this->transaksiTerpilih = null;
+    }
 
     public function render()
     {
@@ -129,7 +161,7 @@ class Index extends Component
             ->latest()
             ->paginate(10);
 
-         return view('livewire.dashboard.index', [
+        return view('livewire.dashboard.index', [
             'transaksis' => $transaksis
         ]);
     }
