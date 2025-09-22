@@ -5,6 +5,8 @@ namespace App\Livewire\Dashboard;
 use App\Models\Siswa;
 use App\Models\Barang;
 use App\Models\Transaksi;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -60,11 +62,52 @@ class Index extends Component
     // Metode untuk menyimpan data peminjaman
     public function simpanPeminjaman()
     {
-        // Logika penyimpanan akan kita tambahkan di sini nanti
-        // Validasi, simpan ke database, dll.
+        // dd('method dipanggil');
+       $this->validate([
+            'nis' => 'required',
+            'selectedBarangId' => 'required',
+            'ruang_pemakaian' => 'required|string|min:3',
+            'waktu_kembali' => 'required|date',
+        ], [
+            'nis.required' => 'NIS siswa wajib diisi.',
+            'selectedBarangId.required' => 'Anda harus memilih barang.',
+            'ruang_pemakaian.required' => 'Ruang pemakaian wajib diisi.',
+            'waktu_kembali.required' => 'Waktu pengembalian wajib diisi.',
+        ]);
 
-        session()->flash('message', 'Peminjaman berhasil disimpan!');
-        $this->resetForm();
+        // Pastikan siswa dan barang benar-benar terpilih
+        if (!$this->siswaDitemukan || !$this->selectedBarangId) {
+            session()->flash('error', 'Data siswa atau barang tidak valid!');
+            return;
+        }
+
+        try {
+            // Langkah 2 & 3: Lakukan dalam satu transaksi database
+            DB::transaction(function () {
+                // Buat data transaksi baru
+                Transaksi::create([
+                    'siswa_id' => $this->siswaDitemukan->id,
+                    'barang_id' => $this->selectedBarangId,
+                    'user_id' => Auth::id(), // Ambil ID admin yang sedang login
+                    'kuantitas' => 1, // Asumsi kuantitas selalu 1
+                    'ruang_pemakaian' => $this->ruang_pemakaian,
+                    'waktu_pinjam' => now(),
+                    'waktu_kembali' => $this->waktu_kembali,
+                    'status' => 'dipinjam',
+                ]);
+
+                // Kurangi stok barang
+                $barang = Barang::find($this->selectedBarangId);
+                $barang->decrement('jumlah_saat_ini');
+            });
+
+            // Langkah 4: Beri notifikasi dan reset form
+            session()->flash('message', 'Data peminjaman berhasil disimpan!');
+            $this->resetForm();
+
+        } catch (\Exception $e) {
+            session()->flash('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
+        }
     }
 
     public function resetForm()

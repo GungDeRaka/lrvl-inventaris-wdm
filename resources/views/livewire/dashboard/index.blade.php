@@ -15,6 +15,27 @@
                     <span class="block sm:inline">{{ session('message') }}</span>
                 </div>
             @endif
+            
+            @if (session()->has('error'))
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    <strong class="font-bold">Terjadi Kesalahan!</strong>
+                    <span class="block sm:inline">{{ session('error') }}</span>
+                </div>
+            @endif
+
+            {{-- Menampilkan Error Validasi --}}
+            @if ($errors->any())
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+                    role="alert">
+                    <strong class="font-bold">Harap perbaiki error berikut:</strong>
+                    <ul class="mt-2 list-disc list-inside">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
 
             <form wire:submit.prevent="simpanPeminjaman">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

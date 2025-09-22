@@ -79,7 +79,7 @@
     </div>
 
     @livewireScripts
-    {{-- <script src="//cdn.jsdelivr.net/npm/alpinejs@3.13.10/dist/cdn.min.js" defer></script> --}}
+
 </body>
 
 </html>
