@@ -83,6 +83,12 @@ class Index extends Component
             return;
         }
 
+        $barang = Barang::find($this->selectedBarangId);
+        if ($barang->jumlah_saat_ini <= 0) {
+            // Kirim pesan error dan hentikan proses
+            session()->flash('error', 'Stok barang "' . $barang->nama_barang . '" sedang habis dan tidak bisa dipinjam.');
+            return; // Hentikan eksekusi method
+        }
         try {
             // Langkah 2 & 3: Lakukan dalam satu transaksi database
             DB::transaction(function () {

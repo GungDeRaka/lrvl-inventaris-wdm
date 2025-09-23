@@ -74,12 +74,24 @@
                             @if (!empty($barangDitemukan) && !$selectedBarangId)
                                 <div class="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg border">
                                     <ul class="max-h-60 overflow-auto">
-                                        @foreach ($barangDitemukan as $barang)
-                                            <li wire:click="selectBarang({{ $barang->id }}, '{{ addslashes($barang->nama_barang) }}')"
-                                                class="px-4 py-2 cursor-pointer hover:bg-gray-100">
-                                                {{ $barang->nama_barang }} (Stok: {{ $barang->jumlah_saat_ini }})
-                                            </li>
-                                        @endforeach
+                                        @forelse($barangDitemukan as $barang)
+                                            {{-- Logika untuk membedakan barang yang tersedia dan habis --}}
+                                            @if ($barang->jumlah_saat_ini > 0)
+                                                {{-- BARANG TERSEDIA (Bisa Diklik) --}}
+                                                <li wire:click="selectBarang({{ $barang->id }}, '{{ addslashes($barang->nama_barang) }}')"
+                                                    class="px-4 py-2 cursor-pointer hover:bg-gray-100">
+                                                    {{ $barang->nama_barang }} (Stok: {{ $barang->jumlah_saat_ini }})
+                                                </li>
+                                            @else
+                                                {{-- BARANG HABIS (Tidak Bisa Diklik) --}}
+                                                <li class="px-4 py-2 text-gray-600 cursor-not-allowed">
+                                                    {{ $barang->nama_barang }}
+                                                    <span class="text-xs italic">(Semua sedang dipinjam)</span>
+                                                </li>
+                                            @endif
+                                        @empty
+                                            <li class="px-4 py-2 text-gray-500">Barang tidak ditemukan.</li>
+                                        @endforelse
                                     </ul>
                                 </div>
                             @endif
@@ -182,8 +194,9 @@
             <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
                 <h3 class="text-lg font-medium text-gray-900 mb-2">Konfirmasi Pengembalian</h3>
                 <p class="text-sm text-gray-600 mb-4">
-                    Anda yakin ingin menandai barang **"{{ $transaksiTerpilih->barang->nama_barang }}"** yang dipinjam
-                    oleh **"{{ $transaksiTerpilih->siswa->nama }}"** telah dikembalikan?
+                    Anda yakin ingin menandai barang <strong>"{{ $transaksiTerpilih->barang->nama_barang }}"</strong>
+                    yang dipinjam
+                    oleh <strong>"{{ $transaksiTerpilih->siswa->nama }}" </strong>telah dikembalikan?
                 </p>
                 <div class="mt-4 flex justify-end space-x-2">
                     <button wire:click="$set('transaksiIdUntukDikembalikan', null)"
