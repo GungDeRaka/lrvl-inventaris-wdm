@@ -6,15 +6,15 @@
         </div>
     @endif
 
-     <div class="flex justify-between items-center mb-6">
+    <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-semibold text-gray-800">Manajemen Data Barang</h1>
         <button wire:click="openModal()" class="bg-purple-700 hover:bg-purple-800 text-white font-bold py-2 px-4 rounded">
             Tambah Barang
         </button>
     </div>
 
-    {{-- tabel manajemen barang --}}
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    {{-- Tabel Manajemen Barang --}}
+    <div class="bg-white shadow-md rounded-lg overflow-x-auto">
         <table class="min-w-full leading-normal">
             <thead class="bg-gray-200">
                 <tr>
@@ -27,9 +27,6 @@
                     <th
                         class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         Kategori</th>
-                    <th
-                        class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Lokasi</th>
                     <th
                         class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         Stok</th>
@@ -45,35 +42,40 @@
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">{{ $barang->nama_barang }}</td>
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
                             {{ $barang->kategori->nama_kategori }}</td>
-                        <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
-                            {{ $barang->ruangan->nama_ruangan }}</td>
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">{{ $barang->jumlah_saat_ini }} /
                             {{ $barang->jumlah_total }}</td>
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
-                            <button class="text-yellow-600 hover:text-yellow-900 mr-2">Edit</button>
-                            <button class="text-red-600 hover:text-red-900">Hapus</button>
+                            <button wire:click="edit({{ $barang->id }})"
+                                class="text-yellow-600 hover:text-yellow-900 mr-2 font-semibold">Edit</button>
+                            <button wire:click="konfirmasiHapus({{ $barang->id }})"
+                                class="text-red-600 hover:text-red-900 font-semibold">Hapus</button>
+                        </td>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center py-4">Tidak ada data barang.</td>
+                        <td colspan="5" class="text-center py-4">Tidak ada data barang.</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
-        <div class="px-5 py-4">
-            {{ $barangs->links() }}
-        </div>
+        @if ($barangs->hasPages())
+            <div class="p-4">
+                {{ $barangs->links() }}
+            </div>
+        @endif
     </div>
 
-    {{-- Modal / Pop-up tambah barang --}}
+    {{-- MODAL UNTUK TAMBAH/EDIT BARANG --}}
     @if ($showModal)
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
-            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md" @click.away="closeModal()">
                 <form wire:submit.prevent="simpanBarang">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Tambah Barang Baru</h3>
+                    <input type="hidden" wire:model="barang_id">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">
+                        {{ $barang_id ? 'Edit Data Barang' : 'Tambah Barang Baru' }}
+                    </h3>
 
-                    {{-- Form Input --}}
                     <div class="space-y-4">
                         <div>
                             <label for="kode_barang" class="block text-sm font-medium text-gray-700">Kode Barang</label>
@@ -129,14 +131,38 @@
                         </div>
                     </div>
 
-                    {{-- Tombol Aksi --}}
                     <div class="mt-6 flex justify-end space-x-2">
                         <button type="button" wire:click="closeModal()"
                             class="px-4 py-2 bg-gray-200 rounded">Batal</button>
-                        <button type="submit" class="px-4 py-2 bg-purple-700 text-white rounded">Simpan</button>
+                        <button type="submit" class="px-4 py-2 bg-purple-700 text-white rounded">
+                            {{ $barang_id ? 'Update' : 'Simpan' }}
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     @endif
+
+    @if($barangIdToDelete)
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Konfirmasi Hapus</h3>
+        <p class="text-sm text-gray-600 mb-4">
+            Anda yakin ingin menghapus barang **"{{ $barangNamaToDelete }}"**? Tindakan ini tidak bisa dibatalkan.
+        </p>
+        <div class="mt-4 flex justify-end space-x-2">
+            <button wire:click="$set('barangIdToDelete', null)" class="px-4 py-2 bg-gray-200 rounded">Batal</button>
+            <button wire:click="hapusBarang" class="px-4 py-2 bg-red-600 text-white rounded">Ya, Hapus</button>
+        </div>
+    </div>
 </div>
+@endif
+
+{{-- Notifikasi Error (Tambahkan ini jika belum ada) --}}
+@if (session()->has('error'))
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative my-4" role="alert">
+        <span class="block sm:inline">{{ session('error') }}</span>
+    </div>
+@endif
+</div>
+
