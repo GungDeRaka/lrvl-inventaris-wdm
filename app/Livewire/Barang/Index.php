@@ -20,6 +20,14 @@ class Index extends Component
     public $kode_barang, $nama_barang, $kategori_id, $ruangan_id, $jumlah_total;
     public $barangIdToDelete;
     public $barangNamaToDelete;
+    public $barangIdToUpdateStatus;
+    public $barangNamaForStatus;
+    public $jumlahYangRusak = 1;
+
+    public $barangIdToRepair;
+    public $barangNamaForRepair;
+    public $jumlahYangDiperbaiki = 1;
+    public $maxPerbaikan;
 
     public function openModal()
     {
@@ -91,32 +99,67 @@ class Index extends Component
         $this->showModal = true;
     }
 
-     public function konfirmasiHapus($id)
+    public function konfirmasiStatusRusak($id)
     {
         $barang = Barang::find($id);
-        $this->barangIdToDelete = $id;
-        $this->barangNamaToDelete = $barang->nama_barang;
+        $this->barangIdToUpdateStatus = $id;
+        $this->barangNamaForStatus = $barang->nama_barang;
+        $this->jumlahYangRusak = 1; // Reset ke 1 setiap kali modal dibuka
     }
 
-    public function hapusBarang()
+    public function updateStatusRusak()
     {
-        $barang = Barang::find($this->barangIdToDelete);
+        $barang = Barang::find($this->barangIdToUpdateStatus);
 
-        // Pengecekan penting: apakah barang sedang dipinjam?
-        if ($barang && $barang->transaksis()->where('status', 'dipinjam')->exists()) {
-            session()->flash('error', 'Gagal! Barang "' . $barang->nama_barang . '" tidak bisa dihapus karena sedang ada yang meminjam.');
-            $this->barangIdToDelete = null; // Tutup modal
-            return;
-        }
+        // Validasi: Jumlah yang rusak tidak boleh > stok yang tersedia
+        $this->validate(
+            ['jumlahYangRusak' => 'required|integer|min:1|max:' . $barang->jumlah_saat_ini],
+            ['jumlahYangRusak.max' => 'Jumlah rusak tidak boleh melebihi stok yang tersedia.']
+        );
 
-        // Jika tidak sedang dipinjam, lanjutkan proses hapus
         if ($barang) {
-            $barang->delete();
-            session()->flash('message', 'Barang berhasil dihapus.');
+            // Kurangi jumlah total dan jumlah saat ini
+            $barang->decrement('jumlah_total', $this->jumlahYangRusak);
+            $barang->decrement('jumlah_saat_ini', $this->jumlahYangRusak);
+            // Tambahkan ke jumlah rusak
+            $barang->increment('jumlah_rusak', $this->jumlahYangRusak);
+
+            session()->flash('message', $this->jumlahYangRusak . ' unit barang berhasil ditandai rusak.');
         }
 
-        $this->barangIdToDelete = null; // Tutup modal
+        $this->barangIdToUpdateStatus = null; // Tutup modal
     }
+
+    public function konfirmasiPerbaikan($id)
+{
+    $barang = Barang::find($id);
+    $this->barangIdToRepair = $id;
+    $this->barangNamaForRepair = $barang->nama_barang;
+    $this->maxPerbaikan = $barang->jumlah_rusak; // Catat jumlah maksimal yang bisa diperbaiki
+    $this->jumlahYangDiperbaiki = 1; // Reset ke 1
+}
+
+public function prosesPerbaikan()
+{
+    // Validasi: Jumlah yang diperbaiki tidak boleh lebih dari yang rusak
+    $this->validate(
+        ['jumlahYangDiperbaiki' => 'required|integer|min:1|max:' . $this->maxPerbaikan],
+        ['jumlahYangDiperbaiki.max' => 'Jumlah perbaikan tidak boleh melebihi jumlah yang rusak.']
+    );
+
+    $barang = Barang::find($this->barangIdToRepair);
+    if ($barang) {
+        // Kembalikan jumlah total dan jumlah saat ini
+        $barang->increment('jumlah_total', $this->jumlahYangDiperbaiki);
+        $barang->increment('jumlah_saat_ini', $this->jumlahYangDiperbaiki);
+        // Kurangi dari jumlah rusak
+        $barang->decrement('jumlah_rusak', $this->jumlahYangDiperbaiki);
+
+        session()->flash('message', $this->jumlahYangDiperbaiki . ' unit barang berhasil diperbaiki dan dikembalikan ke stok.');
+    }
+
+    $this->barangIdToRepair = null; // Tutup modal
+}
 
     public function render()
     {

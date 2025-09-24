@@ -43,12 +43,24 @@
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
                             {{ $barang->kategori->nama_kategori }}</td>
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">{{ $barang->jumlah_saat_ini }} /
-                            {{ $barang->jumlah_total }}</td>
+                            {{ $barang->jumlah_total }}
+                            @if ($barang->jumlah_rusak > 0)
+                                <span class="text-red-600 block text-xs">(Rusak: {{ $barang->jumlah_rusak }})</span>
+                            @endif
+                        </td>
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
                             <button wire:click="edit({{ $barang->id }})"
                                 class="text-yellow-600 hover:text-yellow-900 mr-2 font-semibold">Edit</button>
-                            <button wire:click="konfirmasiHapus({{ $barang->id }})"
-                                class="text-red-600 hover:text-red-900 font-semibold">Hapus</button>
+                            <button wire:click="konfirmasiStatusRusak({{ $barang->id }})"
+                                class="text-red-600 hover:text-red-900 font-semibold">
+                                Tandai Rusak
+                            </button>
+                            @if ($barang->jumlah_rusak > 0)
+                                <button wire:click="konfirmasiPerbaikan({{ $barang->id }})"
+                                    class="text-green-600 hover:text-green-900 ml-2 font-semibold">
+                                    Perbaiki
+                                </button>
+                            @endif
                         </td>
                         </td>
                     </tr>
@@ -143,26 +155,60 @@
         </div>
     @endif
 
-    @if($barangIdToDelete)
+    @if ($barangIdToUpdateStatus)
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Tandai Barang Rusak</h3>
+                <p class="text-sm text-gray-600 mb-4">
+                    Masukkan jumlah **"{{ $barangNamaForStatus }}"** yang akan ditandai sebagai rusak. Stok total dan
+                    tersedia akan dikurangi.
+                </p>
+
+                <div>
+                    <label for="jumlahYangRusak" class="block text-sm font-medium text-gray-700">Jumlah Rusak</label>
+                    <input type="number" wire:model="jumlahYangRusak" id="jumlahYangRusak"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                    @error('jumlahYangRusak')
+                        <span class="text-red-500 text-xs">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="mt-6 flex justify-end space-x-2">
+                    <button wire:click="$set('barangIdToUpdateStatus', null)"
+                        class="px-4 py-2 bg-gray-200 rounded">Batal</button>
+                    <button wire:click="updateStatusRusak"
+                        class="px-4 py-2 bg-red-600 text-white rounded">Simpan</button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+        @if($barangIdToRepair)
 <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
     <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-        <h3 class="text-lg font-medium text-gray-900 mb-2">Konfirmasi Hapus</h3>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Perbaiki Barang Rusak</h3>
         <p class="text-sm text-gray-600 mb-4">
-            Anda yakin ingin menghapus barang **"{{ $barangNamaToDelete }}"**? Tindakan ini tidak bisa dibatalkan.
+            Masukkan jumlah **"{{ $barangNamaForRepair }}"** yang telah diperbaiki. Stok akan dikembalikan. (Maks: {{ $maxPerbaikan }})
         </p>
-        <div class="mt-4 flex justify-end space-x-2">
-            <button wire:click="$set('barangIdToDelete', null)" class="px-4 py-2 bg-gray-200 rounded">Batal</button>
-            <button wire:click="hapusBarang" class="px-4 py-2 bg-red-600 text-white rounded">Ya, Hapus</button>
+        
+        <div>
+            <label for="jumlahYangDiperbaiki" class="block text-sm font-medium text-gray-700">Jumlah Diperbaiki</label>
+            <input type="number" wire:model="jumlahYangDiperbaiki" id="jumlahYangDiperbaiki" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+            @error('jumlahYangDiperbaiki') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+        </div>
+
+        <div class="mt-6 flex justify-end space-x-2">
+            <button wire:click="$set('barangIdToRepair', null)" class="px-4 py-2 bg-gray-200 rounded">Batal</button>
+            <button wire:click="prosesPerbaikan" class="px-4 py-2 bg-green-600 text-white rounded">Simpan Perbaikan</button>
         </div>
     </div>
 </div>
 @endif
 
-{{-- Notifikasi Error (Tambahkan ini jika belum ada) --}}
-@if (session()->has('error'))
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative my-4" role="alert">
-        <span class="block sm:inline">{{ session('error') }}</span>
-    </div>
-@endif
+    {{-- Notifikasi Error (Tambahkan ini jika belum ada) --}}
+    @if (session()->has('error'))
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative my-4" role="alert">
+            <span class="block sm:inline">{{ session('error') }}</span>
+        </div>
+    @endif
 </div>
-
