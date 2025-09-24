@@ -18,14 +18,16 @@
                     {{-- LOGO & JUDUL DI TENGAH --}}
                     <div class="flex items-center space-x-4">
                         {{-- Div untuk background gradasi logo --}}
-                       
-                            <img class="h-16 w-16" src="{{ asset('logo.jpg') }}" alt="Logo SMK Widiatmika">
-                        
+
+                        <img class="h-16 w-16" src="{{ asset('logo.jpg') }}" alt="Logo SMK Widiatmika">
+
                         <span class="text-white text-2xl font-bold">SMK WIDIATMIKA</span>
                     </div>
 
                     {{-- DROPDOWN PROFIL DI KANAN --}}
-                    <div class="absolute right-4 top-1/2 -translate-y-1/2">
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center space-x-2">
+                        {{-- KOMPONEN NOTIFIKASI  --}}
+                        <livewire:notifications.bell />
                         <div x-data="{ dropdownOpen: false }" class="relative">
                             <button @click="dropdownOpen = !dropdownOpen"
                                 class="flex items-center justify-center h-12 w-12 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600 focus:outline-none">
