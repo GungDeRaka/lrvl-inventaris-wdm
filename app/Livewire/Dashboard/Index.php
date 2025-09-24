@@ -163,12 +163,22 @@ class Index extends Component
 
     public function render()
     {
+        $totalUnitBarang = Barang::sum('jumlah_total');
+        $totalDipinjam = Transaksi::where('status', 'dipinjam')->count();
+        $totalRusak = Barang::sum('jumlah_rusak');
+        $jatuhTempo = Transaksi::where('status', 'dipinjam')->where('waktu_kembali', '<', now())->count();
+
+        // Data untuk tabel history
         $transaksis = Transaksi::with(['siswa', 'barang'])
             ->latest()
             ->paginate(10);
 
         return view('livewire.dashboard.index', [
-            'transaksis' => $transaksis
+            'transaksis' => $transaksis,
+            'totalUnitBarang' => $totalUnitBarang, // Kirim data statistik ke view
+            'totalDipinjam' => $totalDipinjam,
+            'totalRusak' => $totalRusak,
+            'jatuhTempo' => $jatuhTempo,
         ]);
     }
 }

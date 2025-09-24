@@ -1,9 +1,35 @@
 <div>
     <h1 class="text-2xl font-bold text-gray-900 mb-6">Selamat Datang, {{ Auth::user()->name }}!</h1>
 
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-lg shadow-md flex items-center">
+            <div>
+                <p class="text-sm font-medium text-gray-500">Total Unit Barang</p>
+                <p class="text-3xl font-bold text-gray-800">{{ $totalUnitBarang }}</p>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md flex items-center">
+            <div>
+                <p class="text-sm font-medium text-gray-500">Sedang Dipinjam</p>
+                <p class="text-3xl font-bold text-gray-800">{{ $totalDipinjam }}</p>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md flex items-center">
+            <div>
+                <p class="text-sm font-medium text-gray-500">Barang Rusak</p>
+                <p class="text-3xl font-bold text-red-500">{{ $totalRusak }}</p>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md flex items-center">
+            <div>
+                <p class="text-sm font-medium text-gray-500">Jatuh Tempo</p>
+                <p class="text-3xl font-bold text-yellow-500">{{ $jatuhTempo }}</p>
+            </div>
+        </div>
+    </div>
+
     <hr class="border-black mb-2">
-    {{-- Nanti kita akan isi dengan komponen Livewire untuk peminjaman --}}
-    {{-- Ganti bagian "MELAKUKAN PEMINJAMAN" dengan kode ini --}}
+
     <div class="mt-3">
         <h2 class="text-xl font-semibold text-gray-700 mb-4">MELAKUKAN PEMINJAMAN</h2>
         <div class="bg-white p-6 rounded-lg shadow">
@@ -17,7 +43,8 @@
             @endif
 
             @if (session()->has('error'))
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+                    role="alert">
                     <strong class="font-bold">Terjadi Kesalahan!</strong>
                     <span class="block sm:inline">{{ session('error') }}</span>
                 </div>
@@ -179,7 +206,8 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center py-6 text-gray-500">Belum ada riwayat peminjaman.</td>
+                            <td colspan="6" class="text-center py-6 text-gray-500">Belum ada riwayat peminjaman.
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -201,7 +229,8 @@
                 <div class="mt-4 flex justify-end space-x-2">
                     <button wire:click="$set('transaksiIdUntukDikembalikan', null)"
                         class="px-4 py-2 bg-gray-200 rounded">Batal</button>
-                    <button wire:click="prosesPengembalian" class="px-4 py-2 bg-purple-700 text-white rounded">Ya, Sudah
+                    <button wire:click="prosesPengembalian" class="px-4 py-2 bg-purple-700 text-white rounded">Ya,
+                        Sudah
                         Kembali</button>
                 </div>
             </div>
