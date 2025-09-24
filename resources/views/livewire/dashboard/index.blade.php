@@ -160,6 +160,10 @@
     <div>
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-semibold text-gray-700">HISTORY PEMINJAMAN</h2>
+            {{-- tombol cetak laporan --}}
+            <a href="{{ route('laporan.transaksi') }}" target="_blank" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded text-sm">
+        Cetak Laporan
+    </a>
         </div>
 
         <div class="bg-white shadow-md rounded-lg overflow-x-auto">

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LaporanController; //
 use App\Livewire\Barang\Index as BarangIndex;
 
 Route::get('/', function () {
@@ -13,6 +14,8 @@ Route::middleware(['auth', 'verified', 'cek.jam.kerja'])->group(function () {
 
     // Rute untuk Manajemen Barang
     Route::get('/barang', BarangIndex::class)->name('barang.index');
+
+    Route::get('/laporan/transaksi', [LaporanController::class, 'cetakTransaksi'])->name('laporan.transaksi');
 });
 
 Route::middleware('auth')->group(function () {
@@ -20,5 +23,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+
 
 require __DIR__ . '/auth.php';
