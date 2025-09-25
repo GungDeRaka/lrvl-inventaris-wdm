@@ -158,12 +158,20 @@
     <hr class="bt-4 border-black mb-2 mt-6">
 
     <div>
-        <div class="flex justify-between items-center mb-4">
+        <div class="flex justify-between items-center mb-1">
             <h2 class="text-xl font-semibold text-gray-700">HISTORY PEMINJAMAN</h2>
+
+
             {{-- tombol cetak laporan --}}
-            <a href="{{ route('laporan.transaksi') }}" target="_blank" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded text-sm">
-        Cetak Laporan
-    </a>
+            <a href="{{ route('laporan.transaksi') }}" target="_blank"
+                class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded text-sm">
+                Cetak Laporan
+            </a>
+        </div>
+        <div class="w-1/3 mb-3">
+            <input type="text" wire:model.live.debounce.300ms="search"
+                placeholder="Cari nama barang atau peminjam..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
         </div>
 
         <div class="bg-white shadow-md rounded-lg overflow-x-auto">

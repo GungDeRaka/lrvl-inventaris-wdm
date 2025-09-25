@@ -27,6 +27,7 @@ class Index extends Component
     public $waktu_kembali;
     public $transaksiIdUntukDikembalikan;
     public $transaksiTerpilih;
+    public $search = '';
 
     // Fungsi yang akan dijalankan saat properti $nis diperbarui
     public function updatedNis($value)
@@ -160,6 +161,10 @@ class Index extends Component
         $this->transaksiIdUntukDikembalikan = null;
         $this->transaksiTerpilih = null;
     }
+     public function updatingSearch()
+    {
+        $this->resetPage();
+    }
 
     public function render()
     {
@@ -169,7 +174,17 @@ class Index extends Component
         $jatuhTempo = Transaksi::where('status', 'dipinjam')->where('waktu_kembali', '<', now())->count();
 
         // Data untuk tabel history
-        $transaksis = Transaksi::with(['siswa', 'barang'])
+         $transaksis = Transaksi::with(['siswa', 'barang'])
+            ->where(function($query) {
+                // Cari di nama barang
+                $query->whereHas('barang', function($subQuery) {
+                    $subQuery->where('nama_barang', 'like', '%' . $this->search . '%');
+                })
+                // Atau cari di nama siswa
+                ->orWhereHas('siswa', function($subQuery) {
+                    $subQuery->where('nama', 'like', '%' . $this->search . '%');
+                });
+            })
             ->latest()
             ->paginate(10);
 
