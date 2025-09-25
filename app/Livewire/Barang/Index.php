@@ -29,6 +29,8 @@ class Index extends Component
     public $jumlahYangDiperbaiki = 1;
     public $maxPerbaikan;
 
+    public $filterKategori = '';
+
     public function openModal()
     {
         $this->resetInput();
@@ -48,6 +50,10 @@ class Index extends Component
         $this->kategori_id = '';
         $this->ruangan_id = '';
         $this->jumlah_total = '';
+    }
+    public function updatingFilterKategori()
+    {
+        $this->resetPage();
     }
 
     public function simpanBarang()
@@ -131,41 +137,48 @@ class Index extends Component
     }
 
     public function konfirmasiPerbaikan($id)
-{
-    $barang = Barang::find($id);
-    $this->barangIdToRepair = $id;
-    $this->barangNamaForRepair = $barang->nama_barang;
-    $this->maxPerbaikan = $barang->jumlah_rusak; // Catat jumlah maksimal yang bisa diperbaiki
-    $this->jumlahYangDiperbaiki = 1; // Reset ke 1
-}
-
-public function prosesPerbaikan()
-{
-    // Validasi: Jumlah yang diperbaiki tidak boleh lebih dari yang rusak
-    $this->validate(
-        ['jumlahYangDiperbaiki' => 'required|integer|min:1|max:' . $this->maxPerbaikan],
-        ['jumlahYangDiperbaiki.max' => 'Jumlah perbaikan tidak boleh melebihi jumlah yang rusak.']
-    );
-
-    $barang = Barang::find($this->barangIdToRepair);
-    if ($barang) {
-        // Kembalikan jumlah total dan jumlah saat ini
-        $barang->increment('jumlah_total', $this->jumlahYangDiperbaiki);
-        $barang->increment('jumlah_saat_ini', $this->jumlahYangDiperbaiki);
-        // Kurangi dari jumlah rusak
-        $barang->decrement('jumlah_rusak', $this->jumlahYangDiperbaiki);
-
-        session()->flash('message', $this->jumlahYangDiperbaiki . ' unit barang berhasil diperbaiki dan dikembalikan ke stok.');
+    {
+        $barang = Barang::find($id);
+        $this->barangIdToRepair = $id;
+        $this->barangNamaForRepair = $barang->nama_barang;
+        $this->maxPerbaikan = $barang->jumlah_rusak; // Catat jumlah maksimal yang bisa diperbaiki
+        $this->jumlahYangDiperbaiki = 1; // Reset ke 1
     }
 
-    $this->barangIdToRepair = null; // Tutup modal
-}
+    public function prosesPerbaikan()
+    {
+        // Validasi: Jumlah yang diperbaiki tidak boleh lebih dari yang rusak
+        $this->validate(
+            ['jumlahYangDiperbaiki' => 'required|integer|min:1|max:' . $this->maxPerbaikan],
+            ['jumlahYangDiperbaiki.max' => 'Jumlah perbaikan tidak boleh melebihi jumlah yang rusak.']
+        );
+
+        $barang = Barang::find($this->barangIdToRepair);
+        if ($barang) {
+            // Kembalikan jumlah total dan jumlah saat ini
+            $barang->increment('jumlah_total', $this->jumlahYangDiperbaiki);
+            $barang->increment('jumlah_saat_ini', $this->jumlahYangDiperbaiki);
+            // Kurangi dari jumlah rusak
+            $barang->decrement('jumlah_rusak', $this->jumlahYangDiperbaiki);
+
+            session()->flash('message', $this->jumlahYangDiperbaiki . ' unit barang berhasil diperbaiki dan dikembalikan ke stok.');
+        }
+
+        $this->barangIdToRepair = null; // Tutup modal
+    }
 
     public function render()
     {
-        $barangs = Barang::with('kategori', 'ruangan')->latest()->paginate(10);
+
         $kategoris = Kategori::all();
         $ruangans = Ruangan::all();
+        $barangs = Barang::with('kategori', 'ruangan')
+            ->when($this->filterKategori, function ($query) {
+                // Terapkan filter hanya jika $filterKategori tidak kosong
+                $query->where('kategori_id', $this->filterKategori);
+            })
+            ->latest()
+            ->paginate(10);
 
         return view('livewire.barang.index', [
             'barangs' => $barangs,

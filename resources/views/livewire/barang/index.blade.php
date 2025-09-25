@@ -7,8 +7,23 @@
     @endif
 
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-semibold text-gray-800">Manajemen Data Barang</h1>
-        <button wire:click="openModal()" class="bg-purple-700 hover:bg-purple-800 text-white font-bold py-2 px-4 rounded">
+        <div class="flex justify-between items-center">
+            <h1 class="text-2xl font-semibold mr-3 text-gray-800">Manajemen Data Barang</h1>
+
+            {{-- FILTER BARANG --}}
+            <div>
+                <select wire:model.live="filterKategori" class="block w-full border-fuchsia-500 rounded-md shadow-sm">
+                    <option value="">Semua Kategori</option>
+                    @foreach ($kategoris as $kategori)
+                        <option value="{{ $kategori->id }}">{{ $kategori->nama_kategori }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        {{-- TOMBOL TAMBAH BARANG --}}
+        <button wire:click="openModal()"
+            class="bg-purple-700 hover:bg-purple-800 text-white font-bold py-2 px-4 rounded">
             Tambah Barang
         </button>
     </div>
@@ -155,6 +170,7 @@
         </div>
     @endif
 
+    {{-- tandai barang rusak --}}
     @if ($barangIdToUpdateStatus)
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
             <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
@@ -183,27 +199,36 @@
         </div>
     @endif
 
-        @if($barangIdToRepair)
-<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
-    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-        <h3 class="text-lg font-medium text-gray-900 mb-2">Perbaiki Barang Rusak</h3>
-        <p class="text-sm text-gray-600 mb-4">
-            Masukkan jumlah **"{{ $barangNamaForRepair }}"** yang telah diperbaiki. Stok akan dikembalikan. (Maks: {{ $maxPerbaikan }})
-        </p>
-        
-        <div>
-            <label for="jumlahYangDiperbaiki" class="block text-sm font-medium text-gray-700">Jumlah Diperbaiki</label>
-            <input type="number" wire:model="jumlahYangDiperbaiki" id="jumlahYangDiperbaiki" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-            @error('jumlahYangDiperbaiki') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-        </div>
+    {{-- MODAL Perbaikan BARANG --}}
 
-        <div class="mt-6 flex justify-end space-x-2">
-            <button wire:click="$set('barangIdToRepair', null)" class="px-4 py-2 bg-gray-200 rounded">Batal</button>
-            <button wire:click="prosesPerbaikan" class="px-4 py-2 bg-green-600 text-white rounded">Simpan Perbaikan</button>
+    @if ($barangIdToRepair)
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Perbaiki Barang Rusak</h3>
+                <p class="text-sm text-gray-600 mb-4">
+                    Masukkan jumlah **"{{ $barangNamaForRepair }}"** yang telah diperbaiki. Stok akan dikembalikan.
+                    (Maks: {{ $maxPerbaikan }})
+                </p>
+
+                <div>
+                    <label for="jumlahYangDiperbaiki" class="block text-sm font-medium text-gray-700">Jumlah
+                        Diperbaiki</label>
+                    <input type="number" wire:model="jumlahYangDiperbaiki" id="jumlahYangDiperbaiki"
+                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                    @error('jumlahYangDiperbaiki')
+                        <span class="text-red-500 text-xs">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="mt-6 flex justify-end space-x-2">
+                    <button wire:click="$set('barangIdToRepair', null)"
+                        class="px-4 py-2 bg-gray-200 rounded">Batal</button>
+                    <button wire:click="prosesPerbaikan" class="px-4 py-2 bg-green-600 text-white rounded">Simpan
+                        Perbaikan</button>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
-@endif
+    @endif
 
     {{-- Notifikasi Error (Tambahkan ini jika belum ada) --}}
     @if (session()->has('error'))
