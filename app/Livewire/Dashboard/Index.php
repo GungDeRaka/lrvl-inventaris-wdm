@@ -27,7 +27,10 @@ class Index extends Component
     public $waktu_kembali;
     public $transaksiIdUntukDikembalikan;
     public $transaksiTerpilih;
+
+    public $siswaDetail = null;
     public $search = '';
+
 
     // Fungsi yang akan dijalankan saat properti $nis diperbarui
     public function updatedNis($value)
@@ -61,6 +64,16 @@ class Index extends Component
         $this->barangDitemukan = []; // Sembunyikan hasil pencarian
         $this->searchBarang = ''; // Kosongkan search bar
     }
+
+    // mencari detail siswa
+    public function showSiswaDetail($siswaId)
+{
+    $this->siswaDetail = Siswa::find($siswaId);
+}
+public function closeModal()
+{
+    $this->siswaDetail = null;
+}
 
     // Metode untuk menyimpan data peminjaman
     public function simpanPeminjaman()

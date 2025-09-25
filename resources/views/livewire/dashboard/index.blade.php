@@ -64,6 +64,7 @@
             @endif
 
 
+            {{-- !formulir peminjaman --}}
             <form wire:submit.prevent="simpanPeminjaman">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -192,27 +193,59 @@
                         </th>
                     </tr>
                 </thead>
+
                 <tbody>
                     @forelse ($transaksis as $transaksi)
-                        <tr class="hover:bg-gray-50 border-b border-gray-200">
-                            <td class="px-5 py-4 bg-white text-sm">{{ $transaksi->barang->nama_barang }}</td>
-                            <td class="px-5 py-4 bg-white text-sm">{{ $transaksi->siswa->nama }}</td>
-                            <td class="px-5 py-4 bg-white text-sm">
+                        @php
+                            // Logika untuk mengecek apakah sudah jatuh tempo
+                            $isJatuhTempo =
+                                $transaksi->status == 'dipinjam' &&
+                                \Carbon\Carbon::parse($transaksi->waktu_kembali)->isPast();
+                        @endphp
+
+                        {{-- Beri warna latar jika jatuh tempo --}}
+                        <tr class="hover:bg-gray-50 border-b border-gray-200 {{ $isJatuhTempo ? 'bg-red-100' : '' }}">
+
+                            {{-- Perhatikan, semua class 'bg-white' dan 'bg-transparent' telah dihapus dari <td> --}}
+                            <td class="px-5 py-4 text-sm">{{ $transaksi->barang->nama_barang }}</td>
+                            <td class="px-5 py-4 text-sm">
+                                <button wire:click="showSiswaDetail({{ $transaksi->siswa->id }})"
+                                    class="font-semibold text-indigo-600 hover:underline">
+                                    {{ $transaksi->siswa->nama }}
+                                </button>
+                            </td>
+                            <td class="px-5 py-4 text-sm">
                                 {{ \Carbon\Carbon::parse($transaksi->waktu_pinjam)->format('d M Y, H:i') }}</td>
-                            <td class="px-5 py-4 bg-white text-sm">
+                            <td class="px-5 py-4 text-sm">
                                 {{ \Carbon\Carbon::parse($transaksi->waktu_kembali)->format('d M Y, H:i') }}</td>
-                            <td class="px-5 py-4 bg-white text-sm">
+
+                            {{-- Kolom Status --}}
+                            <td class="px-5 py-4 text-sm">
                                 <span
-                                    class="px-2 py-1 font-semibold leading-tight rounded-full {{ $transaksi->status == 'dipinjam' ? 'bg-yellow-200 text-yellow-900' : 'bg-green-200 text-green-900' }}">
-                                    {{ ucfirst($transaksi->status) }}
+                                    class="px-2 py-1 font-semibold leading-tight rounded-full 
+                    {{ $isJatuhTempo ? 'bg-red-200 text-red-900' : ($transaksi->status == 'dipinjam' ? 'bg-yellow-200 text-yellow-900' : 'bg-green-200 text-green-900') }}">
+                                    {{ $isJatuhTempo ? 'Jatuh Tempo' : ucfirst($transaksi->status) }}
                                 </span>
                             </td>
-                            <td class="px-5 py-4 bg-white text-sm">
+
+                            {{-- Kolom Aksi --}}
+                            <td class="px-5 py-4 text-sm">
                                 @if ($transaksi->status == 'dipinjam')
                                     <button wire:click="konfirmasiPengembalian({{ $transaksi->id }})"
                                         class="text-indigo-600 hover:text-indigo-900 font-semibold">
                                         Kembalikan
                                     </button>
+                                @endif
+
+                                @if ($isJatuhTempo)
+                                    @php
+                                        $pesan = "Pemberitahuan: Peminjaman barang '{$transaksi->barang->nama_barang}' atas nama Anda telah melewati batas waktu pengembalian. Harap segera dikembalikan ke gudang. Terima kasih.";
+                                    @endphp
+                                    <a href="https://api.whatsapp.com/send?phone={{ $transaksi->siswa->formatted_no_hp }}&text={{ urlencode($pesan) }}"
+                                        target="_blank"
+                                        class="text-green-600 hover:text-green-900 font-semibold ml-2">
+                                        Chat WA
+                                    </a>
                                 @endif
                             </td>
                         </tr>
@@ -244,6 +277,47 @@
                     <button wire:click="prosesPengembalian" class="px-4 py-2 bg-purple-700 text-white rounded">Ya,
                         Sudah
                         Kembali</button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- MODAL TAMPILKAN DETAIL SISWA --}}
+    @if ($siswaDetail)
+        {{-- Latar belakang gelap, klik di sini akan menutup modal --}}
+        <div wire:click="closeModal"
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30 cursor-pointer">
+
+            {{-- Kotak modal putih. @click.stop mencegah klik di sini ikut menutup modal --}}
+            <div @click.stop class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md cursor-default">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Detail Peminjam</h3>
+
+                    {{-- Tombol 'x' sekarang memanggil method closeModal --}}
+                    <button wire:click="closeModal"
+                        class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+                </div>
+                <div>
+                    <table class="w-full text-sm">
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="py-2 font-semibold">NIS</td>
+                                <td class="py-2">{{ $siswaDetail->nis }}</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="py-2 font-semibold">Nama</td>
+                                <td class="py-2">{{ $siswaDetail->nama }}</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="py-2 font-semibold">Kelas</td>
+                                <td class="py-2">{{ $siswaDetail->kelas }}</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 font-semibold">No. HP</td>
+                                <td class="py-2">{{ $siswaDetail->no_hp }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
