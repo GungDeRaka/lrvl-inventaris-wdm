@@ -14,12 +14,12 @@
         {{-- HEADER UTAMA (Logo & Profil) --}}
         <header class="p-2 shadow-sm bg-gradient-to-tr from-fuchsia-300 to-[#620F55] relative">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-center h-20 relative">
+                <div class="flex items-center justify-between md:justify-center h-20 relative">
                     {{-- LOGO & JUDUL DI TENGAH --}}
                     <div class="flex items-center space-x-4">
                         {{-- Div untuk background gradasi logo --}}
 
-                        <img class="h-16 w-16" src="{{ asset('logo.jpg') }}" alt="Logo SMK Widiatmika">
+                        <img class="h-8 w-8 md:h-16 md:w-16" src="{{ asset('logo.jpg') }}" alt="Logo SMK Widiatmika">
 
                         <span class="text-white text-2xl font-bold">SMK WIDIATMIKA</span>
                     </div>
@@ -30,7 +30,7 @@
                         <livewire:notifications.bell />
                         <div x-data="{ dropdownOpen: false }" class="relative">
                             <button @click="dropdownOpen = !dropdownOpen"
-                                class="flex items-center justify-center h-12 w-12 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600 focus:outline-none">
+                                class="flex items-center justify-center h-8 w-8 md:h-12 md:w-12 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600 focus:outline-none">
                                 {{-- Icon User --}}
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -61,7 +61,7 @@
         {{-- NAVIGASI BAR --}}
         <nav class="bg-[#620F55] shadow-md">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center h-14 space-x-8">
+                <div class="flex items-center justify-center md:justify-start h-14 space-x-8">
                     <a href="{{ route('dashboard') }}"
                         class="font-semibold text-white hover:text-gray-300 {{ request()->routeIs('dashboard') ? 'border-b-2 border-amber-400 text-amber-400' : '' }}">
                         DASHBOARD TRANSAKSI
