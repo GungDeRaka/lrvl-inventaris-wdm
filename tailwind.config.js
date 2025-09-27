@@ -11,6 +11,10 @@ export default {
 
     theme: {
         extend: {
+            colors: {
+              // TAMBAHKAN WARNA KUSTOM ANDA DI SINI
+              'primary': '#620F55',
+            },
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },

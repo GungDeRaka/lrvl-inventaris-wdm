@@ -62,10 +62,10 @@
                                 {{ __('Forgot Password?') }}
                             </a>
                         @endif
-                        <span class="text-gray-400 mx-2">|</span>
+                        {{-- <span class="text-gray-400 mx-2">|</span>
                         <a class="underline text-gray-600 hover:text-gray-900" href="{{ route('register') }}">
                             {{ __('SignUp?') }}
-                        </a>
+                        </a> --}}
                     </div>
                 </form>
             </div>

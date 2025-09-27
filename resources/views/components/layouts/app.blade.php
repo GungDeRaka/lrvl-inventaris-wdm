@@ -21,7 +21,7 @@
 
                         <img class="h-8 w-8 md:h-16 md:w-16" src="{{ asset('logo.jpg') }}" alt="Logo SMK Widiatmika">
 
-                        <span class="text-white text-2xl font-bold">SMK WIDIATMIKA</span>
+                        <span class="text-white sm:block text-2xl font-bold">SMK WIDIATMIKA</span>
                     </div>
 
                     {{-- DROPDOWN PROFIL DI KANAN --}}
@@ -41,6 +41,11 @@
                             <div x-show="dropdownOpen" @click.away="dropdownOpen = false"
                                 class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20" x-transition>
                                 <div class="px-4 py-2 text-sm text-gray-700">{{ Auth::user()->name }}</div>
+                                @can('kelola-pengguna')
+                                    <a href="{{ route('user.index') }}"
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Manajemen
+                                        Pengguna</a>
+                                @endcan
                                 <a href="{{ route('profile.edit') }}"
                                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profil Saya</a>
                                 <form method="POST" action="{{ route('logout') }}">

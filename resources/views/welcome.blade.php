@@ -35,10 +35,10 @@
                         <a href="{{ route('login') }}"
                             class="px-6 py-3 bg-fuchsia-700 text-white font-semibold rounded-lg shadow-md hover:bg-purple-800 transition">Masuk</a>
 
-                        @if (Route::has('register'))
+                        {{-- @if (Route::has('register'))
                             <a href="{{ route('register') }}"
                                 class="px-6 py-3 bg-white text-fuchsia-700 font-semibold rounded-lg shadow-md hover:bg-gray-50 transition">Daftar</a>
-                        @endif
+                        @endif --}}
                     @endauth
                 @endif
             </div>
