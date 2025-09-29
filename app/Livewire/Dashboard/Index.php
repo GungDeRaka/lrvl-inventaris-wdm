@@ -27,6 +27,8 @@ class Index extends Component
     public $waktu_kembali;
     public $transaksiIdUntukDikembalikan;
     public $transaksiTerpilih;
+    public $showTransactionModal = false;
+
 
     public $siswaDetail = null;
     public $search = '';
@@ -67,13 +69,24 @@ class Index extends Component
 
     // mencari detail siswa
     public function showSiswaDetail($siswaId)
-{
-    $this->siswaDetail = Siswa::find($siswaId);
-}
-public function closeModal()
-{
-    $this->siswaDetail = null;
-}
+    {
+        $this->siswaDetail = Siswa::find($siswaId);
+    }
+    public function closeModal()
+    {
+        $this->siswaDetail = null;
+    }
+
+    public function openTransactionModal()
+    {
+        $this->resetForm(); // Reset form setiap kali modal dibuka
+        $this->showTransactionModal = true;
+    }
+
+    public function closeTransactionModal()
+    {
+        $this->showTransactionModal = false;
+    }
 
     // Metode untuk menyimpan data peminjaman
     public function simpanPeminjaman()
@@ -125,7 +138,8 @@ public function closeModal()
 
             // Langkah 4: Beri notifikasi dan reset form
             session()->flash('message', 'Data peminjaman berhasil disimpan!');
-            $this->resetForm();
+            // $this->resetForm();
+            $this->closeTransactionModal();
         } catch (\Exception $e) {
             session()->flash('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
         }
@@ -174,7 +188,7 @@ public function closeModal()
         $this->transaksiIdUntukDikembalikan = null;
         $this->transaksiTerpilih = null;
     }
-     public function updatingSearch()
+    public function updatingSearch()
     {
         $this->resetPage();
     }
@@ -187,16 +201,16 @@ public function closeModal()
         $jatuhTempo = Transaksi::where('status', 'dipinjam')->where('waktu_kembali', '<', now())->count();
 
         // Data untuk tabel history
-         $transaksis = Transaksi::with(['siswa', 'barang'])
-            ->where(function($query) {
+        $transaksis = Transaksi::with(['siswa', 'barang'])
+            ->where(function ($query) {
                 // Cari di nama barang
-                $query->whereHas('barang', function($subQuery) {
+                $query->whereHas('barang', function ($subQuery) {
                     $subQuery->where('nama_barang', 'like', '%' . $this->search . '%');
                 })
-                // Atau cari di nama siswa
-                ->orWhereHas('siswa', function($subQuery) {
-                    $subQuery->where('nama', 'like', '%' . $this->search . '%');
-                });
+                    // Atau cari di nama siswa
+                    ->orWhereHas('siswa', function ($subQuery) {
+                        $subQuery->where('nama', 'like', '%' . $this->search . '%');
+                    });
             })
             ->latest()
             ->paginate(10);

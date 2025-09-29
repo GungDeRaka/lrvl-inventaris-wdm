@@ -12,7 +12,7 @@
 <body class="bg-gray-100 font-sans">
     <div x-data="{ open: false }" class="min-h-screen">
         {{-- HEADER UTAMA (Logo & Profil) --}}
-        <header class="p-2 shadow-sm bg-gradient-to-tr from-fuchsia-300 to-[#620F55] relative">
+        <header class="p-2 shadow-sm bg-gradient-to-tr from-fuchsia-300 to-primary relative">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between md:justify-center h-20 relative">
                     {{-- LOGO & JUDUL DI TENGAH --}}
@@ -64,7 +64,7 @@
         </header>
 
         {{-- NAVIGASI BAR --}}
-        <nav class="bg-[#620F55] shadow-md">
+        <nav class="bg-primary shadow-md">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-center md:justify-start h-14 space-x-8">
                     <a href="{{ route('dashboard') }}"

@@ -50,7 +50,7 @@
                     <x-input-error :messages="$errors->get('password')" class="mt-2" />
 
                     <div class="flex items-center justify-center mt-8">
-                        <x-primary-button class="w-full justify-center text-lg bg-[#620F55] hover:bg-purple-900">
+                        <x-primary-button class="w-full justify-center text-lg bg-primary hover:bg-purple-900">
                             {{ __('Login Now') }}
                         </x-primary-button>
                     </div>
@@ -71,7 +71,7 @@
             </div>
 
             <div
-                class="hidden md:flex w-1/2 bg-[#620F55] text-white p-12 flex-col justify-center items-center rounded-r-lg">
+                class="hidden md:flex w-1/2 bg-primary text-white p-12 flex-col justify-center items-center rounded-r-lg">
                 <h2 class="text-2xl text-center font-bold mb-2">Sistem Informasi Manajemen Inventaris</h2>
                 <h1 class="text-4xl font-extrabold mb-8">SMK WIDIATMIKA</h1>
 
