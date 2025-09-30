@@ -41,11 +41,6 @@
                             <div x-show="dropdownOpen" @click.away="dropdownOpen = false"
                                 class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20" x-transition>
                                 <div class="px-4 py-2 text-sm text-gray-700">{{ Auth::user()->name }}</div>
-                                @can('kelola-pengguna')
-                                    <a href="{{ route('user.index') }}"
-                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Manajemen
-                                        Pengguna</a>
-                                @endcan
                                 <a href="{{ route('profile.edit') }}"
                                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profil Saya</a>
                                 <form method="POST" action="{{ route('logout') }}">
@@ -75,6 +70,18 @@
                         class="font-semibold text-white hover:text-gray-300 {{ request()->routeIs('barang.index') ? 'border-b-2 border-amber-400 text-amber-400' : '' }}">
                         MANAJEMEN BARANG
                     </a>
+                    @can('kelola-pengguna')
+                        <a href="{{ route('kategori.index') }}"
+                            class="font-semibold text-white hover:text-gray-300 {{ request()->routeIs('kategori.index') ? 'border-b-2 border-white' : '' }}">
+                            MANAJEMEN KATEGORI
+                        </a>
+                    @endcan
+                    @can('kelola-pengguna')
+                        <a href="{{ route('user.index') }}"
+                            class="font-semibold text-white hover:text-gray-300 {{ request()->routeIs('user.index') ? 'border-b-2 border-white' : '' }}">
+                            MANAJEMEN PENGGUNA
+                        </a>
+                    @endcan
                 </div>
             </div>
         </nav>

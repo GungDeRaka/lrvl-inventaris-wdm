@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LaporanController; //
 use App\Livewire\Barang\Index as BarangIndex;
 use App\Livewire\User\Index as UserIndex;
+use App\Livewire\Kategori\Index as KategoriIndex;
 
 Route::get('/', function () {
     return view('welcome');
@@ -17,7 +18,10 @@ Route::middleware(['auth', 'verified', 'cek.jam.kerja'])->group(function () {
     Route::get('/barang', BarangIndex::class)->name('barang.index');
 
     Route::get('/laporan/transaksi', [LaporanController::class, 'cetakTransaksi'])->name('laporan.transaksi');
+    // Rute untuk manajemen pengguna
     Route::get('/pengguna', UserIndex::class)->name('user.index')->middleware('can:kelola-pengguna');
+     // Rute untuk manajemen kategori
+    Route::get('/kategori', KategoriIndex::class)->name('kategori.index')->middleware('can:kelola-pengguna');
 });
 
 Route::middleware('auth')->group(function () {
