@@ -44,6 +44,9 @@
                         Kategori</th>
                     <th
                         class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Lokasi/Ruangan</th>
+                    <th
+                        class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         Stok</th>
                     <th
                         class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -57,6 +60,8 @@
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">{{ $barang->nama_barang }}</td>
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
                             {{ $barang->kategori->nama_kategori }}</td>
+                        <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
+                            {{ $barang->ruangan->nama_ruangan }}</td>
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">{{ $barang->jumlah_saat_ini }} /
                             {{ $barang->jumlah_total }}
                             @if ($barang->jumlah_rusak > 0)

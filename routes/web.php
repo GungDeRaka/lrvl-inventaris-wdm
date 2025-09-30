@@ -6,6 +6,7 @@ use App\Http\Controllers\LaporanController; //
 use App\Livewire\Barang\Index as BarangIndex;
 use App\Livewire\User\Index as UserIndex;
 use App\Livewire\Kategori\Index as KategoriIndex;
+use App\Livewire\Ruangan\Index as RuanganIndex;
 
 Route::get('/', function () {
     return view('welcome');
@@ -22,6 +23,9 @@ Route::middleware(['auth', 'verified', 'cek.jam.kerja'])->group(function () {
     Route::get('/pengguna', UserIndex::class)->name('user.index')->middleware('can:kelola-pengguna');
      // Rute untuk manajemen kategori
     Route::get('/kategori', KategoriIndex::class)->name('kategori.index')->middleware('can:kelola-pengguna');
+    // Rute untuk manajemen ruangan
+    Route::get('/ruangan', RuanganIndex::class)->name('ruangan.index')->middleware('can:kelola-pengguna');
+
 });
 
 Route::middleware('auth')->group(function () {
