@@ -19,6 +19,11 @@
                 <div class="flex justify-center mb-8">
                     <img src="{{ asset('logo.jpg') }}" alt="Ganesha" class="h-24">
                 </div>
+                @if (session('error'))
+                    <div class="mb-4 p-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
+                        <span class="font-medium">Akses Ditolak!</span> {{ session('error') }}
+                    </div>
+                @endif
 
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
@@ -34,7 +39,6 @@
                             name="email" :value="old('email')" required autofocus autocomplete="username"
                             placeholder="Username" />
                     </div>
-                    <x-input-error :messages="$errors->get('email')" class="mt-2" />
 
                     <div class="relative mb-6">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -47,8 +51,8 @@
                         <x-text-input id="password" class="block w-full pl-10 bg-gray-100 border-none" type="password"
                             name="password" required autocomplete="current-password" placeholder="Password" />
                     </div>
-                    <x-input-error :messages="$errors->get('password')" class="mt-2" />
-
+                    <x-input-error :messages="$errors->get('password')" class="mt-2 mb-1" />
+                    <x-input-error :messages="$errors->get('email')" class="mt-2 mb-1" />
                     <div class="flex items-center justify-center mt-8">
                         <x-primary-button class="w-full justify-center text-lg bg-primary hover:bg-purple-900">
                             {{ __('Login Now') }}
@@ -76,7 +80,7 @@
                 <h1 class="text-4xl font-extrabold mb-8">SMK WIDIATMIKA</h1>
 
                 <div class="w-64 h-64 bg-purple-800 rounded-lg flex items-center justify-center">
-                    <img  src="{{ asset('inventory-illustration.png') }}" alt="Inventory" class="h-80 w-72">
+                    <img src="{{ asset('inventory-illustration.png') }}" alt="Inventory" class="h-80 w-72">
                 </div>
             </div>
         </div>
