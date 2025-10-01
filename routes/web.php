@@ -3,7 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\LaporanController; 
+use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\Siswa\LoginController;
 use App\Livewire\Barang\Index as BarangIndex;
 use App\Livewire\User\Index as UserIndex;
@@ -23,11 +23,10 @@ Route::middleware(['auth', 'verified', 'cek.jam.kerja'])->group(function () {
     Route::get('/laporan/transaksi', [LaporanController::class, 'cetakTransaksi'])->name('laporan.transaksi');
     // Rute untuk manajemen pengguna
     Route::get('/pengguna', UserIndex::class)->name('user.index')->middleware('can:kelola-pengguna');
-     // Rute untuk manajemen kategori
+    // Rute untuk manajemen kategori
     Route::get('/kategori', KategoriIndex::class)->name('kategori.index')->middleware('can:kelola-pengguna');
     // Rute untuk manajemen ruangan
     Route::get('/ruangan', RuanganIndex::class)->name('ruangan.index')->middleware('can:kelola-pengguna');
-
 });
 
 Route::middleware('auth')->group(function () {
@@ -44,11 +43,7 @@ Route::prefix('siswa')->name('siswa.')->group(function () {
 
     // Halaman yang terproteksi (hanya bisa diakses setelah login sebagai siswa)
     Route::middleware('auth:siswa')->group(function () {
-        Route::get('/dashboard', function () {
-            // Untuk sementara, kita tampilkan view sederhana
-            // Nanti kita bisa buat controller/komponen Livewire khusus
-            return '<h1>Selamat Datang di Dashboard Siswa, ' . Auth::guard('siswa')->user()->nama . '</h1>';
-        })->name('dashboard');
+        Route::get('/dashboard', \App\Livewire\Siswa\Dashboard::class)->name('dashboard');
     });
 });
 
