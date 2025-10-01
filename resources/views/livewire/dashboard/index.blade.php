@@ -1,7 +1,7 @@
 <div>
     <h1 class="text-2xl font-bold text-gray-900 mb-6">Selamat Datang, {{ Auth::user()->name }}!</h1>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 mx-2 md:mx-0 mb-8">
         <div class="bg-white p-6 rounded-lg shadow-md flex items-center">
             <div>
                 <p class="text-sm font-medium text-gray-500">Total Unit Barang</p>
@@ -58,29 +58,28 @@
     <hr class="bt-4 border-black mb-2 mt-6">
 
     <div>
-        <div class="flex justify-start items-center mb-2 mt-4">
-            <h2 class="text-xl font-semibold  mr-4 text-gray-700">HISTORY PEMINJAMAN</h2>
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+            {{-- Judul --}}
+            <h2 class="text-xl font-semibold text-gray-700">HISTORY PEMINJAMAN</h2>
 
+            {{-- Grup Tombol Aksi & Pencarian --}}
+            <div class="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
+                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari..."
+                    class="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm">
 
-            {{-- tombol cetak laporan --}}
-            <a href="{{ route('laporan.transaksi') }}" target="_blank"
-                class="border border-primary hover:bg-primary hover:text-white text-primary font-bold py-1 px-4 rounded text-sm">
-                Cetak Laporan
-            </a>
-        </div>
-        <div class="flex flex-row justify-between items-center mb-4">
-            <div class="w-1/3 ">
-                <input type="text" wire:model.live.debounce.300ms="search"
-                    placeholder="Cari nama barang atau peminjam..."
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <a href="{{ route('laporan.transaksi') }}" target="_blank"
+                        class="w-1/2 sm:w-auto flex justify-center items-center bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded text-sm">
+                        Cetak Laporan
+                    </a>
+                    <button wire:click="openTransactionModal"
+                        class="w-1/2 sm:w-auto flex justify-center items-center bg-primary hover:bg-purple-800 text-white font-bold py-2 px-4 rounded-lg shadow-md">
+                        Tambah Peminjaman
+                    </button>
+                </div>
             </div>
-
-            <button wire:click="openTransactionModal"
-                class="bg-primary hover:bg-purple-800 text-white font-bold py-2 px-6 rounded-lg shadow-md">
-                Tambah Peminjaman Baru
-            </button>
-
         </div>
+
 
         <div class="bg-white shadow-md rounded-lg overflow-x-auto">
             <table class="min-w-full leading-normal">
@@ -277,67 +276,67 @@
         </div>
 
 
-@endif
+    @endif
 
-{{-- modal pengembalian --}}
-@if ($transaksiIdUntukDikembalikan)
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
-        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h3 class="text-lg font-medium text-gray-900 mb-2">Konfirmasi Pengembalian</h3>
-            <p class="text-sm text-gray-600 mb-4">
-                Anda yakin ingin menandai barang <strong>"{{ $transaksiTerpilih->barang->nama_barang }}"</strong>
-                yang dipinjam
-                oleh <strong>"{{ $transaksiTerpilih->siswa->nama }}" </strong>telah dikembalikan?
-            </p>
-            <div class="mt-4 flex justify-end space-x-2">
-                <button wire:click="$set('transaksiIdUntukDikembalikan', null)"
-                    class="px-4 py-2 bg-gray-200 rounded">Batal</button>
-                <button wire:click="prosesPengembalian" class="px-4 py-2 bg-purple-700 text-white rounded">Ya,
-                    Sudah
-                    Kembali</button>
+    {{-- modal pengembalian --}}
+    @if ($transaksiIdUntukDikembalikan)
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Konfirmasi Pengembalian</h3>
+                <p class="text-sm text-gray-600 mb-4">
+                    Anda yakin ingin menandai barang <strong>"{{ $transaksiTerpilih->barang->nama_barang }}"</strong>
+                    yang dipinjam
+                    oleh <strong>"{{ $transaksiTerpilih->siswa->nama }}" </strong>telah dikembalikan?
+                </p>
+                <div class="mt-4 flex justify-end space-x-2">
+                    <button wire:click="$set('transaksiIdUntukDikembalikan', null)"
+                        class="px-4 py-2 bg-gray-200 rounded">Batal</button>
+                    <button wire:click="prosesPengembalian" class="px-4 py-2 bg-purple-700 text-white rounded">Ya,
+                        Sudah
+                        Kembali</button>
+                </div>
             </div>
         </div>
-    </div>
-@endif
+    @endif
 
-{{-- MODAL TAMPILKAN DETAIL SISWA --}}
-@if ($siswaDetail)
-    {{-- Latar belakang gelap, klik di sini akan menutup modal --}}
-    <div wire:click="closeModal"
-        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30 cursor-pointer">
+    {{-- MODAL TAMPILKAN DETAIL SISWA --}}
+    @if ($siswaDetail)
+        {{-- Latar belakang gelap, klik di sini akan menutup modal --}}
+        <div wire:click="closeModal"
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30 cursor-pointer">
 
-        {{-- Kotak modal putih. @click.stop mencegah klik di sini ikut menutup modal --}}
-        <div @click.stop class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md cursor-default">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Detail Peminjam</h3>
+            {{-- Kotak modal putih. @click.stop mencegah klik di sini ikut menutup modal --}}
+            <div @click.stop class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md cursor-default">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Detail Peminjam</h3>
 
-                {{-- Tombol 'x' sekarang memanggil method closeModal --}}
-                <button wire:click="closeModal"
-                    class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
-            </div>
-            <div>
-                <table class="w-full text-sm">
-                    <tbody>
-                        <tr class="border-b">
-                            <td class="py-2 font-semibold">NIS</td>
-                            <td class="py-2">{{ $siswaDetail->nis }}</td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="py-2 font-semibold">Nama</td>
-                            <td class="py-2">{{ $siswaDetail->nama }}</td>
-                        </tr>
-                        <tr class="border-b">
-                            <td class="py-2 font-semibold">Kelas</td>
-                            <td class="py-2">{{ $siswaDetail->kelas }}</td>
-                        </tr>
-                        <tr>
-                            <td class="py-2 font-semibold">No. HP</td>
-                            <td class="py-2">{{ $siswaDetail->no_hp }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+                    {{-- Tombol 'x' sekarang memanggil method closeModal --}}
+                    <button wire:click="closeModal"
+                        class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+                </div>
+                <div>
+                    <table class="w-full text-sm">
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="py-2 font-semibold">NIS</td>
+                                <td class="py-2">{{ $siswaDetail->nis }}</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="py-2 font-semibold">Nama</td>
+                                <td class="py-2">{{ $siswaDetail->nama }}</td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="py-2 font-semibold">Kelas</td>
+                                <td class="py-2">{{ $siswaDetail->kelas }}</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 font-semibold">No. HP</td>
+                                <td class="py-2">{{ $siswaDetail->no_hp }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
-@endif
+    @endif
 </div>
