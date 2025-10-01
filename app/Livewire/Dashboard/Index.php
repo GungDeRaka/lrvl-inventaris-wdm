@@ -201,7 +201,7 @@ class Index extends Component
         $jatuhTempo = Transaksi::where('status', 'dipinjam')->where('waktu_kembali', '<', now())->count();
 
         // Data untuk tabel history
-        $transaksis = Transaksi::with(['siswa', 'barang'])
+        $transaksis = Transaksi::with(['siswa', 'barang.ruangan'])
             ->where(function ($query) {
                 // Cari di nama barang
                 $query->whereHas('barang', function ($subQuery) {

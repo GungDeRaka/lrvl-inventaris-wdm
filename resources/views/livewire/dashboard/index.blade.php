@@ -60,7 +60,7 @@
     <div>
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
             {{-- Judul --}}
-            <h2 class="text-xl font-semibold text-gray-700">HISTORY PEMINJAMAN</h2>
+            <h2 class="text-xl font-semibold text-gray-700">RIWAYAT PEMINJAMAN</h2>
 
             {{-- Grup Tombol Aksi & Pencarian --}}
             <div class="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
@@ -82,21 +82,24 @@
 
 
         <div class="bg-white shadow-md rounded-lg overflow-x-auto">
-            <table class="min-w-full leading-normal">
-                <thead class="bg-primary">
-                    <tr>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Nama
+            <table class="w-full tabel-fixed border-collapse leading-normal">
+                <thead class=" bg-primary">
+                    <tr >
+                        <th class="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Nama
                             Barang</th>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Nama
+                        <th class="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Asal
+                            Barang</th>
+                        <th class="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Nama
                             Peminjam</th>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Waktu
-                            Pinjam</th>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Waktu
+                        <th class="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Ruang
+                            Penggunaan</th>
+                        <th class="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Waktu
                             Kembali</th>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Status
+                        <th class="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Status
                         </th>
-                        <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Aksi
+                        <th class="pl-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Aksi
                         </th>
+
                     </tr>
                 </thead>
 
@@ -110,23 +113,25 @@
                         @endphp
 
                         {{-- Beri warna latar jika jatuh tempo --}}
-                        <tr class="hover:bg-gray-50 border-b border-gray-200 {{ $isJatuhTempo ? 'bg-red-100' : '' }}">
+                        <tr class=" border-b border-gray-200 {{ $isJatuhTempo ? 'bg-red-100' : 'hover:bg-gray-50' }}">
 
                             {{-- Perhatikan, semua class 'bg-white' dan 'bg-transparent' telah dihapus dari <td> --}}
-                            <td class="px-5 py-4 text-sm">{{ $transaksi->barang->nama_barang }}</td>
-                            <td class="px-5 py-4 text-sm">
+                            <td class="px-3 py-4 text-sm">{{ $transaksi->barang->nama_barang }}</td>
+                            <td class="px-3 py-4 text-sm">{{ $transaksi->barang->ruangan->nama_ruangan }}</td>
+                            <td class="px-3 py-4 text-sm">
                                 <button wire:click="showSiswaDetail({{ $transaksi->siswa->id }})"
                                     class="font-semibold text-indigo-600 hover:underline">
                                     {{ $transaksi->siswa->nama }}
                                 </button>
                             </td>
-                            <td class="px-5 py-4 text-sm">
+                             <td class="px-3 py-4 text-sm">{{ $transaksi->ruang_pemakaian }}</td> 
+                            <td class="px-3 py-4 text-sm">
                                 {{ \Carbon\Carbon::parse($transaksi->waktu_pinjam)->format('d M Y, H:i') }}</td>
-                            <td class="px-5 py-4 text-sm">
+                            <td class="px-3 py-4 text-sm">
                                 {{ \Carbon\Carbon::parse($transaksi->waktu_kembali)->format('d M Y, H:i') }}</td>
 
                             {{-- Kolom Status --}}
-                            <td class="px-5 py-4 text-sm">
+                            <td class="px-3 py-4 text-sm">
                                 <span
                                     class="px-2 py-1 font-semibold leading-tight rounded-full 
                     {{ $isJatuhTempo ? 'bg-red-200 text-red-900' : ($transaksi->status == 'dipinjam' ? 'bg-yellow-200 text-yellow-900' : 'bg-green-200 text-green-900') }}">
@@ -135,7 +140,7 @@
                             </td>
 
                             {{-- Kolom Aksi --}}
-                            <td class="px-5 py-4 text-sm">
+                            <td class="px-3 py-4 text-sm">
                                 @if ($transaksi->status == 'dipinjam')
                                     <button wire:click="konfirmasiPengembalian({{ $transaksi->id }})"
                                         class="text-indigo-600 hover:text-indigo-900 font-semibold">
@@ -156,7 +161,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center py-6 text-gray-500">Belum ada riwayat peminjaman.
+                            <td colspan="8" class="text-center py-6 text-gray-500">Belum ada riwayat peminjaman.
                             </td>
                         </tr>
                     @endforelse

@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\LaporanController; //
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\LaporanController; 
+use App\Http\Controllers\Siswa\LoginController;
 use App\Livewire\Barang\Index as BarangIndex;
 use App\Livewire\User\Index as UserIndex;
 use App\Livewire\Kategori\Index as KategoriIndex;
@@ -34,6 +36,21 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::prefix('siswa')->name('siswa.')->group(function () {
+    // Rute untuk login & logout
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login']);
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+    // Halaman yang terproteksi (hanya bisa diakses setelah login sebagai siswa)
+    Route::middleware('auth:siswa')->group(function () {
+        Route::get('/dashboard', function () {
+            // Untuk sementara, kita tampilkan view sederhana
+            // Nanti kita bisa buat controller/komponen Livewire khusus
+            return '<h1>Selamat Datang di Dashboard Siswa, ' . Auth::guard('siswa')->user()->nama . '</h1>';
+        })->name('dashboard');
+    });
+});
 
 
 require __DIR__ . '/auth.php';
