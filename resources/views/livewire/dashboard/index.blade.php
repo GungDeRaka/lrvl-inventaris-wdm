@@ -56,6 +56,39 @@
     @endif
 
     <hr class="bt-4 border-black mb-2 mt-6">
+    @if ($permintaanMasuk->isNotEmpty())
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">PERMINTAAN PEMINJAMAN MASUK</h2>
+            <div class="bg-white shadow-md rounded-lg overflow-x-auto">
+                <table class="w-full table-auto">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase">Siswa</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase">Barang</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase">Waktu Pinjam</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($permintaanMasuk as $permintaan)
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="px-4 py-3 text-sm">{{ $permintaan->siswa->nama }}</td>
+                                <td class="px-4 py-3 text-sm">{{ $permintaan->barang->nama_barang }}</td>
+                                <td class="px-4 py-3 text-sm">
+                                    {{ \Carbon\Carbon::parse($permintaan->waktu_pinjam)->format('d M, H:i') }}</td>
+                                <td class="px-4 py-3 text-sm whitespace-nowrap">
+                                    <button wire:click="setujuiPermintaan({{ $permintaan->id }})"
+                                        class="font-semibold text-green-600 hover:text-green-900">Setujui</button>
+                                    <button wire:click="tolakPermintaan({{ $permintaan->id }})"
+                                        class="font-semibold text-red-600 hover:text-red-900 ml-4">Tolak</button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
 
     <div>
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
@@ -84,7 +117,7 @@
         <div class="bg-white shadow-md rounded-lg overflow-x-auto">
             <table class="w-full tabel-fixed border-collapse leading-normal">
                 <thead class=" bg-primary">
-                    <tr >
+                    <tr>
                         <th class="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Nama
                             Barang</th>
                         <th class="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Asal
@@ -124,7 +157,7 @@
                                     {{ $transaksi->siswa->nama }}
                                 </button>
                             </td>
-                             <td class="px-3 py-4 text-sm">{{ $transaksi->ruang_pemakaian }}</td> 
+                            <td class="px-3 py-4 text-sm">{{ $transaksi->ruang_pemakaian }}</td>
                             <td class="px-3 py-4 text-sm">
                                 {{ \Carbon\Carbon::parse($transaksi->waktu_pinjam)->format('d M Y, H:i') }}</td>
                             <td class="px-3 py-4 text-sm">

@@ -193,6 +193,36 @@ class Index extends Component
         $this->resetPage();
     }
 
+
+    public function setujuiPermintaan($id)
+    {
+        DB::transaction(function () use ($id) {
+            $transaksi = Transaksi::findOrFail($id);
+            $barang = $transaksi->barang;
+
+            // Pastikan stok masih tersedia saat approval
+            if ($barang->jumlah_saat_ini < $transaksi->kuantitas) {
+                session()->flash('error', 'Gagal! Stok barang tidak mencukupi saat akan disetujui.');
+                $transaksi->update(['status' => 'ditolak']);
+                return;
+            }
+
+            // Update status & kurangi stok
+            $transaksi->update(['status' => 'disetujui', 'user_id' => Auth::id()]);
+            $barang->decrement('jumlah_saat_ini', $transaksi->kuantitas);
+
+            session()->flash('message', 'Permintaan berhasil disetujui.');
+        });
+    }
+
+    public function tolakPermintaan($id)
+    {
+        $transaksi = Transaksi::find($id);
+        if ($transaksi) {
+            $transaksi->update(['status' => 'ditolak', 'user_id' => Auth::id()]);
+            session()->flash('message', 'Permintaan telah ditolak.');
+        }
+    }
     public function render()
     {
         $totalUnitBarang = Barang::sum('jumlah_total');
@@ -215,12 +245,17 @@ class Index extends Component
             ->latest()
             ->paginate(10);
 
+        $permintaanMasuk = Transaksi::with(['siswa', 'barang'])
+            ->where('status', 'diajukan')
+            ->latest()->get();
+
         return view('livewire.dashboard.index', [
             'transaksis' => $transaksis,
             'totalUnitBarang' => $totalUnitBarang, // Kirim data statistik ke view
             'totalDipinjam' => $totalDipinjam,
             'totalRusak' => $totalRusak,
             'jatuhTempo' => $jatuhTempo,
+            'permintaanMasuk' => $permintaanMasuk,
         ]);
     }
 }
