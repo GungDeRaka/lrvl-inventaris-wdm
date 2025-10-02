@@ -127,10 +127,12 @@
                         <th class="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Ruang
                             Penggunaan</th>
                         <th class="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Waktu
+                            Peminjaman</th>
+                        <th class="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Waktu
                             Kembali</th>
                         <th class="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Status
                         </th>
-                        <th class="pl-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Aksi
+                        <th class="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Aksi
                         </th>
 
                     </tr>

@@ -26,22 +26,14 @@
             </h1>
 
             {{-- Tombol Aksi --}}
-            <div class="flex items-center justify-center space-x-4">
-                @if (Route::has('login'))
-                    @auth
-                        <a href="{{ url('/dashboard') }}"
-                            class="px-6 py-3 bg-fuchsia-700 text-white font-semibold rounded-lg shadow-md hover:bg-purple-800 transition">Dashboard</a>
-                    @else
-                        <a href="{{ route('login') }}"
-                            class="px-6 py-3 bg-fuchsia-700 text-white font-semibold rounded-lg shadow-md hover:bg-purple-800 transition">Masuk</a>
-
-                        {{-- @if (Route::has('register'))
-                            <a href="{{ route('register') }}"
-                                class="px-6 py-3 bg-white text-fuchsia-700 font-semibold rounded-lg shadow-md hover:bg-gray-50 transition">Daftar</a>
-                        @endif --}}
-                    @endauth
-                @endif
-            </div>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <a href="{{ route('siswa.login') }}" class="w-full sm:w-auto px-6 py-3 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-purple-800 transition">
+                        Login Sebagai Siswa
+                    </a>
+                    <a href="{{ route('login') }}" class="w-full sm:w-auto px-6 py-3 bg-white text-primary font-semibold rounded-lg shadow-md hover:bg-gray-50 transition">
+                        Login Sebagai Admin
+                    </a>
+                </div>
         </div>
     </div>
 </body>
