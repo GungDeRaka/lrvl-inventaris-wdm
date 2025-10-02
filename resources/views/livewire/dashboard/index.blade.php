@@ -176,6 +176,12 @@
 
                             {{-- Kolom Aksi --}}
                             <td class="px-3 py-4 text-sm">
+                                @if ($transaksi->status == 'disetujui')
+                                    <button wire:click="konfirmasiAmbil({{ $transaksi->id }})"
+                                        class="font-semibold text-blue-600 hover:text-blue-900">
+                                        Konfirmasi Ambil
+                                    </button>
+                                @endif
                                 @if ($transaksi->status == 'dipinjam')
                                     <button wire:click="konfirmasiPengembalian({{ $transaksi->id }})"
                                         class="text-indigo-600 hover:text-indigo-900 font-semibold">

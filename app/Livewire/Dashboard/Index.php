@@ -215,6 +215,19 @@ class Index extends Component
         });
     }
 
+    public function konfirmasiAmbil($id)
+    {
+        $transaksi = Transaksi::find($id);
+
+        // Pastikan transaksi ada dan statusnya 'disetujui'
+        if ($transaksi && $transaksi->status == 'disetujui') {
+            $transaksi->update(['status' => 'dipinjam']);
+            session()->flash('message', 'Peminjaman barang telah dikonfirmasi diambil oleh siswa.');
+        } else {
+            session()->flash('error', 'Gagal mengkonfirmasi peminjaman.');
+        }
+    }
+
     public function tolakPermintaan($id)
     {
         $transaksi = Transaksi::find($id);
