@@ -95,7 +95,11 @@
                         </a>
                         <a href="{{ route('user.index') }}"
                             class="font-semibold hover:text-gray-300 {{ request()->routeIs('user.index') ? 'border-b-2 border-amber-400 text-amber-400' : ' text-white' }}">
-                            MANAJEMEN PENGGUNA
+                            MANAJEMEN ADMIN
+                        </a>
+                        <a href="{{ route('siswa.index') }}"
+                            class="font-semibold text-white hover:text-gray-300 {{ request()->routeIs('siswa.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
+                            MANAJEMEN SISWA
                         </a>
                     @endcan
                 </div>

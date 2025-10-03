@@ -9,6 +9,7 @@ use App\Livewire\Barang\Index as BarangIndex;
 use App\Livewire\User\Index as UserIndex;
 use App\Livewire\Kategori\Index as KategoriIndex;
 use App\Livewire\Ruangan\Index as RuanganIndex;
+use App\Livewire\Siswa\Index as SiswaIndex;
 
 Route::get('/', function () {
     return view('welcome');
@@ -27,6 +28,8 @@ Route::middleware(['auth', 'verified', 'cek.jam.kerja'])->group(function () {
     Route::get('/kategori', KategoriIndex::class)->name('kategori.index')->middleware('can:kelola-pengguna');
     // Rute untuk manajemen ruangan
     Route::get('/ruangan', RuanganIndex::class)->name('ruangan.index')->middleware('can:kelola-pengguna');
+    // Rute untuk manajemen siswa
+    Route::get('/siswa', SiswaIndex::class)->name('siswa.index')->middleware('can:kelola-pengguna');
 });
 
 Route::middleware('auth')->group(function () {
