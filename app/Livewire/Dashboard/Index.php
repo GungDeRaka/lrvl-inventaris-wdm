@@ -3,6 +3,7 @@
 namespace App\Livewire\Dashboard;
 
 use App\Models\Barang;
+use App\Models\Ruangan;
 use App\Models\Siswa;
 use App\Models\Transaksi;
 use Illuminate\Support\Facades\Auth;
@@ -63,7 +64,7 @@ class Index extends Component
     {
         if (strlen($this->searchBarang) >= 2) {
             $this->barangDitemukan = Barang::where('nama_barang', 'like', '%' . $value . '%')
-                ->where('jumlah_saat_ini', '>', 0)->limit(5)->get();
+            ->limit(5)->get();
         } else {
             $this->barangDitemukan = [];
         }
@@ -232,6 +233,7 @@ class Index extends Component
             'totalDipinjam' => $totalDipinjam,
             'totalRusak' => Barang::sum('jumlah_rusak'),
             'jatuhTempo' => $jatuhTempo,
+            'ruangans' => Ruangan::all(), 
         ]);
     }
 }

@@ -278,14 +278,17 @@
                                         <ul class="max-h-60 overflow-auto">
                                             @forelse($barangDitemukan as $barang)
                                                 @if ($barang->jumlah_saat_ini > 0)
+                                                    {{-- BARANG TERSEDIA (Bisa Diklik) --}}
                                                     <li wire:click="tambahKeKeranjang({{ $barang->id }}, '{{ addslashes($barang->nama_barang) }}')"
                                                         class="px-4 py-2 cursor-pointer hover:bg-gray-100">
                                                         {{ $barang->nama_barang }} (Stok:
                                                         {{ $barang->jumlah_saat_ini }})
                                                     </li>
                                                 @else
+                                                    {{-- BARANG HABIS (Tidak Bisa Diklik) --}}
                                                     <li class="px-4 py-2 text-gray-400 cursor-not-allowed">
-                                                        {{ $barang->nama_barang }} (Stok habis)</li>
+                                                        {{ $barang->nama_barang }} (Stok habis)
+                                                    </li>
                                                 @endif
                                             @empty
                                                 <li class="px-4 py-2 text-gray-500">Barang tidak ditemukan.</li>
@@ -298,8 +301,17 @@
                             <div>
                                 <label for="ruang_pemakaian" class="block text-sm font-medium text-gray-700">Ruang
                                     Pemakaian</label>
-                                <input type="text" id="ruang_pemakaian" wire:model="ruang_pemakaian"
+                                <select wire:model="ruang_pemakaian" id="ruang_pemakaian"
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                                    <option value="">Pilih Ruangan</option>
+                                    @foreach ($ruangans as $ruangan)
+                                        <option value="{{ $ruangan->nama_ruangan }}">{{ $ruangan->nama_ruangan }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('ruang_pemakaian')
+                                    <span class="text-red-500 text-xs">{{ $message }}</span>
+                                @enderror
                             </div>
                             <div>
                                 <label for="waktu_kembali" class="block text-sm font-medium text-gray-700">Waktu

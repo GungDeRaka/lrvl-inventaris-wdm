@@ -3,6 +3,7 @@
 namespace App\Livewire\Siswa;
 
 use App\Models\Barang;
+use App\Models\Ruangan;
 use App\Models\Transaksi;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -24,9 +25,7 @@ class Dashboard extends Component
     public function updatedSearchBarang($value)
     {
         if (strlen($this->searchBarang) >= 2) {
-            $this->barangDitemukan = Barang::where('nama_barang', 'like', '%' . $value . '%')
-                ->where('jumlah_saat_ini', '>', 0)
-                ->limit(5)->get();
+            $this->barangDitemukan = Barang::where('nama_barang', 'like', '%' . $value . '%')->limit(5)->get();
         } else {
             $this->barangDitemukan = [];
         }
@@ -97,6 +96,6 @@ class Dashboard extends Component
             ->where('siswa_id', auth()->guard('siswa')->id())
             ->latest()->get();
 
-        return view('livewire.siswa.dashboard', ['riwayat' => $riwayat]);
+        return view('livewire.siswa.dashboard', ['riwayat' => $riwayat, 'ruangans' => Ruangan::all()]);
     }
 }
