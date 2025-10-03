@@ -101,12 +101,21 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <h2 class="text-xl font-semibold text-gray-700">RIWAYAT PEMINJAMAN</h2>
         <div class="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+            {{-- filter pencarian --}}
             <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari..."
                 class="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm">
             <div class="flex items-center gap-2 w-full sm:w-auto">
-                <a href="{{ route('laporan.transaksi') }}" target="_blank"
-                    class="w-1/2 sm:w-auto flex justify-center items-center bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded text-sm">Cetak
-                    Laporan</a>
+
+                {{-- cetak laporan --}}
+                @can('kelola-pengguna')
+                    <button wire:click="openReportModal"
+                        class="w-1/2 sm:w-auto flex justify-center items-center bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded text-sm">
+                        Cetak Laporan
+                    </button>
+                @endcan
+
+
+                {{-- form peminjaman --}}
                 <button wire:click="openTransactionModal"
                     class="w-1/2 sm:w-auto flex justify-center items-center bg-primary hover:bg-purple-800 text-white font-bold py-2 px-4 rounded-lg shadow-md">Tambah
                     Peminjaman</button>
@@ -191,7 +200,7 @@
                             @if ($isJatuhTempo)
                                 @php
                                     $barangList = $transaksi->barangs->pluck('nama_barang')->join(', ');
-                                    $pesan = "Pemberitahuan: Peminjaman barang '{$barangList}' atas nama Anda telah melewati batas waktu pengembalian. Harap segera dikembalikan ke gudang. Terima kasih.";
+                                    $pesan = "Pemberitahuan: Peminjaman barang '{$barangList}' atas nama '{$transaksi->siswa->nama}' telah melewati batas waktu pengembalian. Harap segera dikembalikan ke gudang. Terima kasih.";
                                 @endphp
                                 <a href="https://api.whatsapp.com/send?phone={{ $transaksi->siswa->formatted_no_hp }}&text={{ urlencode($pesan) }}"
                                     target="_blank" class="text-green-600 hover:text-green-900 font-semibold ml-2">Chat
@@ -398,6 +407,40 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    @endif
+    {{-- Modal Filter Laporan --}}
+    @if ($showReportModal)
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
+                {{-- Form sekarang ada di dalam modal --}}
+                <form action="{{ route('laporan.transaksi') }}" method="GET" target="_blank">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Cetak Laporan Transaksi</h3>
+                    <p class="text-sm text-gray-600 mb-4">Pilih rentang tanggal untuk mencetak laporan. Kosongkan untuk
+                        mencetak semua riwayat transaksi.</p>
+
+                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                        <div>
+                            <label for="tanggal_mulai" class="block text-sm font-medium text-gray-700">Dari
+                                Tanggal</label>
+                            <input type="date" name="tanggal_mulai" id="tanggal_mulai" wire:model="tanggal_mulai"
+                                class="mt-1 text-sm border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label for="tanggal_akhir" class="block text-sm font-medium text-gray-700">Sampai
+                                Tanggal</label>
+                            <input type="date" name="tanggal_akhir" id="tanggal_akhir" wire:model="tanggal_akhir"
+                                class="mt-1 text-sm border-gray-300 rounded-md shadow-sm">
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end space-x-2">
+                        <button type="button" wire:click="closeReportModal"
+                            class="px-4 py-2 bg-gray-200 rounded">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-primary text-white rounded">Cetak</button>
+                    </div>
+                </form>
             </div>
         </div>
     @endif

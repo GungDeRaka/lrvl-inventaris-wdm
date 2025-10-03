@@ -1,23 +1,57 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Laporan Transaksi Inventaris</title>
     <style>
-        body { font-family: sans-serif; margin: 20px; }
-        h1, h2 { text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
-        th { background-color: #f2f2f2; }
-        .header { margin-bottom: 30px; }
-        .date { text-align: right; }
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+
+        h1,
+        h2 {
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .date {
+            text-align: right;
+        }
     </style>
 </head>
+
 <body>
     <div class="header">
         <h1>Laporan Transaksi Peminjaman Barang</h1>
         <h2>SMK Widiatmika</h2>
         <hr>
         <p class="date">Tanggal Cetak: {{ $tanggal }}</p>
+        {{-- BARIS BARU UNTUK PERIODE --}}
+        @if ($periodeMulai && $periodeAkhir)
+            <p class="date" style="margin-top: -10px;">Periode: {{ $periodeMulai }} - {{ $periodeAkhir }}</p>
+        @endif
     </div>
 
     <table>
@@ -37,7 +71,11 @@
             @forelse($transaksis as $index => $transaksi)
                 <tr>
                     <td>{{ $index + 1 }}</td>
-                    <td>{{ $transaksi->barang->nama_barang }}</td>
+                    <td>
+                        @foreach ($transaksi->barangs as $barang)
+                            <span style="display: block;">- {{ $barang->nama_barang }}</span>
+                        @endforeach
+                    </td>
                     <td>{{ $transaksi->siswa->nama }}</td>
                     <td>{{ $transaksi->siswa->kelas }}</td>
                     <td>{{ \Carbon\Carbon::parse($transaksi->waktu_pinjam)->format('d-m-Y H:i') }}</td>
@@ -53,4 +91,5 @@
         </tbody>
     </table>
 </body>
+
 </html>

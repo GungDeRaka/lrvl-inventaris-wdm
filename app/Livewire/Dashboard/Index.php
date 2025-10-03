@@ -30,6 +30,10 @@ class Index extends Component
     // Properti untuk Modal Detail Siswa
     public $siswaDetail = null;
 
+    // Properti untuk Modal Laporan
+    public $showReportModal = false;
+    public $tanggal_mulai, $tanggal_akhir;
+
     // Properti untuk Pencarian Riwayat
     public $search = '';
 
@@ -64,7 +68,7 @@ class Index extends Component
     {
         if (strlen($this->searchBarang) >= 2) {
             $this->barangDitemukan = Barang::where('nama_barang', 'like', '%' . $value . '%')
-            ->limit(5)->get();
+                ->limit(5)->get();
         } else {
             $this->barangDitemukan = [];
         }
@@ -204,6 +208,18 @@ class Index extends Component
         $this->siswaDetail = null;
     }
 
+    public function openReportModal()
+    {
+        // Reset tanggal setiap kali modal dibuka
+        $this->reset(['tanggal_mulai', 'tanggal_akhir']);
+        $this->showReportModal = true;
+    }
+
+    public function closeReportModal()
+    {
+        $this->showReportModal = false;
+    }
+
     // Fungsi Render Utama
     public function render()
     {
@@ -233,7 +249,7 @@ class Index extends Component
             'totalDipinjam' => $totalDipinjam,
             'totalRusak' => Barang::sum('jumlah_rusak'),
             'jatuhTempo' => $jatuhTempo,
-            'ruangans' => Ruangan::all(), 
+            'ruangans' => Ruangan::all(),
         ]);
     }
 }
