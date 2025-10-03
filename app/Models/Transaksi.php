@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+
 use App\Models\Barang;
 use App\Models\Siswa;
 use App\Models\User;
@@ -25,9 +26,11 @@ class Transaksi extends Model
     /**
      * Mendapatkan data barang yang ditransaksikan.
      */
-    public function barang(): BelongsTo
+    public function barangs()
     {
-        return $this->belongsTo(Barang::class);
+        return $this->belongsToMany(Barang::class, 'barang_transaksi')
+            ->withPivot('kuantitas') // Mengambil data kuantitas dari tabel penghubung
+            ->withTimestamps();
     }
 
     /**

@@ -191,7 +191,7 @@
 
                                 @if ($isJatuhTempo)
                                     @php
-                                        $pesan = "Pemberitahuan: Peminjaman barang '{$transaksi->barang->nama_barang}' atas nama Anda telah melewati batas waktu pengembalian. Harap segera dikembalikan ke gudang. Terima kasih.";
+                                        $pesan = "Pemberitahuan: Peminjaman barang '{$transaksi->barang->nama_barang}' atas nama '{$transaksi->siswa->nama}' telah melewati batas waktu pengembalian. Harap segera dikembalikan ke gudang. Terima kasih.";
                                     @endphp
                                     <a href="https://api.whatsapp.com/send?phone={{ $transaksi->siswa->formatted_no_hp }}&text={{ urlencode($pesan) }}"
                                         target="_blank" class="text-green-600 hover:text-green-900 font-semibold ml-2">

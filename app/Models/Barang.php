@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo; 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Transaksi;
 
@@ -33,8 +33,10 @@ class Barang extends Model
     /**
      * Mendapatkan semua riwayat transaksi untuk barang ini.
      */
-    public function transaksis(): HasMany
+    public function transaksis()
     {
-        return $this->hasMany(Transaksi::class);
+        return $this->belongsToMany(Transaksi::class, 'barang_transaksi')
+            ->withPivot('kuantitas')
+            ->withTimestamps();
     }
 }
