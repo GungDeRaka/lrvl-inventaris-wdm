@@ -1,3 +1,7 @@
+{{-- // TODO: Fix Error jumlah barang ketika dipinjam. karena setelah diperbaiki pada dashboard admin, jumlah barang yang dipinjam ada 2, tapi yang tercataat di card cuma 1 --}}
+
+{{-- //TODO fix modal peminjaman  --}}
+
 <div>
     {{-- Notifikasi --}}
     @if (session()->has('message'))
@@ -154,7 +158,13 @@
                             @endforeach
                         </td>
                         <td class="px-3 py-4 text-sm">
-                            {{ optional($transaksi->barangs->first()?->ruangan)->nama_ruangan ?? 'N/A' }}</td>
+                            @foreach ($transaksi->barangs as $barang)
+                                <span class="block">{{ $barang->ruangan->nama_ruangan }}</span>
+                            @endforeach
+                        </td>
+                        {{-- <td class="px-3 py-4 text-sm">
+                             @foreach ($transaksi->barangs as $barang)
+                            {{ optional($transaksi->barangs->first()?->ruangan)->nama_ruangan ?? 'N/A' }}</td> --}}
                         <td class="px-3 py-4 text-sm">
                             <button wire:click="showSiswaDetail({{ $transaksi->siswa->id }})"
                                 class="font-semibold text-indigo-600 hover:underline">{{ $transaksi->siswa->nama }}</button>
@@ -209,14 +219,11 @@
                         class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
                 </div>
 
-                {{-- Form Anda sekarang ada di sini --}}
-
-                {{-- !formulir peminjaman --}}
                 <form wire:submit.prevent="simpanPeminjaman">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                        {{-- Kolom Kiri: Data Siswa --}}
+                        {{-- Kolom Kiri: Data Siswa & Keranjang --}}
                         <div class="space-y-4">
+                            {{-- Pencarian Siswa --}}
                             <div>
                                 <label for="nis" class="block text-sm font-medium text-gray-700">Cari NIS
                                     Siswa</label>
@@ -224,19 +231,18 @@
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
                                     placeholder="Masukkan NIS...">
                             </div>
-
                             @if ($siswaDitemukan)
                                 <div class="bg-gray-50 p-4 rounded-md border">
                                     <p class="font-bold">{{ $siswaDitemukan->nama }}</p>
                                     <p class="text-sm text-gray-600">Kelas: {{ $siswaDitemukan->kelas }}</p>
-                                    <p class="text-sm text-gray-600">No. HP: {{ $siswaDitemukan->no_hp }}</p>
                                 </div>
                             @elseif(!empty($nis))
                                 <div class="bg-red-50 p-4 rounded-md border border-red-200">
                                     <p class="font-bold text-red-700">Siswa tidak ditemukan.</p>
                                 </div>
                             @endif
-                            {{-- KERANJANG PEMINJAMAN --}}
+
+                            {{-- Keranjang Peminjaman --}}
                             @if (!empty($keranjang))
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Barang yang Akan
@@ -260,31 +266,26 @@
 
                         {{-- Kolom Kanan: Data Barang & Peminjaman --}}
                         <div class="space-y-4">
+                            {{-- Pencarian Barang --}}
                             <div class="relative">
-                                <label for="searchBarang" class="block text-sm font-medium text-gray-700">Cari Barang
-                                    (Kode/Nama)</label>
+                                <label for="searchBarang" class="block text-sm font-medium text-gray-700">Cari &
+                                    Tambah Barang</label>
                                 <input type="text" id="searchBarang" wire:model.live.debounce.300ms="searchBarang"
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                                    placeholder="Ketik min. 2 huruf...">
-
-                                @if (!empty($barangDitemukan) && !$selectedBarangId)
+                                    placeholder="Ketik min. 2 huruf..." autocomplete="off">
+                                @if (!empty($barangDitemukan))
                                     <div class="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg border">
                                         <ul class="max-h-60 overflow-auto">
                                             @forelse($barangDitemukan as $barang)
-                                                {{-- Logika untuk membedakan barang yang tersedia dan habis --}}
                                                 @if ($barang->jumlah_saat_ini > 0)
-                                                    {{-- BARANG TERSEDIA (Bisa Diklik) --}}
                                                     <li wire:click="tambahKeKeranjang({{ $barang->id }}, '{{ addslashes($barang->nama_barang) }}')"
                                                         class="px-4 py-2 cursor-pointer hover:bg-gray-100">
                                                         {{ $barang->nama_barang }} (Stok:
                                                         {{ $barang->jumlah_saat_ini }})
                                                     </li>
                                                 @else
-                                                    {{-- BARANG HABIS (Tidak Bisa Diklik) --}}
-                                                    <li class="px-4 py-2 text-gray-600 cursor-not-allowed">
-                                                        {{ $barang->nama_barang }}
-                                                        <span class="text-xs italic">(Semua sedang dipinjam)</span>
-                                                    </li>
+                                                    <li class="px-4 py-2 text-gray-400 cursor-not-allowed">
+                                                        {{ $barang->nama_barang }} (Stok habis)</li>
                                                 @endif
                                             @empty
                                                 <li class="px-4 py-2 text-gray-500">Barang tidak ditemukan.</li>
@@ -293,20 +294,13 @@
                                     </div>
                                 @endif
                             </div>
-
-                            @if ($selectedBarangId)
-                                <div class="bg-gray-50 p-4 rounded-md border">
-                                    <p class="font-bold">Barang Dipilih: {{ $selectedBarangNama }}</p>
-                                </div>
-                            @endif
-
+                            {{-- Input Ruang & Waktu --}}
                             <div>
                                 <label for="ruang_pemakaian" class="block text-sm font-medium text-gray-700">Ruang
                                     Pemakaian</label>
                                 <input type="text" id="ruang_pemakaian" wire:model="ruang_pemakaian"
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                             </div>
-
                             <div>
                                 <label for="waktu_kembali" class="block text-sm font-medium text-gray-700">Waktu
                                     Pengembalian</label>
@@ -315,18 +309,16 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="mt-6 flex justify-end">
+                        <button type="button" wire:click="closeTransactionModal()"
+                            class="px-4 py-2 bg-gray-200 rounded mr-2">Batal</button>
                         <button type="submit"
-                            class="bg-purple-700 hover:bg-purple-800 text-white font-bold py-2 px-4 rounded">
-                            Simpan Peminjaman
-                        </button>
+                            class="bg-primary hover:bg-purple-800 text-white font-bold py-2 px-4 rounded">Simpan
+                            Peminjaman</button>
                     </div>
                 </form>
             </div>
         </div>
-
-
     @endif
 
     {{-- modal pengembalian --}}

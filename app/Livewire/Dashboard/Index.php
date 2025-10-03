@@ -48,7 +48,7 @@ class Index extends Component
     {
         $this->showTransactionModal = false;
     }
-    
+
     public function resetForm()
     {
         $this->reset(['nis', 'siswaDitemukan', 'searchBarang', 'barangDitemukan', 'keranjang', 'ruang_pemakaian', 'waktu_kembali']);
@@ -58,7 +58,7 @@ class Index extends Component
     {
         $this->siswaDitemukan = Siswa::where('nis', $value)->first();
     }
-    
+
     public function updatedSearchBarang($value)
     {
         if (strlen($this->searchBarang) >= 2) {
@@ -124,7 +124,7 @@ class Index extends Component
             $transaksi = Transaksi::findOrFail($id);
             $semuaStokTersedia = true;
 
-            foreach($transaksi->barangs as $barang) {
+            foreach ($transaksi->barangs as $barang) {
                 if ($barang->jumlah_saat_ini < $barang->pivot->kuantitas) {
                     $semuaStokTersedia = false;
                     break;
@@ -138,7 +138,7 @@ class Index extends Component
             }
 
             $transaksi->update(['status' => 'disetujui', 'user_id' => Auth::id()]);
-            foreach($transaksi->barangs as $barang) {
+            foreach ($transaksi->barangs as $barang) {
                 $barang->decrement('jumlah_saat_ini', $barang->pivot->kuantitas);
             }
             session()->flash('message', 'Permintaan berhasil disetujui.');
@@ -153,7 +153,7 @@ class Index extends Component
             session()->flash('message', 'Permintaan telah ditolak.');
         }
     }
-    
+
     public function konfirmasiAmbil($id)
     {
         $transaksi = Transaksi::find($id);
@@ -207,19 +207,21 @@ class Index extends Component
     public function render()
     {
         $jatuhTempo = Transaksi::where('status', 'dipinjam')->where('waktu_kembali', '<', now())->count();
-        $totalDipinjam = Transaksi::whereIn('status', ['dipinjam', 'disetujui'])->count();
-
+        $totalDipinjam = DB::table('barang_transaksi')
+            ->join('transaksis', 'barang_transaksi.transaksi_id', '=', 'transaksis.id')
+            ->whereIn('transaksis.status', ['dipinjam', 'disetujui'])
+            ->sum('barang_transaksi.kuantitas');
         $permintaanMasuk = Transaksi::with(['siswa', 'barangs'])
             ->where('status', 'diajukan')->latest()->get();
-        
+
         $transaksis = Transaksi::with(['siswa', 'barangs.ruangan'])
-            ->where(function($query) {
-                $query->whereHas('barangs', function($subQuery) {
+            ->where(function ($query) {
+                $query->whereHas('barangs', function ($subQuery) {
                     $subQuery->where('nama_barang', 'like', '%' . $this->search . '%');
                 })
-                ->orWhereHas('siswa', function($subQuery) {
-                    $subQuery->where('nama', 'like', '%' . $this->search . '%');
-                });
+                    ->orWhereHas('siswa', function ($subQuery) {
+                        $subQuery->where('nama', 'like', '%' . $this->search . '%');
+                    });
             })
             ->latest()->paginate(10);
 
