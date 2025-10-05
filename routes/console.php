@@ -8,5 +8,5 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('app:cek-peminjaman-notifikasi')->dailyAt('08:00');
+Schedule::command('app:cek-peminjaman-notifikasi')->hourly();
 Schedule::command('app:tolak-booking-otomatis')->everyMinute();

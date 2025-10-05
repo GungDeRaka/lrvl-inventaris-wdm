@@ -7,7 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable; // Ganti Model menjadi A
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
-class Siswa extends Authenticatable // <-- Pastikan extends Authenticatable
+class Siswa extends Authenticatable 
 {
     use HasFactory, Notifiable;
 

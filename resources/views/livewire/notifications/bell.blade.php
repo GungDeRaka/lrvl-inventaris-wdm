@@ -1,6 +1,6 @@
 <div>
     {{-- To attain knowledge, add things every day; To attain wisdom, subtract things every day. --}}
-    <div x-data="{ dropdownOpen: false }" class="relative">
+    <div x-data="{ dropdownOpen: false }" class="relative" wire:poll.15s>
         <button @click="dropdownOpen = !dropdownOpen"
             class="relative flex items-center justify-center h-8 w-8 md:h-12 md:w-12 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600 focus:outline-none">
             {{-- Ikon Lonceng --}}

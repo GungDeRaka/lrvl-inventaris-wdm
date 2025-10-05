@@ -14,19 +14,37 @@ class CekPeminjamanNotifikasi extends Command
 
     public function handle()
     {
+        $this->info('Scheduler Pengecekan Notifikasi Dijalankan...');
         $admins = User::whereIn('peran', ['kepala_gudang', 'penjaga_gudang'])->get();
-        if ($admins->isEmpty()) return;
+        if ($admins->isEmpty()) {
+            $this->info('Tidak ada admin ditemukan.');
+            return;
+        }
 
-        // Cek transaksi yang sudah jatuh tempo
-        $jatuhTempo = Transaksi::where('status', 'dipinjam')
+        // 1. Cek transaksi yang sudah jatuh tempo (overdue)
+        $jatuhTempo = Transaksi::whereIn('status', ['dipinjam', 'disetujui'])
             ->where('waktu_kembali', '<', now())
             ->get();
 
         foreach ($jatuhTempo as $transaksi) {
-            $message = 'Jatuh Tempo: ' . $transaksi->barang->nama_barang . ' oleh ' . $transaksi->siswa->nama . '.';
-            // Buat notifikasi untuk setiap admin
+            $message = 'Jatuh Tempo: ' . $transaksi->barangs->pluck('nama_barang')->join(', ') . ' oleh ' . $transaksi->siswa->nama . '.';
             foreach ($admins as $admin) {
                 Notification::firstOrCreate(['user_id' => $admin->id, 'message' => $message, 'read_at' => null]);
+            }
+        }
+
+        // 2. Cek untuk pengingat jam pulang sekolah (jam 14:00 atau 2 siang)
+        if (now()->hour == 14) {
+            $perluDikembalikanHariIni = Transaksi::whereIn('status', ['dipinjam', 'disetujui'])
+                ->whereDate('waktu_kembali', today())
+                ->get();
+
+            if ($perluDikembalikanHariIni->isNotEmpty()) {
+                $message = 'Pengingat: Ada ' . $perluDikembalikanHariIni->count() . ' peminjaman yang harus kembali sebelum jam pulang hari ini.';
+                foreach ($admins as $admin) {
+                    // Gunakan firstOrCreate untuk mencegah notifikasi duplikat di jam yang sama
+                    Notification::firstOrCreate(['user_id' => $admin->id, 'message' => $message, 'read_at' => null]);
+                }
             }
         }
 
