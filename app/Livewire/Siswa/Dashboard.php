@@ -96,6 +96,37 @@ class Dashboard extends Component
         }
     }
 
+    public function batalkanPermintaan($id)
+    {
+        $transaksi = Transaksi::where('id', $id)
+            ->where('siswa_id', auth()->guard('siswa')->id())
+            ->first();
+
+        // Pastikan siswa hanya bisa membatalkan miliknya sendiri
+        if (!$transaksi) {
+            return;
+        }
+
+        // Siswa bisa batal selama statusnya 'diajukan' atau 'disetujui'
+        if ($transaksi->status == 'diajukan' || $transaksi->status == 'disetujui') {
+            DB::transaction(function () use ($transaksi) {
+                // Jika statusnya sudah disetujui, kembalikan stok
+                if ($transaksi->status == 'disetujui') {
+                    foreach ($transaksi->barangs as $barang) {
+                        $barang->increment('jumlah_saat_ini', $barang->pivot->kuantitas);
+                    }
+                }
+
+                // Ubah status dan beri alasan
+                $transaksi->update([
+                    'status' => 'ditolak',
+                    'alasan_penolakan' => 'Dibatalkan oleh siswa.'
+                ]);
+            });
+
+            session()->flash('message', 'Permintaan peminjaman berhasil dibatalkan.');
+        }
+    }
     public function render()
     {
         $riwayat = Transaksi::with('barangs')

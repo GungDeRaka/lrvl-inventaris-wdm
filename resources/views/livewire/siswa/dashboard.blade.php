@@ -39,8 +39,6 @@
 
             <div class="bg-white p-4 rounded-lg shadow-md border-l-4 {{ $borderColorClass }}">
                 <div class="flex justify-between items-center">
-
-                    {{-- PERBAIKAN DI SINI: Menggunakan "?->" untuk akses data yang aman --}}
                     <span class="font-bold text-gray-800">
                         {{-- Menampilkan semua barang dalam transaksi --}}
                         @foreach ($item->barangs as $barang)
@@ -56,9 +54,19 @@
                     Booking: {{ \Carbon\Carbon::parse($item->waktu_pinjam)->format('d M Y, H:i') }} -
                     {{ \Carbon\Carbon::parse($item->waktu_kembali)->format('H:i') }}
                 </p>
+                {{-- alasan penolakan --}}
                 @if ($item->status == 'ditolak' && $item->alasan_penolakan)
                     <div class="mt-2 p-2 bg-red-50 border-l-4 border-red-400 text-red-700 text-sm">
                         <p><strong class="font-semibold">Alasan:</strong> {{ $item->alasan_penolakan }}</p>
+                    </div>
+                @endif
+                @if ($item->status == 'diajukan' || $item->status == 'disetujui')
+                    <div class="mt-3 text-right">
+                        <button wire:click="batalkanPermintaan({{ $item->id }})"
+                            wire:confirm="Anda yakin ingin membatalkan permintaan ini?"
+                            class="text-xs font-semibold text-red-600 hover:text-red-800 hover:underline">
+                            Batalkan Permintaan
+                        </button>
                     </div>
                 @endif
             </div>

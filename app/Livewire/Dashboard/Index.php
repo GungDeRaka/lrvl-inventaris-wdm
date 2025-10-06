@@ -129,6 +129,28 @@ class Index extends Component
         }
     }
 
+    public function batalkanPeminjaman($id)
+    {
+        $transaksi = Transaksi::find($id);
+
+        // Pastikan hanya transaksi yang sudah disetujui yang bisa dibatalkan
+        if ($transaksi && $transaksi->status == 'disetujui') {
+            DB::transaction(function () use ($transaksi) {
+                // 1. Ubah status dan beri alasan
+                $transaksi->update([
+                    'status' => 'ditolak',
+                    'alasan_penolakan' => 'Dibatalkan oleh admin.'
+                ]);
+
+                // 2. Kembalikan stok barang yang sudah di-booking
+                foreach ($transaksi->barangs as $barang) {
+                    $barang->increment('jumlah_saat_ini', $barang->pivot->kuantitas);
+                }
+            });
+            session()->flash('message', 'Booking peminjaman berhasil dibatalkan.');
+        }
+    }
+
     // Fungsi untuk Persetujuan Booking Siswa
     public function setujuiPermintaan($id)
     {

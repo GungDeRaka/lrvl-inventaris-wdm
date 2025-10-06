@@ -178,7 +178,6 @@
                         $isMendekatiBatas =
                             ($transaksi->status == 'dipinjam' || $transaksi->status == 'disetujui') &&
                             $waktuKembali->between(now(), now()->addMinutes(30));
-
                     @endphp
                     <tr class="border-b border-gray-200 {{ $isJatuhTempo ? 'bg-red-100' : 'hover:bg-gray-50' }}">
                         <td class="px-3 py-4 text-sm">
@@ -219,11 +218,18 @@
                                     Kirim Pengingat WA
                                 </a>
                             @endif
+
                             @if ($transaksi->status == 'disetujui')
                                 <button wire:click="konfirmasiAmbil({{ $transaksi->id }})"
                                     class="font-semibold text-blue-600 hover:text-blue-900">Konfirmasi Ambil</button>
+                                <button wire:click="batalkanPeminjaman({{ $transaksi->id }})"
+                                    wire:confirm="Anda yakin ingin membatalkan booking ini?"
+                                    class="font-semibold text-red-600 hover:text-red-900">
+                                    Batalkan
+                                </button>
                             @endif
-                            @if ($transaksi->status == 'dipinjam' || $transaksi->status == 'disetujui')
+
+                            @if ($transaksi->status == 'dipinjam')
                                 <button wire:click="konfirmasiPengembalian({{ $transaksi->id }})"
                                     class="font-semibold text-indigo-600 hover:text-indigo-900 ml-2">Kembalikan</button>
                             @endif
