@@ -11,7 +11,11 @@
             <h1 class="text-2xl font-semibold mr-3 text-gray-800">Manajemen Data Barang</h1>
 
             {{-- FILTER BARANG --}}
-            <div>
+            <div class="flex items-center space-x-2 w-full md:w-auto">
+
+                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari kode atau nama..."
+                    class="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+
                 <select wire:model.live="filterKategori" class="block w-full border-fuchsia-500 rounded-md shadow-sm">
                     <option value="">Semua Kategori</option>
                     @foreach ($kategoris as $kategori)

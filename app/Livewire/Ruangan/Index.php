@@ -17,6 +17,7 @@ class Index extends Component
     public $ruangan_id;
     public $nama_ruangan;
     public $ruanganIdToDelete;
+    public $search = '';
 
     public function openModal()
     {
@@ -27,6 +28,10 @@ class Index extends Component
     public function closeModal()
     {
         $this->showModal = false;
+    }
+
+    public function updatingSearch(){
+        $this->resetPage();
     }
 
     public function simpanRuangan()
@@ -76,7 +81,7 @@ class Index extends Component
     public function render()
     {
         return view('livewire.ruangan.index', [
-            'ruangans' => Ruangan::latest()->paginate(10),
+            'ruangans' => Ruangan::where('nama_ruangan', 'like', '%'.$this->search.'%')->latest()->paginate(10),
         ]);
     }
 }

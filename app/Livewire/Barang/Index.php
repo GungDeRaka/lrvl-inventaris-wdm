@@ -28,8 +28,8 @@ class Index extends Component
     public $barangNamaForRepair;
     public $jumlahYangDiperbaiki = 1;
     public $maxPerbaikan;
-
     public $filterKategori = '';
+    public $search = '';
 
     public function openModal()
     {
@@ -55,6 +55,12 @@ class Index extends Component
     {
         $this->resetPage();
     }
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
 
     public function simpanBarang()
     {
@@ -173,8 +179,12 @@ class Index extends Component
         $kategoris = Kategori::all();
         $ruangans = Ruangan::all();
         $barangs = Barang::with('kategori', 'ruangan')
+            ->where(function ($query) {
+                // Terapkan pencarian pada nama atau kode barang
+                $query->where('nama_barang', 'like', '%' . $this->search . '%')
+                    ->orWhere('kode_barang', 'like', '%' . $this->search . '%');
+            })
             ->when($this->filterKategori, function ($query) {
-                // Terapkan filter hanya jika $filterKategori tidak kosong
                 $query->where('kategori_id', $this->filterKategori);
             })
             ->latest()

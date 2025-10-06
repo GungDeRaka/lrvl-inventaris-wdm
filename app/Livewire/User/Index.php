@@ -24,6 +24,7 @@ class Index extends Component
     public $new_password;
     public $userIdToDelete;
     public $userNameToDelete;
+    public $search = '';
     protected $rules = [
         'name' => 'required|string|min:3',
         'email' => 'required|email|unique:users,email',
@@ -43,6 +44,10 @@ class Index extends Component
         $this->showPasswordModal = false;
     }
 
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
     // fungsi simpan pengguna
     public function simpanPengguna()
     {
@@ -136,7 +141,7 @@ class Index extends Component
     public function render()
     {
         return view('livewire.user.index', [
-            'users' => User::latest()->paginate(10),
+            'users' => User::where('name','like', '%'. $this->search . '%')->latest()->paginate(10),
         ]);
     }
 }

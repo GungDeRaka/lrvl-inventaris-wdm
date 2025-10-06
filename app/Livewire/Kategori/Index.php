@@ -17,6 +17,7 @@ class Index extends Component
     public $kategori_id;
     public $nama_kategori;
     public $kategoriIdToDelete;
+    public $search = '';
 
     public function openModal()
     {
@@ -27,6 +28,11 @@ class Index extends Component
     public function closeModal()
     {
         $this->showModal = false;
+    }
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
     }
 
     public function simpanKategori()
@@ -76,7 +82,7 @@ class Index extends Component
     public function render()
     {
         return view('livewire.kategori.index', [
-            'kategoris' => Kategori::latest()->paginate(10),
+            'kategoris' => Kategori::where('nama_kategori','like', '%'. $this->search . '%')->latest()->paginate(10),
         ]);
     }
 }

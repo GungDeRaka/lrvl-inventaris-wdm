@@ -22,6 +22,7 @@ class Index extends Component
     public $passwordSiswaNama;
     public $new_password;
     public $siswaIdToDelete;
+    public $search = '';
 
     public function openModal()
     {
@@ -33,6 +34,11 @@ class Index extends Component
     {
         $this->showModal = false;
         $this->showPasswordModal = false;
+    }
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
     }
 
     public function simpanSiswa()
@@ -137,7 +143,7 @@ class Index extends Component
     public function render()
     {
         return view('livewire.siswa.index', [
-            'siswas' => Siswa::latest()->paginate(10)
+            'siswas' => Siswa::where('nama', 'like', '%' . $this->search . '%')->orWhere('nis', 'like', '%' . $this->search . '%')->latest()->paginate(10)
         ]);
     }
 }

@@ -12,8 +12,14 @@
     @endif
 
     {{-- Header Halaman --}}
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-semibold text-gray-800">Manajemen Kategori Barang</h1>
+    <div class="flex justify-between items-center space-x-2 w-full md:w-auto mb-4">
+        <div class="flex justify-around items-center space-x-2">
+
+            <h1 class="text-2xl font-semibold text-gray-800">Manajemen Kategori Barang</h1>
+            {{-- KOTAK PENCARIAN --}}
+            <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari nama kategori..."
+                class="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+        </div>
         <button wire:click="openModal()" class="bg-primary hover:bg-purple-800 text-white font-bold py-2 px-4 rounded">
             Tambah Kategori Baru
         </button>
