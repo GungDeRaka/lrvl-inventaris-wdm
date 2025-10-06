@@ -125,6 +125,15 @@ class Index extends Component
         $this->siswaIdToDelete = null;
     }
 
+    public function batalTangguhan($id)
+    {
+        $siswa = Siswa::find($id);
+        if ($siswa) {
+            $siswa->update(['is_ditangguhkan' => false]);
+            session()->flash('message', 'Penangguhan untuk siswa ' . $siswa->nama . ' telah dibatalkan.');
+        }
+    }
+
     public function render()
     {
         return view('livewire.siswa.index', [

@@ -54,6 +54,12 @@ class Dashboard extends Component
 
     public function ajukanPeminjaman()
     {
+
+        if (auth()->guard('siswa')->user()->is_ditangguhkan) {
+            session()->flash('error', 'Akun Anda sedang ditangguhkan dan tidak bisa mengajukan peminjaman. Harap hubungi admin.');
+            return;
+        }
+
         $validated = $this->validate([
             'keranjang' => 'required|array|min:1',
             'ruang_pemakaian' => 'required|string|min:3',

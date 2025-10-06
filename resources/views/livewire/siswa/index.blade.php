@@ -28,6 +28,7 @@
                     <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase">Email</th>
                     <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase">No.Hp</th>
                     <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase">Kelas</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase">Status Akun</th>
                     <th class="px-5 py-3 text-left text-xs font-semibold text-white uppercase">Aksi</th>
                 </tr>
             </thead>
@@ -39,7 +40,22 @@
                         <td class="px-5 py-4 text-sm">{{ $siswa->email }}</td>
                         <td class="px-5 py-4 text-sm">{{ $siswa->no_hp }}</td>
                         <td class="px-5 py-4 text-sm">{{ $siswa->kelas }}</td>
+                        {{-- status akun --}}
+                        <td class="px-5 py-4 text-sm">
+                            @if ($siswa->is_ditangguhkan)
+                                <span
+                                    class="px-2 py-1 font-semibold leading-tight rounded-full bg-red-200 text-red-900">Ditangguhkan</span>
+                            @else
+                                <span
+                                    class="px-2 py-1 font-semibold leading-tight rounded-full bg-green-200 text-green-900">Aktif</span>
+                            @endif
+                        </td>
+                        {{-- tombol aksi --}}
                         <td class="px-5 py-4 text-sm whitespace-nowrap">
+                            @if ($siswa->is_ditangguhkan)
+                                <button wire:click="batalTangguhan({{ $siswa->id }})"
+                                    class="font-semibold text-green-600 hover:text-green-900">Batal Tangguhan</button>
+                            @endif
                             <button wire:click="edit({{ $siswa->id }})"
                                 class="font-semibold text-yellow-600 hover:text-yellow-900">Edit</button>
 
@@ -129,7 +145,7 @@
             </div>
         </div>
     @endif
-    
+
     {{-- Modal Ganti Password Siswa --}}
     @if ($showPasswordModal)
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">

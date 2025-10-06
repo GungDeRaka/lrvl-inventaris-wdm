@@ -26,6 +26,7 @@ class Index extends Component
 
     // Properti untuk Modal Pengembalian
     public $transaksiIdUntukDikembalikan, $transaksiTerpilih;
+    public $kerusakanItems = [];
 
     // Properti untuk Modal Detail Siswa
     public $siswaDetail = null;
@@ -194,27 +195,61 @@ class Index extends Component
     public function konfirmasiPengembalian($id)
     {
         $this->transaksiIdUntukDikembalikan = $id;
-        $this->transaksiTerpilih = Transaksi::with('barangs', 'siswa')->find($id);
+        $transaksi = Transaksi::with('barangs')->find($id);
+        $this->transaksiTerpilih = $transaksi;
+
+        // Inisialisasi array kerusakan
+        $this->kerusakanItems = [];
+        foreach ($transaksi->barangs as $barang) {
+            $this->kerusakanItems[$barang->id] = 0; // Set default jumlah rusak ke 0
+        }
     }
 
     public function prosesPengembalian()
     {
-        if ($this->transaksiIdUntukDikembalikan) {
-            try {
-                DB::transaction(function () {
-                    $transaksi = Transaksi::find($this->transaksiIdUntukDikembalikan);
-                    $transaksi->update(['status' => 'dikembalikan']);
-                    foreach ($transaksi->barangs as $barang) {
-                        $barang->increment('jumlah_saat_ini', $barang->pivot->kuantitas);
-                    }
-                });
-                session()->flash('message', 'Barang berhasil ditandai telah kembali!');
-            } catch (\Exception $e) {
-                session()->flash('error', 'Gagal memproses pengembalian barang.');
+        if (!$this->transaksiTerpilih) return;
+
+        $adaKerusakan = false;
+        foreach ($this->kerusakanItems as $jumlahRusak) {
+            if ($jumlahRusak > 0) {
+                $adaKerusakan = true;
+                break;
             }
         }
+
+        DB::transaction(function () use ($adaKerusakan) {
+            $transaksi = $this->transaksiTerpilih;
+            $transaksi->update(['status' => 'dikembalikan']);
+
+            foreach ($transaksi->barangs as $barang) {
+                $kuantitasPinjam = $barang->pivot->kuantitas;
+                $jumlahRusak = (int) $this->kerusakanItems[$barang->id];
+
+                // Validasi jumlah rusak tidak melebihi yang dipinjam
+                if ($jumlahRusak > $kuantitasPinjam) {
+                    throw new \Exception("Jumlah barang rusak melebihi jumlah yang dipinjam.");
+                }
+
+                // Kembalikan stok yang tidak rusak
+                $barang->increment('jumlah_saat_ini', $kuantitasPinjam - $jumlahRusak);
+
+                // Proses barang rusak jika ada
+                if ($jumlahRusak > 0) {
+                    $barang->decrement('jumlah_total', $jumlahRusak);
+                    $barang->increment('jumlah_rusak', $jumlahRusak);
+                }
+            }
+
+            // Tangguhkan akun siswa jika ada kerusakan
+            if ($adaKerusakan) {
+                $transaksi->siswa->update(['is_ditangguhkan' => true]);
+            }
+        });
+
+        session()->flash('message', 'Barang berhasil dikembalikan.');
         $this->transaksiIdUntukDikembalikan = null;
         $this->transaksiTerpilih = null;
+        $this->kerusakanItems = [];
     }
 
     // Fungsi untuk Modal Detail Siswa

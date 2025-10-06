@@ -1,9 +1,12 @@
 {{-- // TODO Untuk Finalisasi:
-    1. Buat LSTM.
-    2. Batasi peminjaman: Peminjaman pada siswa ga bole booking setelah jam 16.00, begitu juga pada pengembalian barang dan peminjaman jalur admin.
+    TODO 1. Buat LSTM.
+    TODO 2. Batasi peminjaman: Peminjaman pada siswa ga bole booking setelah jam 16.00, begitu juga pada pengembalian barang dan peminjaman jalur admin.
+    TODO 3. KETIKA PEMINJAMAN SUDAH DISETUJUI, SISWA MENDAPAT NOTIF KE WA.
+    TODO 4. KETIKA SISWA MENGEMBALIKAN BARANG DALAM KEADAAN RUSAK, TANGGUHKAN AKUN SISWA UNTUK SESAAT(SISWA TIDAK BISA MENGAJUKAN PEMINJAMAN HINGGA ADMIN MEMBATALKAN PENANGGUHAN). TAMBAHKAN FITUR "BATAL PENANGGUHAN" PADA MANAGEMENT SISWA.
+    5. KETIKA PEMINJAMAN SISWA AKAN BERAKHIR SETENGAH JAM LAGI, SEDIAKAN TOMBOL KIRIM NOTIF KE WA SISWA BERSANGKUTAN
     --}}
 
-{{-- //TODO fix modal peminjaman  --}}
+
 
 <div>
     {{-- Notifikasi --}}
@@ -373,26 +376,33 @@
     {{-- modal pengembalian --}}
     @if ($transaksiIdUntukDikembalikan)
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
-            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
                 <h3 class="text-lg font-medium text-gray-900 mb-2">Konfirmasi Pengembalian</h3>
-                <p class="text-sm text-gray-600 mb-4">
-                    Anda yakin ingin menandai barang berikut yang dipinjam oleh
-                    <strong>"{{ $transaksiTerpilih->siswa->nama }}"</strong> telah dikembalikan?
+                <p class="text-sm text-gray-600 mb-4">Peminjam: <strong>{{ $transaksiTerpilih->siswa->nama }}</strong>
                 </p>
 
-                <ul class="list-disc list-inside bg-gray-50 p-3 rounded-md text-sm mb-4">
-                    @forelse($transaksiTerpilih->barangs as $barang)
-                        <li>{{ $barang->nama_barang }} ({{ $barang->pivot->kuantitas }} unit)</li>
-                    @empty
-                        <li>Tidak ada barang terlampir pada transaksi ini.</li>
-                    @endforelse
-                </ul>
+                <div class="space-y-4">
+                    <p class="text-sm font-medium">Beri tanda jika ada barang yang rusak saat dikembalikan:</p>
+                    @foreach ($transaksiTerpilih->barangs as $barang)
+                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                            <span class="text-sm">{{ $barang->nama_barang }} (Dipinjam:
+                                {{ $barang->pivot->kuantitas }})</span>
+                            <div>
+                                <label for="rusak_{{ $barang->id }}" class="text-sm mr-2">Jumlah Rusak:</label>
+                                <input type="number" id="rusak_{{ $barang->id }}"
+                                    wire:model="kerusakanItems.{{ $barang->id }}"
+                                    class="w-20 text-sm border-gray-300 rounded-md" min="0"
+                                    max="{{ $barang->pivot->kuantitas }}">
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
 
-                <div class="mt-4 flex justify-end space-x-2">
+                <div class="mt-6 flex justify-end space-x-2">
                     <button wire:click="$set('transaksiIdUntukDikembalikan', null)"
                         class="px-4 py-2 bg-gray-200 rounded">Batal</button>
-                    <button wire:click="prosesPengembalian" class="px-4 py-2 bg-primary text-white rounded">Ya, Sudah
-                        Kembali</button>
+                    <button wire:click="prosesPengembalian" class="px-4 py-2 bg-primary text-white rounded">Proses
+                        Pengembalian</button>
                 </div>
             </div>
         </div>

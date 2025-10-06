@@ -1,8 +1,16 @@
 <div>
+    @if (auth()->guard('siswa')->user()->is_ditangguhkan)
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+            <p class="font-bold">Akun Anda Ditangguhkan</p>
+            <p>Anda tidak dapat mengajukan peminjaman baru karena ada riwayat pengembalian barang dalam kondisi rusak.
+                Harap hubungi admin gudang untuk informasi lebih lanjut.</p>
+        </div>
+    @endif
     {{-- Tombol Aksi --}}
     <div class="mb-6">
         <button wire:click="$set('showRequestModal', true)"
-            class="w-full bg-primary text-white font-bold py-3 px-6 rounded-lg shadow-md">
+            {{ auth()->guard('siswa')->user()->is_ditangguhkan ? 'disabled' : '' }}
+            class="w-full bg-primary text-white font-bold py-3 px-6 rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
             Buat Permintaan Peminjaman
         </button>
     </div>
