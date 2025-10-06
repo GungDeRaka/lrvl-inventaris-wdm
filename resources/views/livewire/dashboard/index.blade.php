@@ -2,11 +2,9 @@
     TODO 1. Buat LSTM.
     TODO 2. Batasi peminjaman: Peminjaman pada siswa ga bole booking setelah jam 16.00, begitu juga pada pengembalian barang dan peminjaman jalur admin.
     TODO 3. KETIKA PEMINJAMAN SUDAH DISETUJUI, SISWA MENDAPAT NOTIF KE WA.
-    TODO 4. KETIKA SISWA MENGEMBALIKAN BARANG DALAM KEADAAN RUSAK, TANGGUHKAN AKUN SISWA UNTUK SESAAT(SISWA TIDAK BISA MENGAJUKAN PEMINJAMAN HINGGA ADMIN MEMBATALKAN PENANGGUHAN). TAMBAHKAN FITUR "BATAL PENANGGUHAN" PADA MANAGEMENT SISWA.
-    5. KETIKA PEMINJAMAN SISWA AKAN BERAKHIR SETENGAH JAM LAGI, SEDIAKAN TOMBOL KIRIM NOTIF KE WA SISWA BERSANGKUTAN
+    TODO 4. KETIKA SISWA MENGEMBALIKAN BARANG DALAM KEADAAN RUSAK, TANGGUHKAN AKUN SISWA UNTUK SESAAT(SISWA TIDAK BISA MENGAJUKAN PEMINJAMAN HINGGA ADMIN MEMBATALKAN PENANGGUHAN). TAMBAHKAN FITUR "BATAL PENANGGUHAN" PADA MANAGEMENT SISWA //?--done--.
+    5. KETIKA PEMINJAMAN SISWA AKAN BERAKHIR SETENGAH JAM LAGI, SEDIAKAN TOMBOL KIRIM NOTIF KE WA SISWA BERSANGKUTAN --done--
     --}}
-
-
 
 <div>
     {{-- Notifikasi --}}
@@ -165,6 +163,7 @@
             <tbody>
                 @forelse ($transaksis as $transaksi)
                     @php
+                        $waktuKembali = \Carbon\Carbon::parse($transaksi->waktu_kembali);
                         $isJatuhTempo =
                             $transaksi->status == 'dipinjam' &&
                             \Carbon\Carbon::parse($transaksi->waktu_kembali)->isPast();
@@ -176,6 +175,10 @@
                             'ditolak' => 'bg-orange-200 text-orange-900',
                             default => 'bg-gray-200 text-gray-800',
                         };
+                        $isMendekatiBatas =
+                            ($transaksi->status == 'dipinjam' || $transaksi->status == 'disetujui') &&
+                            $waktuKembali->between(now(), now()->addMinutes(30));
+
                     @endphp
                     <tr class="border-b border-gray-200 {{ $isJatuhTempo ? 'bg-red-100' : 'hover:bg-gray-50' }}">
                         <td class="px-3 py-4 text-sm">
@@ -206,6 +209,16 @@
                             </span>
                         </td>
                         <td class="px-3 py-4 text-sm whitespace-nowrap">
+                            @if ($isMendekatiBatas)
+                                @php
+                                    $barangList = $transaksi->barangs->pluck('nama_barang')->join(', ');
+                                    $pesan = "PENGINGAT: Waktu peminjaman untuk barang '{$barangList}' akan berakhir dalam kurang dari 30 menit lagi! Mohon segera bersiap untuk mengembalikannya ke gudang. Terima kasih.";
+                                @endphp
+                                <a href="https://api.whatsapp.com/send?phone={{ $transaksi->siswa->formatted_no_hp }}&text={{ urlencode($pesan) }}"
+                                    target="_blank" class="font-semibold text-orange-600 hover:text-orange-900">
+                                    Kirim Pengingat WA
+                                </a>
+                            @endif
                             @if ($transaksi->status == 'disetujui')
                                 <button wire:click="konfirmasiAmbil({{ $transaksi->id }})"
                                     class="font-semibold text-blue-600 hover:text-blue-900">Konfirmasi Ambil</button>
@@ -220,7 +233,8 @@
                                     $pesan = "Pemberitahuan: Peminjaman barang '{$barangList}' atas nama '{$transaksi->siswa->nama}' telah melewati batas waktu pengembalian. Harap segera dikembalikan ke gudang. Terima kasih.";
                                 @endphp
                                 <a href="https://api.whatsapp.com/send?phone={{ $transaksi->siswa->formatted_no_hp }}&text={{ urlencode($pesan) }}"
-                                    target="_blank" class="text-green-600 hover:text-green-900 font-semibold ml-2">Chat
+                                    target="_blank"
+                                    class="text-green-600 hover:text-green-900 font-semibold ml-2">Chat
                                     WA</a>
                             @endif
                         </td>
