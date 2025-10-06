@@ -397,6 +397,7 @@
             </div>
         </div>
     @endif
+
     {{-- MODAL TAMPILKAN DETAIL SISWA --}}
     @if ($siswaDetail)
         {{-- Latar belakang gelap, klik di sini akan menutup modal --}}
@@ -437,6 +438,7 @@
             </div>
         </div>
     @endif
+
     {{-- Modal Filter Laporan --}}
     @if ($showReportModal)
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
@@ -466,6 +468,32 @@
                         <button type="button" wire:click="closeReportModal"
                             class="px-4 py-2 bg-gray-200 rounded">Batal</button>
                         <button type="submit" class="px-4 py-2 bg-primary text-white rounded">Cetak</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    {{-- Modal Alasan Penolakan --}}
+    @if ($showTolakModal)
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+                <form wire:submit.prevent="prosesPenolakan">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Alasan Penolakan</h3>
+                    <div>
+                        <label for="alasan_penolakan" class="sr-only">Alasan Penolakan</label>
+                        <textarea wire:model="alasan_penolakan" id="alasan_penolakan" rows="4"
+                            class="w-full border-gray-300 rounded-md shadow-sm"
+                            placeholder="Contoh: Barang tidak tersedia pada jadwal tersebut."></textarea>
+                        @error('alasan_penolakan')
+                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="mt-4 flex justify-end space-x-2">
+                        <button type="button" wire:click="$set('showTolakModal', false)"
+                            class="px-4 py-2 bg-gray-200 rounded">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded">Tolak
+                            Permintaan</button>
                     </div>
                 </form>
             </div>

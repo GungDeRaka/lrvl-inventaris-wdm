@@ -48,6 +48,11 @@
                     Booking: {{ \Carbon\Carbon::parse($item->waktu_pinjam)->format('d M Y, H:i') }} -
                     {{ \Carbon\Carbon::parse($item->waktu_kembali)->format('H:i') }}
                 </p>
+                @if ($item->status == 'ditolak' && $item->alasan_penolakan)
+                    <div class="mt-2 p-2 bg-red-50 border-l-4 border-red-400 text-red-700 text-sm">
+                        <p><strong class="font-semibold">Alasan:</strong> {{ $item->alasan_penolakan }}</p>
+                    </div>
+                @endif
             </div>
         @empty
             <p class="text-gray-500">Anda belum memiliki riwayat permintaan.</p>

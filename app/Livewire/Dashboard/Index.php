@@ -37,6 +37,12 @@ class Index extends Component
     // Properti untuk Pencarian Riwayat
     public $search = '';
 
+    // Properti untuk Modal Tolak Permintaan
+    public $showTolakModal = false;
+    public $transaksiIdToTolak;
+    public $alasan_penolakan = '';
+
+
     public function updatingSearch()
     {
         $this->resetPage();
@@ -152,11 +158,25 @@ class Index extends Component
 
     public function tolakPermintaan($id)
     {
-        $transaksi = Transaksi::find($id);
+        $this->reset('alasan_penolakan');
+        $this->transaksiIdToTolak = $id;
+        $this->showTolakModal = true;
+    }
+
+    public function prosesPenolakan()
+    {
+        $this->validate(['alasan_penolakan' => 'required|string|min:5']);
+
+        $transaksi = Transaksi::find($this->transaksiIdToTolak);
         if ($transaksi) {
-            $transaksi->update(['status' => 'ditolak', 'user_id' => Auth::id()]);
-            session()->flash('message', 'Permintaan telah ditolak.');
+            $transaksi->update([
+                'status' => 'ditolak',
+                'user_id' => Auth::id(),
+                'alasan_penolakan' => $this->alasan_penolakan
+            ]);
+            session()->flash('message', 'Permintaan telah ditolak dengan alasan.');
         }
+        $this->showTolakModal = false;
     }
 
     public function konfirmasiAmbil($id)
