@@ -1,4 +1,7 @@
-{{-- // TODO: Fix Error jumlah barang ketika dipinjam. karena setelah diperbaiki pada dashboard admin, jumlah barang yang dipinjam ada 2, tapi yang tercataat di card cuma 1 --}}
+{{-- // TODO Untuk Finalisasi:
+    1. Buat LSTM.
+    2. Batasi peminjaman: Peminjaman pada siswa ga bole booking setelah jam 16.00, begitu juga pada pengembalian barang dan peminjaman jalur admin.
+    --}}
 
 {{-- //TODO fix modal peminjaman  --}}
 
@@ -124,7 +127,18 @@
     </div>
 
     {{-- Tabel Riwayat Peminjaman --}}
-    <div class="bg-white shadow-md rounded-lg overflow-x-auto">
+    <div class="bg-white shadow-md rounded-lg overflow-x-auto relative">
+        <div wire:loading.flex wire:target="search, nextPage, previousPage"
+            class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center">
+            <svg wire:loading wire:target="simpanPeminjaman" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                </circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+            </svg>
+        </div>
         <table class="w-full table-auto leading-normal">
             <thead class="bg-primary">
                 <tr>
@@ -333,9 +347,23 @@
                     <div class="mt-6 flex justify-end">
                         <button type="button" wire:click="closeTransactionModal()"
                             class="px-4 py-2 bg-gray-200 rounded mr-2">Batal</button>
-                        <button type="submit"
-                            class="bg-primary hover:bg-purple-800 text-white font-bold py-2 px-4 rounded">Simpan
-                            Peminjaman</button>
+
+                        <button type="submit" wire:loading.attr="disabled" {{-- Tombol dinonaktifkan saat loading --}}
+                            class="bg-primary hover:bg-purple-800 text-white font-bold py-2 px-4 rounded flex items-center">
+
+                            {{-- Ikon loading, muncul saat method 'simpanPeminjaman' berjalan --}}
+                            <svg wire:loading wire:target="simpanPeminjaman"
+                                class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
+                                fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                    stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+
+                            Simpan Peminjaman
+                        </button>
                     </div>
                 </form>
             </div>
@@ -352,7 +380,6 @@
                     <strong>"{{ $transaksiTerpilih->siswa->nama }}"</strong> telah dikembalikan?
                 </p>
 
-                {{-- PERBAIKAN DI SINI --}}
                 <ul class="list-disc list-inside bg-gray-50 p-3 rounded-md text-sm mb-4">
                     @forelse($transaksiTerpilih->barangs as $barang)
                         <li>{{ $barang->nama_barang }} ({{ $barang->pivot->kuantitas }} unit)</li>
