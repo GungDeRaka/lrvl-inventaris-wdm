@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('app:cek-peminjaman-notifikasi')->hourly();
 Schedule::command('app:tolak-booking-otomatis')->everyMinute();
+Schedule::command('app:batalkan-peminjaman-otomatis')->everyMinute();
