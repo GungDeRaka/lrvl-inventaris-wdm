@@ -147,6 +147,7 @@ class Dashboard extends Component
 
         return view('livewire.siswa.dashboard', [
             'riwayat' => $riwayat,
+            'ruangans'=> Ruangan::all(),
             'ruangansDenganBarang' => $ruangansDenganBarang,
         ]);
     }

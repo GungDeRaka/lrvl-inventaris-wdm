@@ -8,6 +8,7 @@ use App\Models\Siswa;
 use App\Models\Transaksi;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
@@ -74,7 +75,12 @@ class Index extends Component
     public function updatedSearchBarang($value)
     {
         if (strlen($this->searchBarang) >= 2) {
-            $this->barangDitemukan = Barang::where('nama_barang', 'like', '%' . $value . '%')
+            // Tambahkan with('ruangan') di sini
+            $this->barangDitemukan = Barang::with('ruangan')
+                ->where(function ($query) use ($value) {
+                    $query->where('nama_barang', 'like', '%' . $value . '%')
+                        ->orWhere('kode_barang', 'like', '%' . $value . '%');
+                })
                 ->limit(5)->get();
         } else {
             $this->barangDitemukan = [];
@@ -106,6 +112,18 @@ class Index extends Component
             'waktu_kembali' => 'required|date|after:now',
         ]);
 
+        $asalRuanganNames = Barang::with('ruangan')
+            ->whereIn('id', collect($this->keranjang)->pluck('id'))
+            ->get()
+            ->pluck('ruangan.nama_ruangan')
+            ->unique();
+
+        if ($asalRuanganNames->contains($this->ruang_pemakaian)) {
+            // Jika sama, tambahkan error dan hentikan proses
+            $this->addError('ruang_pemakaian', 'Ruang pemakaian tidak boleh sama dengan ruang asal barang.');
+            return;
+        }
+
         try {
             DB::transaction(function () {
                 $transaksi = Transaksi::create([
@@ -124,6 +142,7 @@ class Index extends Component
             });
             session()->flash('message', 'Peminjaman berhasil dicatat.');
             $this->closeTransactionModal();
+            $this->resetForm();
         } catch (\Exception $e) {
             session()->flash('error', 'Terjadi kesalahan saat menyimpan data.');
         }
@@ -272,6 +291,22 @@ class Index extends Component
         $this->transaksiIdUntukDikembalikan = null;
         $this->transaksiTerpilih = null;
         $this->kerusakanItems = [];
+    }
+
+    // mengecek asal ruangan barang di keranjang
+    #[Computed]
+    public function asalRuangan()
+    {
+        if (empty($this->keranjang)) {
+            return collect();
+        }
+
+        $barangIds = collect($this->keranjang)->pluck('id');
+
+        return Barang::with('ruangan')
+            ->whereIn('id', $barangIds)
+            ->get()
+            ->groupBy('ruangan.nama_ruangan');
     }
 
     // Fungsi untuk Modal Detail Siswa

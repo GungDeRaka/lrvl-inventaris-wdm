@@ -301,6 +301,8 @@ TODO CHAT PAK YANDRIK TTG KP, APA AJA YANG PERLU DIBAWA
                                         @foreach ($keranjang as $index => $item)
                                             <div class="flex justify-between items-center bg-gray-50 p-2 rounded">
                                                 <span class="text-sm">{{ $item['nama'] }}</span>
+                                                <small class="block text-xs text-gray-500">Asal:
+                                                    {{ $barang->ruangan->nama_ruangan }}</small>
                                                 <button type="button"
                                                     wire:click="hapusDariKeranjang({{ $index }})"
                                                     class="text-red-500 hover:text-red-700 text-xs font-bold">HAPUS</button>
@@ -333,6 +335,8 @@ TODO CHAT PAK YANDRIK TTG KP, APA AJA YANG PERLU DIBAWA
                                                         class="px-4 py-2 cursor-pointer hover:bg-gray-100">
                                                         {{ $barang->nama_barang }} (Stok:
                                                         {{ $barang->jumlah_saat_ini }})
+                                                        <small class="block text-xs text-gray-500">Asal:
+                                                            {{ $barang->ruangan->nama_ruangan }}</small>
                                                     </li>
                                                 @else
                                                     {{-- BARANG HABIS (Tidak Bisa Diklik) --}}
@@ -355,7 +359,20 @@ TODO CHAT PAK YANDRIK TTG KP, APA AJA YANG PERLU DIBAWA
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                                     <option value="">Pilih Ruangan</option>
                                     @foreach ($ruangans as $ruangan)
-                                        <option value="{{ $ruangan->nama_ruangan }}">{{ $ruangan->nama_ruangan }}
+                                        @php
+                                            // Cek apakah ruangan saat ini ada di dalam daftar ruangan asal
+                                            $isAsalRuangan = isset($this->asalRuangan[$ruangan->nama_ruangan]);
+                                        @endphp
+                                        <option value="{{ $ruangan->nama_ruangan }}"
+                                            {{ $isAsalRuangan ? 'disabled' : '' }}
+                                            class="{{ $isAsalRuangan ? 'text-gray-400 cursor-not-allowed' : '' }}">
+                                            {{ $ruangan->nama_ruangan }}
+
+                                            @if ($isAsalRuangan)
+                                                {{-- Jika ya, tampilkan nama barang yang berasal dari ruangan ini --}}
+                                                (Ruangan Asal:
+                                                {{ $this->asalRuangan[$ruangan->nama_ruangan]->pluck('nama_barang')->join(', ') }})
+                                            @endif
                                         </option>
                                     @endforeach
                                 </select>
