@@ -38,21 +38,51 @@ class Dashboard extends Component
         }
     }
 
-    public function tambahKeKeranjang($id, $nama, $ruanganAsal) // Tambahkan $ruanganAsal
-    {
-        foreach ($this->keranjang as $item) {
-            if ($item['id'] == $id) return;
-        }
-
-        $this->keranjang[] = [
-            'id' => $id,
-            'nama' => $nama,
-            'asal' => $ruanganAsal // Simpan ruangan asal
-        ];
-
-        $this->barangDitemukan = [];
-        $this->searchBarang = '';
+    public function tambahKeKeranjang($id, $nama, $ruanganAsal)
+{
+    $barang = Barang::find($id);
+    if ($barang->jumlah_saat_ini <= 0) {
+        session()->flash('error', 'Stok barang ' . $nama . ' sudah habis.');
+        return;
     }
+
+    // Cek apakah barang sudah ada di keranjang
+    foreach ($this->keranjang as $index => $item) {
+        if ($item['id'] == $id) {
+            // Jika kuantitas di keranjang sudah sama dengan stok, jangan tambah lagi
+            if ($this->keranjang[$index]['kuantitas'] >= $barang->jumlah_saat_ini) {
+                return;
+            }
+            // Tambah kuantitas jika barang sudah ada
+            $this->keranjang[$index]['kuantitas']++;
+            return;
+        }
+    }
+
+    // Tambahkan barang baru ke keranjang dengan kuantitas 1
+    $this->keranjang[] = [
+        'id' => $id,
+        'nama' => $nama,
+        'asal' => $ruanganAsal,
+        'kuantitas' => 1, // Kuantitas awal
+        'stok_tersedia' => $barang->jumlah_saat_ini, // Simpan info stok
+    ];
+}
+
+public function incrementKuantitas($index)
+{
+    // Cek agar kuantitas tidak melebihi stok
+    if ($this->keranjang[$index]['kuantitas'] < $this->keranjang[$index]['stok_tersedia']) {
+        $this->keranjang[$index]['kuantitas']++;
+    }
+}
+
+public function decrementKuantitas($index)
+{
+    if ($this->keranjang[$index]['kuantitas'] > 1) {
+        $this->keranjang[$index]['kuantitas']--;
+    }
+}
 
     public function hapusDariKeranjang($index)
     {
@@ -90,10 +120,11 @@ class Dashboard extends Component
                 ]);
 
                 // 2. Lampirkan semua barang dari keranjang ke transaksi
-                foreach ($this->keranjang as $item) {
-                    $transaksi->barangs()->attach($item['id'], ['kuantitas' => 1]);
-                }
-            });
+                 foreach ($this->keranjang as $item) {
+                $transaksi->barangs()->attach($item['id'], ['kuantitas' => $item['kuantitas']]);
+                Barang::find($item['id'])->decrement('jumlah_saat_ini', $item['kuantitas']);
+            }
+        });
 
             session()->flash('message', 'Permintaan peminjaman berhasil diajukan.');
             $this->showRequestModal = false;

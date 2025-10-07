@@ -186,7 +186,9 @@ TODO CHAT PAK YANDRIK TTG KP, APA AJA YANG PERLU DIBAWA
                     <tr class="border-b border-gray-200 {{ $isJatuhTempo ? 'bg-red-100' : 'hover:bg-gray-50' }}">
                         <td class="px-3 py-4 text-sm">
                             @foreach ($transaksi->barangs as $barang)
-                                <span class="block">{{ $barang->nama_barang }}</span>
+                                <span class="block">
+                                    {{ $barang->nama_barang }} <strong class="text-primary">({{ $barang->pivot->kuantitas }} unit)</strong>
+                                </span>
                             @endforeach
                         </td>
                         <td class="px-3 py-4 text-sm">
@@ -302,13 +304,24 @@ TODO CHAT PAK YANDRIK TTG KP, APA AJA YANG PERLU DIBAWA
                                             <div class="flex justify-between items-center bg-gray-50 p-2 rounded">
                                                 <div>
                                                     <span class="text-sm font-semibold">{{ $item['nama'] }}</span>
-                                                    {{-- Tampilkan data 'asal' dari keranjang --}}
                                                     <small class="block text-xs text-gray-500">Asal:
                                                         {{ $item['asal'] }}</small>
                                                 </div>
-                                                <button type="button"
-                                                    wire:click="hapusDariKeranjang({{ $index }})"
-                                                    class="text-red-500 hover:text-red-700 text-xs font-bold">HAPUS</button>
+                                                <div class="flex items-center space-x-2">
+                                                    {{-- Tombol Kuantitas --}}
+                                                    <button type="button"
+                                                        wire:click="decrementKuantitas({{ $index }})"
+                                                        class="font-bold">-</button>
+                                                    <span
+                                                        class="text-sm w-8 text-center border rounded">{{ $item['kuantitas'] }}</span>
+                                                    <button type="button"
+                                                        wire:click="incrementKuantitas({{ $index }})"
+                                                        class="font-bold">+</button>
+                                                    {{-- Tombol Hapus --}}
+                                                    <button type="button"
+                                                        wire:click="hapusDariKeranjang({{ $index }})"
+                                                        class="text-red-500 hover:text-red-700 text-xs font-bold ml-2">HAPUS</button>
+                                                </div>
                                             </div>
                                         @endforeach
                                     </div>
@@ -445,7 +458,7 @@ TODO CHAT PAK YANDRIK TTG KP, APA AJA YANG PERLU DIBAWA
                 <div class="mt-6 flex justify-end space-x-2">
                     <button wire:click="$set('transaksiIdUntukDikembalikan', null)"
                         class="px-4 py-2 bg-gray-200 rounded">Batal</button>
-                    <button wire:click="prosesPengembalian" class="px-4 py-2 bg-primary text-white rounded">Proses
+                    <button wire:click="prosesPengembalian" class="px-4 py-2 bg-primary text-white rounded">Konfirmasi
                         Pengembalian</button>
                 </div>
             </div>

@@ -46,7 +46,8 @@
                             <div>
                                 <p class="font-bold text-gray-800 text-sm">
                                     @foreach ($item->barangs as $barang)
-                                        {{ $barang->nama_barang }}{{ !$loop->last ? ',' : '' }}
+                                        {{ $barang->nama_barang }} <strong>({{ $barang->pivot->kuantitas }}
+                                            unit)</strong>
                                     @endforeach
                                 </p>
                                 <p class="text-xs text-gray-500 mt-1">
@@ -147,7 +148,6 @@
                                 <label class="block text-sm font-medium text-gray-700">Barang yang Akan
                                     Dipinjam:</label>
                                 <div class="mt-2 space-y-2 border rounded-md p-2 max-h-40 overflow-auto">
-                                    {{-- Tampilkan ruangan asal dari data keranjang --}}
                                     @foreach ($keranjang as $index => $item)
                                         <div class="flex justify-between items-center bg-gray-50 p-2 rounded">
                                             <div>
@@ -155,8 +155,21 @@
                                                 <small class="block text-xs text-gray-500">Asal:
                                                     {{ $item['asal'] }}</small>
                                             </div>
-                                            <button type="button" wire:click="hapusDariKeranjang({{ $index }})"
-                                                class="text-red-500 hover:text-red-700 text-xs font-bold">HAPUS</button>
+                                            <div class="flex items-center space-x-2">
+                                                {{-- Tombol Kuantitas --}}
+                                                <button type="button"
+                                                    wire:click="decrementKuantitas({{ $index }})"
+                                                    class="font-bold">-</button>
+                                                <span
+                                                    class="text-sm w-8 text-center border rounded">{{ $item['kuantitas'] }}</span>
+                                                <button type="button"
+                                                    wire:click="incrementKuantitas({{ $index }})"
+                                                    class="font-bold">+</button>
+                                                {{-- Tombol Hapus --}}
+                                                <button type="button"
+                                                    wire:click="hapusDariKeranjang({{ $index }})"
+                                                    class="text-red-500 hover:text-red-700 text-xs font-bold ml-2">HAPUS</button>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>

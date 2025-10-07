@@ -87,26 +87,55 @@ class Index extends Component
         }
     }
 
-    public function tambahKeKeranjang($id, $nama, $ruanganAsal) 
+    public function tambahKeKeranjang($id, $nama, $ruanganAsal)
     {
+
+        $barang = Barang::find($id);
+        if ($barang->jumlah_saat_ini <= 0) {
+            session()->flash('error', 'Stok barang ' . $nama . ' sudah habis.');
+            return;
+        }
         // Cek agar barang yang sama tidak masuk dua kali
-        foreach ($this->keranjang as $item) {
+        foreach ($this->keranjang as $index => $item) {
             if ($item['id'] == $id) {
+                // Jika kuantitas di keranjang sudah sama dengan stok, jangan tambah lagi
+                if ($this->keranjang[$index]['kuantitas'] >= $barang->jumlah_saat_ini) {
+                    return;
+                }
+                // Tambah kuantitas jika barang sudah ada
+                $this->keranjang[$index]['kuantitas']++;
                 return;
             }
         }
 
         // Tambahkan barang beserta ruangan asalnya ke keranjang
+        // Tambahkan barang baru ke keranjang dengan kuantitas 1
         $this->keranjang[] = [
             'id' => $id,
             'nama' => $nama,
-            'asal' => $ruanganAsal // Simpan ruangan asal di sini
+            'asal' => $ruanganAsal,
+            'kuantitas' => 1, // Kuantitas awal
+            'stok_tersedia' => $barang->jumlah_saat_ini, // Simpan info stok
         ];
 
         $this->barangDitemukan = [];
         $this->searchBarang = '';
     }
 
+    public function incrementKuantitas($index)
+    {
+        // Cek agar kuantitas tidak melebihi stok
+        if ($this->keranjang[$index]['kuantitas'] < $this->keranjang[$index]['stok_tersedia']) {
+            $this->keranjang[$index]['kuantitas']++;
+        }
+    }
+
+    public function decrementKuantitas($index)
+    {
+        if ($this->keranjang[$index]['kuantitas'] > 1) {
+            $this->keranjang[$index]['kuantitas']--;
+        }
+    }
     public function hapusDariKeranjang($index)
     {
         unset($this->keranjang[$index]);
@@ -146,8 +175,8 @@ class Index extends Component
                 ]);
 
                 foreach ($this->keranjang as $item) {
-                    $transaksi->barangs()->attach($item['id'], ['kuantitas' => 1]);
-                    Barang::find($item['id'])->decrement('jumlah_saat_ini');
+                    $transaksi->barangs()->attach($item['id'], ['kuantitas' => $item['kuantitas']]);
+                    Barang::find($item['id'])->decrement('jumlah_saat_ini', $item['kuantitas']);
                 }
             });
             session()->flash('message', 'Peminjaman berhasil dicatat.');
