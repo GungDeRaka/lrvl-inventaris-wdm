@@ -71,6 +71,15 @@
                                     class="text-xs font-semibold text-red-600 hover:underline">Batalkan</button>
                             </div>
                         @endif
+                        {{-- Tampilkan tombol hanya jika status 'dipinjam' --}}
+                        @if ($item->status == 'dipinjam')
+                            <div class="mt-3 text-right">
+                                <button wire:click="bukaModalPengembalian({{ $item->id }})"
+                                    class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline">
+                                    Ajukan Pengembalian
+                                </button>
+                            </div>
+                        @endif
                     </div>
                 @empty
                     <p class="text-gray-500 text-center py-4">Anda belum memiliki riwayat permintaan.</p>
@@ -234,6 +243,41 @@
                             Permintaan</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    @endif
+
+    {{-- Modal Pengembalian Mandiri --}}
+    @if ($showReturnModal && $returnTransaksi)
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Form Pengembalian Barang</h3>
+                <p class="text-sm text-gray-600 mb-4">Laporkan jika ada barang yang rusak saat dikembalikan. Harap isi
+                    dengan jujur.</p>
+
+                <div class="space-y-4 max-h-60 overflow-auto">
+                    @foreach ($returnTransaksi->barangs as $barang)
+                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                            <span class="text-sm">{{ $barang->nama_barang }} (Dipinjam:
+                                {{ $barang->pivot->kuantitas }})</span>
+                            <div>
+                                <label for="rusak_{{ $barang->id }}" class="text-sm mr-2">Jumlah Rusak:</label>
+                                <input type="number" id="rusak_{{ $barang->id }}"
+                                    wire:model="kerusakanDilaporkan.{{ $barang->id }}"
+                                    class="w-20 text-sm border-gray-300 rounded-md" min="0"
+                                    max="{{ $barang->pivot->kuantitas }}">
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="mt-6 flex justify-end space-x-2">
+                    <button type="button" wire:click="$set('showReturnModal', false)"
+                        class="px-4 py-2 bg-gray-200 rounded">Batal</button>
+                    <button wire:click="ajukanPengembalian"
+                        wire:confirm="Anda yakin data kerusakan yang diisi sudah benar?"
+                        class="px-4 py-2 bg-primary text-white rounded">Ajukan Pengembalian</button>
+                </div>
             </div>
         </div>
     @endif

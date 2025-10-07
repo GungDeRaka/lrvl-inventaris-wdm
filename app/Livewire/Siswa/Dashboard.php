@@ -16,15 +16,17 @@ class Dashboard extends Component
     public $showRequestModal = false;
     public $searchBarang = '';
     public $barangDitemukan = [];
-
     // Properti untuk form
     public $waktu_pinjam, $waktu_kembali, $ruang_pemakaian;
-
     // Keranjang untuk menampung barang yang akan dipinjam
     public $keranjang = [];
 
     // PROPERTI UNTUK MENGATUR TAB
     public $activeTab = 'riwayat';
+
+    public $showReturnModal = false;
+    public $returnTransaksi;
+    public $kerusakanDilaporkan = [];
 
     public function updatedSearchBarang($value)
     {
@@ -182,6 +184,35 @@ class Dashboard extends Component
             ->whereIn('id', $barangIds)
             ->get()
             ->groupBy('ruangan.nama_ruangan');
+    }
+
+    public function bukaModalPengembalian($id)
+    {
+        $this->returnTransaksi = Transaksi::with('barangs')->find($id);
+        $this->kerusakanDilaporkan = [];
+        foreach ($this->returnTransaksi->barangs as $barang) {
+            $this->kerusakanDilaporkan[$barang->id] = 0;
+        }
+        $this->showReturnModal = true;
+    }
+
+    public function ajukanPengembalian()
+    {
+        DB::transaction(function () {
+            $this->returnTransaksi->update(['status' => 'menunggu-konfirmasi']);
+
+            foreach ($this->kerusakanDilaporkan as $barangId => $jumlahRusak) {
+                if ($jumlahRusak > 0) {
+                    // Update pivot table dengan jumlah yang rusak
+                    $this->returnTransaksi->barangs()->updateExistingPivot($barangId, [
+                        'jumlah_rusak_dilaporkan' => $jumlahRusak
+                    ]);
+                }
+            }
+        });
+
+        $this->showReturnModal = false;
+        session()->flash('message', 'Laporan pengembalian berhasil diajukan dan menunggu konfirmasi admin.');
     }
     public function render()
     {

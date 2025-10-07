@@ -109,6 +109,43 @@ TODO FORMULIR PENGEMBALIAN BARANG DARI SISWA. SISWA MENGEMBALIKAN BARANG SECARA 
         </div>
     @endif
 
+    {{-- Panel Konfirmasi Pengembalian --}}
+    @if ($menungguKonfirmasi->isNotEmpty())
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold text-orange-600 mb-4">MENUNGGU KONFIRMASI PENGEMBALIAN</h2>
+            <div class="bg-white shadow-md rounded-lg overflow-x-auto">
+                <table class="w-full table-auto">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase">Siswa</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase">Barang</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($menungguKonfirmasi as $transaksi)
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="px-4 py-3 text-sm">{{ $transaksi->siswa->nama }}</td>
+                                <td class="px-4 py-3 text-sm">
+                                    @foreach ($transaksi->barangs as $barang)
+                                        <span class="block">{{ $barang->nama_barang }}
+                                            ({{ $barang->pivot->kuantitas }} unit)</span>
+                                    @endforeach
+                                </td>
+                                <td class="px-4 py-3 text-sm">
+                                    <button wire:click="bukaModalKonfirmasi({{ $transaksi->id }})"
+                                        class="font-semibold text-indigo-600 hover:text-indigo-900">
+                                        Proses Pengembalian
+                                    </button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
     {{-- Grup Tombol Aksi & Pencarian --}}
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
         <h2 class="text-xl font-semibold text-gray-700">RIWAYAT PEMINJAMAN</h2>
@@ -408,8 +445,10 @@ TODO FORMULIR PENGEMBALIAN BARANG DARI SISWA. SISWA MENGEMBALIKAN BARANG SECARA 
                                     Pengembalian</label>
                                 <input type="datetime-local" id="waktu_kembali" wire:model="waktu_kembali"
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                                    @error('waktu_kembali') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                    
+                                @error('waktu_kembali')
+                                    <span class="text-red-500 text-xs">{{ $message }}</span>
+                                @enderror
+
                             </div>
                         </div>
                     </div>
@@ -575,6 +614,40 @@ TODO FORMULIR PENGEMBALIAN BARANG DARI SISWA. SISWA MENGEMBALIKAN BARANG SECARA 
             </div>
             </form>
         </div>
+</div>
+@endif
+
+{{-- Modal Konfirmasi Final Pengembalian --}}
+@if($showKonfirmasiModal && $konfirmasiTransaksi)
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Konfirmasi Final Pengembalian</h3>
+        <p class="text-sm text-gray-600 mb-4">Peminjam: <strong>{{ $konfirmasiTransaksi->siswa->nama }}</strong></p>
+
+        <div class="space-y-4 max-h-60 overflow-auto">
+            <p class="text-sm font-medium">Periksa kondisi barang dan konfirmasi jumlah yang rusak (jika ada):</p>
+            @foreach($konfirmasiTransaksi->barangs as $barang)
+                <div class="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+                    <div>
+                        <p class="text-sm">{{ $barang->nama_barang }} (Dipinjam: {{ $barang->pivot->kuantitas }})</p>
+                        @if($barang->pivot->jumlah_rusak_dilaporkan > 0)
+                            <small class="text-red-600 font-semibold">Siswa melaporkan {{ $barang->pivot->jumlah_rusak_dilaporkan }} unit rusak.</small>
+                        @endif
+                    </div>
+                    <div>
+                        <label for="final_rusak_{{ $barang->id }}" class="text-sm mr-2">Jumlah Rusak (Final):</label>
+                        <input type="number" id="final_rusak_{{ $barang->id }}" wire:model="kerusakanItems.{{ $barang->id }}"
+                               class="w-20 text-sm border-gray-300 rounded-md" min="0" max="{{ $barang->pivot->kuantitas }}">
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <div class="mt-6 flex justify-end space-x-2">
+            <button type="button" wire:click="$set('showKonfirmasiModal', false)" class="px-4 py-2 bg-gray-200 rounded">Batal</button>
+            <button wire:click="finalisasiPengembalian" class="px-4 py-2 bg-primary text-white rounded">Selesaikan Pengembalian</button>
+        </div>
+    </div>
 </div>
 @endif
 </div>

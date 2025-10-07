@@ -44,6 +44,10 @@ class Index extends Component
     public $transaksiIdToTolak;
     public $alasan_penolakan = '';
 
+    public $showKonfirmasiModal = false;
+    public $konfirmasiTransaksi;
+
+
 
     public function updatingSearch()
     {
@@ -375,6 +379,65 @@ class Index extends Component
         $this->showReportModal = false;
     }
 
+    public function bukaModalKonfirmasi($id)
+    {
+        $transaksi = Transaksi::with('barangs', 'siswa')->find($id);
+        $this->konfirmasiTransaksi = $transaksi;
+
+        $this->kerusakanItems = [];
+        foreach ($transaksi->barangs as $barang) {
+            // Isi default jumlah rusak sesuai laporan siswa
+            $this->kerusakanItems[$barang->id] = $barang->pivot->jumlah_rusak_dilaporkan;
+        }
+
+        $this->showKonfirmasiModal = true;
+    }
+
+    public function finalisasiPengembalian()
+    {
+        if (!$this->konfirmasiTransaksi) return;
+
+        $adaKerusakan = false;
+        foreach ($this->kerusakanItems as $jumlahRusak) {
+            if ($jumlahRusak > 0) {
+                $adaKerusakan = true;
+                break;
+            }
+        }
+
+        DB::transaction(function () use ($adaKerusakan) {
+            $transaksi = $this->konfirmasiTransaksi;
+            $transaksi->update(['status' => 'dikembalikan']);
+
+            foreach ($transaksi->barangs as $barang) {
+                $kuantitasPinjam = $barang->pivot->kuantitas;
+                $jumlahRusak = (int) $this->kerusakanItems[$barang->id];
+
+                // Validasi jumlah rusak
+                if ($jumlahRusak > $kuantitasPinjam) {
+                    throw new \Exception("Jumlah barang rusak melebihi jumlah yang dipinjam.");
+                }
+
+                // Kembalikan stok yang tidak rusak
+                $barang->increment('jumlah_saat_ini', $kuantitasPinjam - $jumlahRusak);
+
+                // Proses barang rusak jika ada
+                if ($jumlahRusak > 0) {
+                    $barang->decrement('jumlah_total', $jumlahRusak);
+                    $barang->increment('jumlah_rusak', $jumlahRusak);
+                }
+            }
+
+            // Tangguhkan akun siswa jika ada kerusakan
+            if ($adaKerusakan) {
+                $transaksi->siswa->update(['is_ditangguhkan' => true]);
+            }
+        });
+
+        session()->flash('message', 'Pengembalian barang telah difinalisasi.');
+        $this->showKonfirmasiModal = false;
+    }
+
     // Fungsi Render Utama
     public function render()
     {
@@ -385,6 +448,10 @@ class Index extends Component
             ->sum('barang_transaksi.kuantitas');
         $permintaanMasuk = Transaksi::with(['siswa', 'barangs'])
             ->where('status', 'diajukan')->latest()->get();
+        $menungguKonfirmasi = Transaksi::with(['siswa', 'barangs'])
+            ->where('status', 'menunggu-konfirmasi')
+            ->latest()->get();
+
 
         $transaksis = Transaksi::with(['siswa', 'barangs.ruangan'])
             ->where(function ($query) {
@@ -404,6 +471,7 @@ class Index extends Component
             'totalDipinjam' => $totalDipinjam,
             'totalRusak' => Barang::sum('jumlah_rusak'),
             'jatuhTempo' => $jatuhTempo,
+             'menungguKonfirmasi' => $menungguKonfirmasi,
             'ruangans' => Ruangan::all(),
         ]);
     }
