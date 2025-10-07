@@ -184,6 +184,7 @@ TODO CHAT PAK YANDRIK TTG KP, APA AJA YANG PERLU DIBAWA
                             $waktuKembali->between(now(), now()->addMinutes(30));
                     @endphp
                     <tr class="border-b border-gray-200 {{ $isJatuhTempo ? 'bg-red-100' : 'hover:bg-gray-50' }}">
+                        {{-- nama barang --}}
                         <td class="px-3 py-4 text-sm">
                             @foreach ($transaksi->barangs as $barang)
                                 <span class="block">
@@ -191,6 +192,7 @@ TODO CHAT PAK YANDRIK TTG KP, APA AJA YANG PERLU DIBAWA
                                 </span>
                             @endforeach
                         </td>
+                        {{-- nama ruangan --}}
                         <td class="px-3 py-4 text-sm">
                             @foreach ($transaksi->barangs as $barang)
                                 <span class="block">{{ $barang->ruangan->nama_ruangan }}</span>

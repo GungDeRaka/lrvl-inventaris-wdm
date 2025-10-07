@@ -5,6 +5,7 @@ namespace App\Livewire\Barang;
 use App\Models\Barang;
 use App\Models\Kategori;
 use App\Models\Ruangan;
+use App\Models\Transaksi;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
@@ -18,12 +19,12 @@ class Index extends Component
     public $showModal = false;
     public $barang_id;
     public $kode_barang, $nama_barang, $kategori_id, $ruangan_id, $jumlah_total;
+    public $detailBarangId = null;
     public $barangIdToDelete;
     public $barangNamaToDelete;
     public $barangIdToUpdateStatus;
     public $barangNamaForStatus;
     public $jumlahYangRusak = 1;
-
     public $barangIdToRepair;
     public $barangNamaForRepair;
     public $jumlahYangDiperbaiki = 1;
@@ -60,6 +61,8 @@ class Index extends Component
     {
         $this->resetPage();
     }
+
+
 
 
     public function simpanBarang()
@@ -173,6 +176,10 @@ class Index extends Component
         $this->barangIdToRepair = null; // Tutup modal
     }
 
+    public function closeDetailModal()
+    {
+        $this->detailBarangId = null;
+    }
     public function render()
     {
 
@@ -189,10 +196,29 @@ class Index extends Component
             })
             ->latest()
             ->paginate(10);
+        $detailBarang = null;
+        if ($this->detailBarangId) {
+            $barang = Barang::findOrFail($this->detailBarangId);
+
+            $distribusi = Transaksi::with('siswa')
+                ->whereHas('barangs', function ($query) {
+                    $query->where('barang_id', $this->detailBarangId);
+                })
+                ->whereIn('status', ['dipinjam', 'disetujui'])
+                ->get()
+                ->groupBy('ruang_pemakaian');
+
+            $detailBarang = [
+                'barang' => $barang,
+                'distribusi' => $distribusi,
+            ];
+        }
+
 
         return view('livewire.barang.index', [
             'barangs' => $barangs,
             'kategoris' => $kategoris,
+            'detailBarang' => $detailBarang,
             'ruangans' => $ruangans,
         ]);
     }

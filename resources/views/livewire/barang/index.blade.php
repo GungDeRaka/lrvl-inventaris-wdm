@@ -61,7 +61,12 @@
                 @forelse ($barangs as $barang)
                     <tr class="hover:bg-gray-50">
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">{{ $barang->kode_barang }}</td>
-                        <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">{{ $barang->nama_barang }}</td>
+                        <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
+                            <button wire:click="$set('detailBarangId', {{ $barang->id }})"
+                                class="font-semibold text-indigo-600 hover:underline">
+                                {{ $barang->nama_barang }}
+                            </button>
+                        </td>
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
                             {{ $barang->kategori->nama_kategori }}</td>
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
@@ -243,6 +248,68 @@
     @if (session()->has('error'))
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative my-4" role="alert">
             <span class="block sm:inline">{{ session('error') }}</span>
+        </div>
+    @endif
+
+    {{-- Modal Detail Distribusi Barang --}}
+    @if ($detailBarangId)
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg max-h-[80vh] flex flex-col">
+                <div class="flex justify-between items-center mb-4 border-b pb-2">
+                    <h3 class="text-lg font-medium text-gray-900">Detail Distribusi:
+                        {{ $detailBarang['barang']->nama_barang }}</h3>
+                    <button wire:click="closeDetailModal"
+                        class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+                </div>
+
+                <div class="overflow-y-auto">
+                    <div class="bg-gray-50 p-4 rounded-md mb-4">
+                        <h4 class="font-semibold text-primary">Ringkasan Stok</h4>
+                        <p class="text-sm">Stok Tersedia:
+                            <strong
+                                class="font-semibold text-primary">{{ $detailBarang['barang']->jumlah_saat_ini }}</strong>
+                            dari
+                            <strong
+                                class="font-semibold text-primary">{{ $detailBarang['barang']->jumlah_total }}</strong>
+                            total unit.
+                        </p>
+                        <p class="text-sm">Barang Dipinjam:
+                            <strong>{{ $detailBarang['barang']->jumlah_total - $detailBarang['barang']->jumlah_saat_ini }}</strong>
+                            unit.
+                        </p>
+                        @if ($detailBarang['barang']->jumlah_rusak > 0)
+                            <p class="text-sm text-red-600">Barang Rusak:
+                                <strong>{{ $detailBarang['barang']->jumlah_rusak }}</strong> unit.
+                            </p>
+                        @endif
+                    </div>
+
+                    <h4 class="font-semibold text-md text-gray-800 mb-2">Detail Distribusi Peminjaman</h4>
+                    <div class="border rounded-md">
+                        @forelse($detailBarang['distribusi'] as $ruangan => $transaksis)
+                            <div class="p-3 {{ !$loop->last ? 'border-b' : '' }}">
+                                <p class="font-semibold text-gray-800">{{ $ruangan }}</p>
+                                <ul class="list-disc list-inside pl-4 mt-1">
+                                    @foreach ($transaksis as $transaksi)
+                                        @php
+                                            // Hitung kuantitas barang ini dalam transaksi multi-barang
+                                            $kuantitas = $transaksi->barangs()->find($detailBarang['barang']->id)->pivot
+                                                ->kuantitas;
+                                        @endphp
+                                        <li class="text-sm text-gray-600">
+                                            {{ $kuantitas }} unit oleh {{ $transaksi->siswa->nama }} (Kembali:
+                                            {{ \Carbon\Carbon::parse($transaksi->waktu_kembali)->format('d M, H:i') }})
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @empty
+                            <p class="p-3 text-sm text-gray-500">Tidak ada unit dari barang ini yang sedang dipinjam.
+                            </p>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
         </div>
     @endif
 </div>
