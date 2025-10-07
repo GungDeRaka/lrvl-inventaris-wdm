@@ -1,12 +1,15 @@
 <div>
-    @if (auth()->guard('siswa')->user()->is_ditangguhkan)
-        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
-            <p class="font-bold">Akun Anda Ditangguhkan</p>
-            <p>Anda tidak dapat mengajukan peminjaman baru karena ada riwayat pengembalian barang dalam kondisi rusak.
-                Harap hubungi admin gudang untuk informasi lebih lanjut.</p>
+    {{-- Notifikasi --}}
+    @if (session()->has('message'))
+        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+            {{ session('message') }}</div>
+    @endif
+    @if (session()->has('error'))
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">{{ session('error') }}
         </div>
     @endif
-    {{-- Tombol Aksi --}}
+
+    {{-- Tombol Aksi Utama --}}
     <div class="mb-6">
         <button wire:click="$set('showRequestModal', true)"
             {{ auth()->guard('siswa')->user()->is_ditangguhkan ? 'disabled' : '' }}
@@ -15,66 +18,87 @@
         </button>
     </div>
 
-    {{-- Riwayat Peminjaman --}}
-    <h2 class="text-lg font-semibold text-gray-700 mb-4">Riwayat Permintaan Anda</h2>
-    <div class="space-y-4">
-        @forelse($riwayat as $item)
-            @php
-                // Tentukan class untuk border kiri berdasarkan status
-                $borderColorClass = match ($item->status) {
-                    'dipinjam', 'disetujui' => 'border-blue-500',
-                    'dikembalikan' => 'border-green-500',
-                    'ditolak' => 'border-red-500',
-                    default => 'border-gray-400',
-                };
-
-                // Tentukan class untuk badge status
-                $statusBadgeClass = match ($item->status) {
-                    'dipinjam', 'disetujui' => 'bg-blue-100 text-blue-800',
-                    'dikembalikan' => 'bg-green-100 text-green-800',
-                    'ditolak' => 'bg-red-100 text-red-800',
-                    default => 'bg-gray-100 text-gray-800',
-                };
-            @endphp
-
-            <div class="bg-white p-4 rounded-lg shadow-md border-l-4 {{ $borderColorClass }}">
-                <div class="flex justify-between items-center">
-                    <span class="font-bold text-gray-800">
-                        {{-- Menampilkan semua barang dalam transaksi --}}
-                        @foreach ($item->barangs as $barang)
-                            {{ $barang->nama_barang }}{{ !$loop->last ? ',' : '' }}
-                        @endforeach
-                    </span>
-
-                    <span class="text-sm font-semibold px-2 py-1 rounded-full {{ $statusBadgeClass }}">
-                        {{ ucfirst($item->status) }}
-                    </span>
-                </div>
-                <p class="text-sm text-gray-600 mt-2">
-                    Booking: {{ \Carbon\Carbon::parse($item->waktu_pinjam)->format('d M Y, H:i') }} -
-                    {{ \Carbon\Carbon::parse($item->waktu_kembali)->format('H:i') }}
-                </p>
-                {{-- alasan penolakan --}}
-                @if ($item->status == 'ditolak' && $item->alasan_penolakan)
-                    <div class="mt-2 p-2 bg-red-50 border-l-4 border-red-400 text-red-700 text-sm">
-                        <p><strong class="font-semibold">Alasan:</strong> {{ $item->alasan_penolakan }}</p>
-                    </div>
-                @endif
-                @if ($item->status == 'diajukan' || $item->status == 'disetujui')
-                    <div class="mt-3 text-right">
-                        <button wire:click="batalkanPermintaan({{ $item->id }})"
-                            wire:confirm="Anda yakin ingin membatalkan permintaan ini?"
-                            class="text-xs font-semibold text-red-600 hover:text-red-800 hover:underline">
-                            Batalkan Permintaan
-                        </button>
-                    </div>
-                @endif
-            </div>
-        @empty
-            <p class="text-gray-500">Anda belum memiliki riwayat permintaan.</p>
-        @endforelse
+    {{-- Navigasi Tab --}}
+    <div class="mb-4 border-b border-gray-200">
+        <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+            <button wire:click="setActiveTab('riwayat')"
+                class="py-3 px-1 border-b-2 font-medium text-sm {{ $activeTab == 'riwayat' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                Riwayat Permintaan Anda
+            </button>
+            <button wire:click="setActiveTab('ketersediaan')"
+                class="py-3 px-1 border-b-2 font-medium text-sm {{ $activeTab == 'ketersediaan' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                Ketersediaan Barang
+            </button>
+        </nav>
     </div>
 
+    {{-- Konten Tab --}}
+    <div>
+        {{-- Konten untuk Tab Riwayat --}}
+        @if ($activeTab == 'riwayat')
+            <div class="space-y-3">
+                @forelse($riwayat as $item)
+                    @php
+                        // Logika penentuan warna class
+                    @endphp
+                    <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 {{-- ... (kode border color Anda) ... --}}">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-bold text-gray-800 text-sm">
+                                    @foreach ($item->barangs as $barang)
+                                        {{ $barang->nama_barang }}{{ !$loop->last ? ',' : '' }}
+                                    @endforeach
+                                </p>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Booking: {{ \Carbon\Carbon::parse($item->waktu_pinjam)->format('d M, H:i') }} -
+                                    {{ \Carbon\Carbon::parse($item->waktu_kembali)->format('d M, H:i') }}
+                                </p>
+                            </div>
+                            <span
+                                class="text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap {{-- ... (kode badge class Anda) ... --}}">
+                                {{ ucfirst($item->status) }}
+                            </span>
+                        </div>
+                        @if ($item->status == 'ditolak' && $item->alasan_penolakan)
+                            <div class="mt-2 p-2 bg-red-50 border-l-4 border-red-400 text-red-700 text-xs">
+                                <p><strong class="font-semibold">Alasan:</strong> {{ $item->alasan_penolakan }}</p>
+                            </div>
+                        @endif
+                        @if ($item->status == 'diajukan' || $item->status == 'disetujui')
+                            <div class="mt-2 text-right">
+                                <button wire:click="batalkanPermintaan({{ $item->id }})" wire:confirm="Anda yakin?"
+                                    class="text-xs font-semibold text-red-600 hover:underline">Batalkan</button>
+                            </div>
+                        @endif
+                    </div>
+                @empty
+                    <p class="text-gray-500 text-center py-4">Anda belum memiliki riwayat permintaan.</p>
+                @endforelse
+            </div>
+        @endif
+
+        {{-- Konten untuk Tab Ketersediaan Barang --}}
+        @if ($activeTab == 'ketersediaan')
+            <div class="space-y-6">
+                @foreach ($ruangansDenganBarang as $ruangan)
+                    @if ($ruangan->barangs->isNotEmpty())
+                        <div>
+                            <h3 class="text-md font-bold text-gray-800 mb-2 border-b pb-2">{{ $ruangan->nama_ruangan }}
+                            </h3>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
+                                @foreach ($ruangan->barangs as $barang)
+                                    <div class="bg-white p-3 rounded-lg shadow-sm text-center">
+                                        <p class="font-semibold text-sm text-gray-900">{{ $barang->nama_barang }}</p>
+                                        <p class="text-xs text-gray-500">Stok: {{ $barang->jumlah_saat_ini }}</p>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                @endforeach
+            </div>
+        @endif
+    </div>
     {{-- Modal Form Permintaan --}}
     @if ($showRequestModal)
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">

@@ -22,6 +22,9 @@ class Dashboard extends Component
     // Keranjang untuk menampung barang yang akan dipinjam
     public $keranjang = [];
 
+    // PROPERTI UNTUK MENGATUR TAB
+    public $activeTab = 'riwayat';
+
     public function updatedSearchBarang($value)
     {
         if (strlen($this->searchBarang) >= 2) {
@@ -127,12 +130,24 @@ class Dashboard extends Component
             session()->flash('message', 'Permintaan peminjaman berhasil dibatalkan.');
         }
     }
+
+    public function setActiveTab($tabName)
+    {
+        $this->activeTab = $tabName;
+    }
+
     public function render()
     {
         $riwayat = Transaksi::with('barangs')
             ->where('siswa_id', auth()->guard('siswa')->id())
             ->latest()->get();
+        $ruangansDenganBarang = Ruangan::with(['barangs' => function ($query) {
+            $query->where('jumlah_saat_ini', '>', 0);
+        }])->get();
 
-        return view('livewire.siswa.dashboard', ['riwayat' => $riwayat, 'ruangans' => Ruangan::all()]);
+        return view('livewire.siswa.dashboard', [
+            'riwayat' => $riwayat,
+            'ruangansDenganBarang' => $ruangansDenganBarang,
+        ]);
     }
 }
