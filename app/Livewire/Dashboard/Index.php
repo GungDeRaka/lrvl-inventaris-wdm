@@ -214,8 +214,9 @@ class Index extends Component
     {
         DB::transaction(function () use ($id) {
             $transaksi = Transaksi::findOrFail($id);
-            $semuaStokTersedia = true;
 
+            // Logika pengecekan stok
+            $semuaStokTersedia = true;
             foreach ($transaksi->barangs as $barang) {
                 if ($barang->jumlah_saat_ini < $barang->pivot->kuantitas) {
                     $semuaStokTersedia = false;
@@ -229,10 +230,12 @@ class Index extends Component
                 return;
             }
 
+            // Update status menjadi 'disetujui' dan KURANGI STOK
             $transaksi->update(['status' => 'disetujui', 'user_id' => Auth::id()]);
             foreach ($transaksi->barangs as $barang) {
                 $barang->decrement('jumlah_saat_ini', $barang->pivot->kuantitas);
             }
+
             session()->flash('message', 'Permintaan berhasil disetujui.');
         });
     }
@@ -250,6 +253,7 @@ class Index extends Component
 
         $transaksi = Transaksi::find($this->transaksiIdToTolak);
         if ($transaksi) {
+            // HANYA update status dan alasan, TIDAK ADA PENGURANGAN STOK
             $transaksi->update([
                 'status' => 'ditolak',
                 'user_id' => Auth::id(),

@@ -39,50 +39,53 @@ class Dashboard extends Component
     }
 
     public function tambahKeKeranjang($id, $nama, $ruanganAsal)
-{
-    $barang = Barang::find($id);
-    if ($barang->jumlah_saat_ini <= 0) {
-        session()->flash('error', 'Stok barang ' . $nama . ' sudah habis.');
-        return;
-    }
+    {
+        $barang = Barang::find($id);
+        if ($barang->jumlah_saat_ini <= 0) {
+            session()->flash('error', 'Stok barang ' . $nama . ' sudah habis.');
+            return;
+        }
 
-    // Cek apakah barang sudah ada di keranjang
-    foreach ($this->keranjang as $index => $item) {
-        if ($item['id'] == $id) {
-            // Jika kuantitas di keranjang sudah sama dengan stok, jangan tambah lagi
-            if ($this->keranjang[$index]['kuantitas'] >= $barang->jumlah_saat_ini) {
+        // Cek apakah barang sudah ada di keranjang
+        foreach ($this->keranjang as $index => $item) {
+            if ($item['id'] == $id) {
+                // Jika kuantitas di keranjang sudah sama dengan stok, jangan tambah lagi
+                if ($this->keranjang[$index]['kuantitas'] >= $barang->jumlah_saat_ini) {
+                    return;
+                }
+                // Tambah kuantitas jika barang sudah ada
+                $this->keranjang[$index]['kuantitas']++;
                 return;
             }
-            // Tambah kuantitas jika barang sudah ada
+        }
+
+        // Tambahkan barang baru ke keranjang dengan kuantitas 1
+        $this->keranjang[] = [
+            'id' => $id,
+            'nama' => $nama,
+            'asal' => $ruanganAsal,
+            'kuantitas' => 1, // Kuantitas awal
+            'stok_tersedia' => $barang->jumlah_saat_ini, // Simpan info stok
+        ];
+
+        $this->barangDitemukan = []; // Mengosongkan hasil pencarian
+        $this->searchBarang = '';
+    }
+
+    public function incrementKuantitas($index)
+    {
+        // Cek agar kuantitas tidak melebihi stok
+        if ($this->keranjang[$index]['kuantitas'] < $this->keranjang[$index]['stok_tersedia']) {
             $this->keranjang[$index]['kuantitas']++;
-            return;
         }
     }
 
-    // Tambahkan barang baru ke keranjang dengan kuantitas 1
-    $this->keranjang[] = [
-        'id' => $id,
-        'nama' => $nama,
-        'asal' => $ruanganAsal,
-        'kuantitas' => 1, // Kuantitas awal
-        'stok_tersedia' => $barang->jumlah_saat_ini, // Simpan info stok
-    ];
-}
-
-public function incrementKuantitas($index)
-{
-    // Cek agar kuantitas tidak melebihi stok
-    if ($this->keranjang[$index]['kuantitas'] < $this->keranjang[$index]['stok_tersedia']) {
-        $this->keranjang[$index]['kuantitas']++;
+    public function decrementKuantitas($index)
+    {
+        if ($this->keranjang[$index]['kuantitas'] > 1) {
+            $this->keranjang[$index]['kuantitas']--;
+        }
     }
-}
-
-public function decrementKuantitas($index)
-{
-    if ($this->keranjang[$index]['kuantitas'] > 1) {
-        $this->keranjang[$index]['kuantitas']--;
-    }
-}
 
     public function hapusDariKeranjang($index)
     {
@@ -92,12 +95,6 @@ public function decrementKuantitas($index)
 
     public function ajukanPeminjaman()
     {
-
-        if (auth()->guard('siswa')->user()->is_ditangguhkan) {
-            session()->flash('error', 'Akun Anda sedang ditangguhkan dan tidak bisa mengajukan peminjaman. Harap hubungi admin.');
-            return;
-        }
-
         $validated = $this->validate([
             'keranjang' => 'required|array|min:1',
             'ruang_pemakaian' => 'required|string|min:3',
@@ -120,11 +117,13 @@ public function decrementKuantitas($index)
                 ]);
 
                 // 2. Lampirkan semua barang dari keranjang ke transaksi
-                 foreach ($this->keranjang as $item) {
-                $transaksi->barangs()->attach($item['id'], ['kuantitas' => $item['kuantitas']]);
-                Barang::find($item['id'])->decrement('jumlah_saat_ini', $item['kuantitas']);
-            }
-        });
+                foreach ($this->keranjang as $item) {
+                    $transaksi->barangs()->attach($item['id'], ['kuantitas' => $item['kuantitas']]);
+
+                    // HAPUS BARIS DI BAWAH INI
+                    // Barang::find($item['id'])->decrement('jumlah_saat_ini', $item['kuantitas']);
+                }
+            });
 
             session()->flash('message', 'Permintaan peminjaman berhasil diajukan.');
             $this->showRequestModal = false;

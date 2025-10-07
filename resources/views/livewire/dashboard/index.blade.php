@@ -192,7 +192,8 @@ TODO FORMULIR PENGEMBALIAN BARANG DARI SISWA. SISWA MENGEMBALIKAN BARANG SECARA 
                         <td class="px-3 py-4 text-sm">
                             @foreach ($transaksi->barangs as $barang)
                                 <span class="block">
-                                    {{ $barang->nama_barang }} <strong class="text-primary">({{ $barang->pivot->kuantitas }} unit)</strong>
+                                    {{ $barang->nama_barang }} <strong
+                                        class="text-primary">({{ $barang->pivot->kuantitas }} unit)</strong>
                                 </span>
                             @endforeach
                         </td>
@@ -407,6 +408,8 @@ TODO FORMULIR PENGEMBALIAN BARANG DARI SISWA. SISWA MENGEMBALIKAN BARANG SECARA 
                                     Pengembalian</label>
                                 <input type="datetime-local" id="waktu_kembali" wire:model="waktu_kembali"
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                                    @error('waktu_kembali') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    
                             </div>
                         </div>
                     </div>
@@ -565,11 +568,13 @@ TODO FORMULIR PENGEMBALIAN BARANG DARI SISWA. SISWA MENGEMBALIKAN BARANG SECARA 
                     <div class="mt-4 flex justify-end space-x-2">
                         <button type="button" wire:click="$set('showTolakModal', false)"
                             class="px-4 py-2 bg-gray-200 rounded">Batal</button>
+
                         <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded">Tolak
                             Permintaan</button>
                     </div>
-                </form>
             </div>
+            </form>
         </div>
-    @endif
+</div>
+@endif
 </div>
