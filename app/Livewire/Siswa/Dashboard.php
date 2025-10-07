@@ -6,6 +6,7 @@ use App\Models\Barang;
 use App\Models\Ruangan;
 use App\Models\Transaksi;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 
@@ -28,23 +29,27 @@ class Dashboard extends Component
     public function updatedSearchBarang($value)
     {
         if (strlen($this->searchBarang) >= 2) {
-            $this->barangDitemukan = Barang::where('nama_barang', 'like', '%' . $value . '%')->limit(5)->get();
+            // Tambahkan with('ruangan')
+            $this->barangDitemukan = Barang::with('ruangan')
+                ->where('nama_barang', 'like', '%' . $value . '%')
+                ->limit(5)->get();
         } else {
             $this->barangDitemukan = [];
         }
     }
 
-    public function tambahKeKeranjang($id, $nama)
+    public function tambahKeKeranjang($id, $nama, $ruanganAsal) // Tambahkan $ruanganAsal
     {
-        // Cek agar barang yang sama tidak masuk dua kali
         foreach ($this->keranjang as $item) {
-            if ($item['id'] == $id) {
-                return; // Jika sudah ada, hentikan fungsi
-            }
+            if ($item['id'] == $id) return;
         }
 
-        // Tambahkan barang ke keranjang
-        $this->keranjang[] = ['id' => $id, 'nama' => $nama];
+        $this->keranjang[] = [
+            'id' => $id,
+            'nama' => $nama,
+            'asal' => $ruanganAsal // Simpan ruangan asal
+        ];
+
         $this->barangDitemukan = [];
         $this->searchBarang = '';
     }
@@ -136,6 +141,18 @@ class Dashboard extends Component
         $this->activeTab = $tabName;
     }
 
+    #[Computed]
+    public function asalRuangan()
+    {
+        if (empty($this->keranjang)) {
+            return collect();
+        }
+        $barangIds = collect($this->keranjang)->pluck('id');
+        return Barang::with('ruangan')
+            ->whereIn('id', $barangIds)
+            ->get()
+            ->groupBy('ruangan.nama_ruangan');
+    }
     public function render()
     {
         $riwayat = Transaksi::with('barangs')
@@ -147,7 +164,7 @@ class Dashboard extends Component
 
         return view('livewire.siswa.dashboard', [
             'riwayat' => $riwayat,
-            'ruangans'=> Ruangan::all(),
+            'ruangans' => Ruangan::all(),
             'ruangansDenganBarang' => $ruangansDenganBarang,
         ]);
     }

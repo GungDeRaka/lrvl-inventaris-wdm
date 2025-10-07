@@ -121,9 +121,11 @@
                                         @forelse($barangDitemukan as $barang)
                                             @if ($barang->jumlah_saat_ini > 0)
                                                 {{-- BARANG TERSEDIA (Bisa Diklik) --}}
-                                                <li wire:click="tambahKeKeranjang({{ $barang->id }}, '{{ addslashes($barang->nama_barang) }}')"
+                                                <li wire:click="tambahKeKeranjang({{ $barang->id }}, '{{ addslashes($barang->nama_barang) }}', '{{ $barang->ruangan->nama_ruangan }}')"
                                                     class="px-4 py-2 cursor-pointer hover:bg-gray-100">
                                                     {{ $barang->nama_barang }} (Stok: {{ $barang->jumlah_saat_ini }})
+                                                    <small class="block text-xs text-gray-500">Asal:
+                                                        {{ $barang->ruangan->nama_ruangan }}</small>
                                                 </li>
                                             @else
                                                 {{-- BARANG HABIS (Tidak Bisa Diklik) --}}
@@ -145,9 +147,14 @@
                                 <label class="block text-sm font-medium text-gray-700">Barang yang Akan
                                     Dipinjam:</label>
                                 <div class="mt-2 space-y-2 border rounded-md p-2 max-h-40 overflow-auto">
+                                    {{-- Tampilkan ruangan asal dari data keranjang --}}
                                     @foreach ($keranjang as $index => $item)
                                         <div class="flex justify-between items-center bg-gray-50 p-2 rounded">
-                                            <span class="text-sm">{{ $item['nama'] }}</span>
+                                            <div>
+                                                <span class="text-sm font-semibold">{{ $item['nama'] }}</span>
+                                                <small class="block text-xs text-gray-500">Asal:
+                                                    {{ $item['asal'] }}</small>
+                                            </div>
                                             <button type="button" wire:click="hapusDariKeranjang({{ $index }})"
                                                 class="text-red-500 hover:text-red-700 text-xs font-bold">HAPUS</button>
                                         </div>
@@ -161,13 +168,24 @@
 
                         {{-- Input lainnya --}}
                         <div>
-                            <label for="ruang_pemakaian" class="block text-sm font-medium text-gray-700">Ruang
-                                Pemakaian</label>
-                            <select wire:model="ruang_pemakaian" id="ruang_pemakaian"
+                            <label for="ruang_pemakaian_siswa" class="block text-sm font-medium text-gray-700">Rencana
+                                Ruang Penggunaan</label>
+                            <select wire:model="ruang_pemakaian" id="ruang_pemakaian_siswa"
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                                 <option value="">Pilih Ruangan</option>
                                 @foreach ($ruangans as $ruangan)
-                                    <option value="{{ $ruangan->nama_ruangan }}">{{ $ruangan->nama_ruangan }}</option>
+                                    @php
+                                        $isAsalRuangan = isset($this->asalRuangan[$ruangan->nama_ruangan]);
+                                    @endphp
+                                    <option value="{{ $ruangan->nama_ruangan }}"
+                                        {{ $isAsalRuangan ? 'disabled' : '' }}
+                                        class="{{ $isAsalRuangan ? 'text-gray-400 cursor-not-allowed' : '' }}">
+                                        {{ $ruangan->nama_ruangan }}
+                                        @if ($isAsalRuangan)
+                                            (Ruangan Asal:
+                                            {{ $this->asalRuangan[$ruangan->nama_ruangan]->pluck('nama_barang')->join(', ') }})
+                                        @endif
+                                    </option>
                                 @endforeach
                             </select>
                             @error('ruang_pemakaian')
