@@ -37,7 +37,13 @@
             <tbody>
                 @forelse($ruangans as $ruangan)
                     <tr class="hover:bg-gray-50 border-b">
-                        <td class="px-5 py-4 text-sm">{{ $ruangan->nama_ruangan }}</td>
+                        <td class="px-5 py-4 text-sm">
+                            {{-- Buat nama ruangan menjadi tombol --}}
+                            <button wire:click="showDetail({{ $ruangan->id }})"
+                                class="font-semibold text-indigo-600 hover:underline">
+                                {{ $ruangan->nama_ruangan }}
+                            </button>
+                        </td>
                         <td class="px-5 py-4 text-sm whitespace-nowrap">
                             <button wire:click="edit({{ $ruangan->id }})"
                                 class="font-semibold text-yellow-600 hover:text-yellow-900">Edit</button>
@@ -89,6 +95,64 @@
                     <button wire:click="$set('ruanganIdToDelete', null)"
                         class="px-4 py-2 bg-gray-200 rounded">Batal</button>
                     <button wire:click="hapusRuangan" class="px-4 py-2 bg-red-600 text-white rounded">Ya, Hapus</button>
+                </div>
+            </div>
+        </div>
+    @endif
+    {{-- Modal Detail Ruangan --}}
+    @if ($detailRuangan)
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[80vh] flex flex-col">
+                <div class="flex justify-between items-center mb-4 border-b pb-2">
+                    <h3 class="text-lg font-medium text-gray-900">Detail Ruangan:
+                        {{ $detailRuangan['ruangan']->nama_ruangan }}</h3>
+                    <button wire:click="closeDetailModal"
+                        class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+                </div>
+
+                <div class="overflow-y-auto space-y-6">
+                    {{-- Daftar Barang Asli --}}
+                    <div>
+                        <h4 class="font-semibold text-md text-gray-800 mb-2">Barang Asli di Ruangan Ini</h4>
+                        <div class="border rounded-md">
+                            @forelse($detailRuangan['barangAsal'] as $barang)
+                                <div
+                                    class="flex justify-between items-center p-3 {{ !$loop->last ? 'border-b' : '' }}">
+                                    <span class="text-sm">{{ $barang->nama_barang }}</span>
+                                    <span class="text-xs font-mono bg-gray-200 px-2 py-1 rounded">Stok Tersedia:
+                                        {{ $barang->jumlah_saat_ini }} / {{ $barang->jumlah_total }}</span>
+                                </div>
+                            @empty
+                                <p class="p-3 text-sm text-gray-500">Tidak ada barang yang berasal dari ruangan ini.</p>
+                            @endforelse
+                        </div>
+                    </div>
+
+                    {{-- Daftar Barang Pinjaman --}}
+                    <div>
+                        <h4 class="font-semibold text-md text-gray-800 mb-2">Barang Pinjaman di Ruangan Ini</h4>
+                        <div class="border rounded-md">
+                            @forelse($detailRuangan['barangPinjamanMasuk'] as $transaksi)
+                                @foreach ($transaksi->barangs as $barang)
+                                    <div
+                                        class="flex justify-between items-center p-3 {{ !$loop->last ? 'border-b' : '' }}">
+                                        <div>
+                                            <p class="text-sm">{{ $barang->nama_barang }}</p>
+                                            <small class="text-xs text-gray-500">Dari:
+                                                {{ $barang->ruangan->nama_ruangan }} | Peminjam:
+                                                {{ $transaksi->siswa->nama }}</small>
+                                        </div>
+                                        <span
+                                            class="text-xs font-mono bg-yellow-200 text-yellow-800 px-2 py-1 rounded">Status:
+                                            {{ ucfirst($transaksi->status) }}</span>
+                                    </div>
+                                @endforeach
+                            @empty
+                                <p class="p-3 text-sm text-gray-500">Tidak ada barang pinjaman dari ruangan lain saat
+                                    ini.</p>
+                            @endforelse
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

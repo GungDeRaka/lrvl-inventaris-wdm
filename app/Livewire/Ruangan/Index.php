@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Ruangan;
 
+use App\Models\Barang;
+use App\Models\Transaksi;
 use App\Models\Ruangan;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -17,6 +19,7 @@ class Index extends Component
     public $ruangan_id;
     public $nama_ruangan;
     public $ruanganIdToDelete;
+    public $detailRuangan = null;
     public $search = '';
 
     public function openModal()
@@ -30,7 +33,8 @@ class Index extends Component
         $this->showModal = false;
     }
 
-    public function updatingSearch(){
+    public function updatingSearch()
+    {
         $this->resetPage();
     }
 
@@ -78,10 +82,38 @@ class Index extends Component
         $this->ruanganIdToDelete = null;
     }
 
+    // METHOD UNTUK MENAMPILKAN DETAIL RUANGAN
+    public function showDetail($id)
+    {
+        $ruangan = Ruangan::findOrFail($id);
+
+        // 1. Ambil barang yang berasal dari ruangan ini
+        $barangAsal = Barang::where('ruangan_id', $id)->get();
+
+        // 2. Ambil barang yang sedang dipinjam & digunakan di ruangan ini
+        $barangPinjamanMasuk = Transaksi::with('barangs.ruangan')
+            ->where('ruang_pemakaian', $ruangan->nama_ruangan)
+            ->whereIn('status', ['dipinjam', 'disetujui'])
+            ->get();
+
+        $this->detailRuangan = [
+            'ruangan' => $ruangan,
+            'barangAsal' => $barangAsal,
+            'barangPinjamanMasuk' => $barangPinjamanMasuk,
+        ];
+    }
+
+    // METHOD UNTUK MENUTUP MODAL DETAIL
+    public function closeDetailModal()
+    {
+        $this->detailRuangan = null;
+    }
+
+
     public function render()
     {
         return view('livewire.ruangan.index', [
-            'ruangans' => Ruangan::where('nama_ruangan', 'like', '%'.$this->search.'%')->latest()->paginate(10),
+            'ruangans' => Ruangan::where('nama_ruangan', 'like', '%' . $this->search . '%')->latest()->paginate(10),
         ]);
     }
 }
