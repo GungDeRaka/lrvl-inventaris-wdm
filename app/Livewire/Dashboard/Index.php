@@ -87,12 +87,22 @@ class Index extends Component
         }
     }
 
-    public function tambahKeKeranjang($id, $nama)
+    public function tambahKeKeranjang($id, $nama, $ruanganAsal) 
     {
+        // Cek agar barang yang sama tidak masuk dua kali
         foreach ($this->keranjang as $item) {
-            if ($item['id'] == $id) return;
+            if ($item['id'] == $id) {
+                return;
+            }
         }
-        $this->keranjang[] = ['id' => $id, 'nama' => $nama];
+
+        // Tambahkan barang beserta ruangan asalnya ke keranjang
+        $this->keranjang[] = [
+            'id' => $id,
+            'nama' => $nama,
+            'asal' => $ruanganAsal // Simpan ruangan asal di sini
+        ];
+
         $this->barangDitemukan = [];
         $this->searchBarang = '';
     }

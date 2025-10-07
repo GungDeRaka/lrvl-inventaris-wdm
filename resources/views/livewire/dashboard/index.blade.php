@@ -300,9 +300,12 @@ TODO CHAT PAK YANDRIK TTG KP, APA AJA YANG PERLU DIBAWA
                                     <div class="mt-2 space-y-2 border rounded-md p-2 max-h-40 overflow-auto">
                                         @foreach ($keranjang as $index => $item)
                                             <div class="flex justify-between items-center bg-gray-50 p-2 rounded">
-                                                <span class="text-sm">{{ $item['nama'] }}</span>
-                                                <small class="block text-xs text-gray-500">Asal:
-                                                    {{ $barang->ruangan->nama_ruangan }}</small>
+                                                <div>
+                                                    <span class="text-sm font-semibold">{{ $item['nama'] }}</span>
+                                                    {{-- Tampilkan data 'asal' dari keranjang --}}
+                                                    <small class="block text-xs text-gray-500">Asal:
+                                                        {{ $item['asal'] }}</small>
+                                                </div>
                                                 <button type="button"
                                                     wire:click="hapusDariKeranjang({{ $index }})"
                                                     class="text-red-500 hover:text-red-700 text-xs font-bold">HAPUS</button>
@@ -331,7 +334,7 @@ TODO CHAT PAK YANDRIK TTG KP, APA AJA YANG PERLU DIBAWA
                                             @forelse($barangDitemukan as $barang)
                                                 @if ($barang->jumlah_saat_ini > 0)
                                                     {{-- BARANG TERSEDIA (Bisa Diklik) --}}
-                                                    <li wire:click="tambahKeKeranjang({{ $barang->id }}, '{{ addslashes($barang->nama_barang) }}')"
+                                                    <li wire:click="tambahKeKeranjang({{ $barang->id }}, '{{ addslashes($barang->nama_barang) }}', '{{ $barang->ruangan->nama_ruangan }}')"
                                                         class="px-4 py-2 cursor-pointer hover:bg-gray-100">
                                                         {{ $barang->nama_barang }} (Stok:
                                                         {{ $barang->jumlah_saat_ini }})
