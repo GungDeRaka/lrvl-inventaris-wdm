@@ -10,6 +10,7 @@ use App\Livewire\User\Index as UserIndex;
 use App\Livewire\Kategori\Index as KategoriIndex;
 use App\Livewire\Ruangan\Index as RuanganIndex;
 use App\Livewire\Siswa\Index as SiswaIndex;
+use App\Livewire\Siswa\Profil as SiswaProfil;
 
 Route::get('/', function () {
     return view('welcome');
@@ -47,6 +48,7 @@ Route::prefix('siswa')->name('siswa.')->group(function () {
     // Halaman yang terproteksi (hanya bisa diakses setelah login sebagai siswa)
     Route::middleware('auth:siswa')->group(function () {
         Route::get('/dashboard', \App\Livewire\Siswa\Dashboard::class)->name('dashboard');
+        Route::get('/profil', SiswaProfil::class)->name('profil');
     });
 });
 
