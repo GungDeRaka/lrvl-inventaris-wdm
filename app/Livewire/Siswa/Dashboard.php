@@ -22,7 +22,7 @@ class Dashboard extends Component
     public $keranjang = [];
 
     // PROPERTI UNTUK MENGATUR TAB
-    public $activeTab = 'ketersediaan';
+    public $activeTab = 'riwayat';
     public $filterRuangan = '';
 
     public $showReturnModal = false;
@@ -214,6 +214,19 @@ class Dashboard extends Component
 
         $this->showReturnModal = false;
         session()->flash('message', 'Laporan pengembalian berhasil diajukan dan menunggu konfirmasi admin.');
+    }
+// permomohonan perpanjangan peminjaman
+    public function mintaPerpanjangan($id)
+    {
+        $transaksi = Transaksi::where('id', $id)
+            ->where('siswa_id', auth()->guard('siswa')->id())
+            ->first();
+
+        // Pastikan siswa hanya bisa meminta perpanjangan untuk status 'dipinjam'
+        if ($transaksi && $transaksi->status == 'dipinjam') {
+            $transaksi->update(['status' => 'perpanjangan-diajukan']);
+            session()->flash('message', 'Permohonan perpanjangan berhasil diajukan, menunggu persetujuan admin.');
+        }
     }
     public function render()
     {

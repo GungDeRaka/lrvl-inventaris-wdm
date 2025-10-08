@@ -26,13 +26,13 @@
     {{-- Navigasi Tab --}}
     <div class="mb-4 border-b border-gray-200">
         <nav class="-mb-px flex space-x-6" aria-label="Tabs">
-            <button wire:click="setActiveTab('ketersediaan')"
-                class="py-3 px-1 border-b-2 font-medium text-sm {{ $activeTab == 'ketersediaan' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
-                Ketersediaan Barang
-            </button>
             <button wire:click="setActiveTab('riwayat')"
                 class="py-3 px-1 border-b-2 font-medium text-sm {{ $activeTab == 'riwayat' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                 Riwayat Permintaan Anda
+            </button>
+            <button wire:click="setActiveTab('ketersediaan')"
+                class="py-3 px-1 border-b-2 font-medium text-sm {{ $activeTab == 'ketersediaan' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                Ketersediaan Barang
             </button>
         </nav>
     </div>
@@ -91,6 +91,22 @@
                                             wire:confirm="Anda yakin?"
                                             class="font-semibold text-red-600 hover:underline">Batalkan</button>
                                     @endif
+
+                                    @php
+                                        $waktuKembali = \Carbon\Carbon::parse($item->waktu_kembali);
+                                        $isMendekatiBatas =
+                                            $item->status == 'dipinjam' &&
+                                            $waktuKembali->isFuture() &&
+                                            $waktuKembali->diffInMinutes(now()) <= 30;
+                                    @endphp
+                                    @if ($isMendekatiBatas)
+                                        <button wire:click="mintaPerpanjangan({{ $item->id }})"
+                                            wire:confirm="Anda yakin ingin mengajukan perpanjangan untuk peminjaman ini?"
+                                            class="font-semibold text-orange-600 hover:underline">
+                                            Minta Perpanjangan
+                                        </button>
+                                    @endif
+
                                     @if ($item->status == 'dipinjam')
                                         <button wire:click="bukaModalPengembalian({{ $item->id }})"
                                             class="font-semibold text-indigo-600 hover:underline">Ajukan

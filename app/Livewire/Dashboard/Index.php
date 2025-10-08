@@ -47,6 +47,11 @@ class Index extends Component
     public $showKonfirmasiModal = false;
     public $konfirmasiTransaksi;
 
+    // properti untuk modal perpanjangan
+    public $showPerpanjanganModal = false;
+    public $perpanjanganTransaksi;
+    public $waktu_kembali_baru;
+
 
 
     public function updatingSearch()
@@ -438,20 +443,56 @@ class Index extends Component
         $this->showKonfirmasiModal = false;
     }
 
+
+    // tiga method dibawah untuk menangani perpanjangan peminjaman
+    public function bukaModalPerpanjangan($id)
+    {
+        $this->perpanjanganTransaksi = Transaksi::with('barangs', 'siswa')->find($id);
+        $this->waktu_kembali_baru = $this->perpanjanganTransaksi->waktu_kembali; // Isi dengan waktu lama sebagai default
+        $this->showPerpanjanganModal = true;
+    }
+
+    public function setujuiPerpanjangan()
+    {
+        $this->validate(['waktu_kembali_baru' => 'required|date|after:' . $this->perpanjanganTransaksi->waktu_kembali]);
+
+        $this->perpanjanganTransaksi->update([
+            'waktu_kembali' => $this->waktu_kembali_baru,
+            'status' => 'dipinjam' // Kembalikan status ke 'dipinjam'
+        ]);
+
+        session()->flash('message', 'Perpanjangan waktu peminjaman berhasil disetujui.');
+        $this->showPerpanjanganModal = false;
+    }
+
+    public function tolakPerpanjangan($id)
+    {
+        $transaksi = Transaksi::find($id);
+        if ($transaksi) {
+            $transaksi->update([
+                'status' => 'dipinjam', // Kembalikan status ke 'dipinjam'
+                'alasan_penolakan' => 'Permohonan perpanjangan ditolak oleh admin.'
+            ]);
+            session()->flash('message', 'Permohonan perpanjangan telah ditolak.');
+        }
+    }
+
     // Fungsi Render Utama
     public function render()
     {
         $jatuhTempo = Transaksi::where('status', 'dipinjam')->where('waktu_kembali', '<', now())->count();
+
         $totalDipinjam = DB::table('barang_transaksi')
             ->join('transaksis', 'barang_transaksi.transaksi_id', '=', 'transaksis.id')
             ->whereIn('transaksis.status', ['dipinjam', 'disetujui'])
             ->sum('barang_transaksi.kuantitas');
+
         $permintaanMasuk = Transaksi::with(['siswa', 'barangs'])
             ->where('status', 'diajukan')->latest()->get();
+
         $menungguKonfirmasi = Transaksi::with(['siswa', 'barangs'])
             ->where('status', 'menunggu-konfirmasi')
             ->latest()->get();
-
 
         $transaksis = Transaksi::with(['siswa', 'barangs.ruangan'])
             ->where(function ($query) {
@@ -464,6 +505,10 @@ class Index extends Component
             })
             ->latest()->paginate(10);
 
+        $permohonanPerpanjangan = Transaksi::with(['siswa', 'barangs'])
+            ->where('status', 'perpanjangan-diajukan')
+            ->latest()->get();
+
         return view('livewire.dashboard.index', [
             'transaksis' => $transaksis,
             'permintaanMasuk' => $permintaanMasuk,
@@ -471,7 +516,8 @@ class Index extends Component
             'totalDipinjam' => $totalDipinjam,
             'totalRusak' => Barang::sum('jumlah_rusak'),
             'jatuhTempo' => $jatuhTempo,
-             'menungguKonfirmasi' => $menungguKonfirmasi,
+            'menungguKonfirmasi' => $menungguKonfirmasi,
+            'permohonanPerpanjangan' => $permohonanPerpanjangan,
             'ruangans' => Ruangan::all(),
         ]);
     }

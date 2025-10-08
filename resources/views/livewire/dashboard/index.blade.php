@@ -110,6 +110,45 @@ TODO SISWA DIMINTA EMAIL AKTIF BIAR BISA UBAH PASSWORD SENDIRI
         </div>
     @endif
 
+    @if ($permohonanPerpanjangan->isNotEmpty())
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold text-cyan-600 mb-4">PERMOHONAN PERPANJANGAN</h2>
+            <div class="bg-white shadow-md rounded-lg overflow-x-auto">
+                <table class="w-full table-auto">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase">Siswa</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase">Barang</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase">Waktu Kembali Awal</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold uppercase">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($permohonanPerpanjangan as $permohonan)
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="px-4 py-3 text-sm">{{ $permohonan->siswa->nama }}</td>
+                                <td class="px-4 py-3 text-sm">
+                                    @foreach ($permohonan->barangs as $barang)
+                                        <span class="block">{{ $barang->nama_barang }}</span>
+                                    @endforeach
+                                </td>
+                                <td class="px-4 py-3 text-sm">
+                                    {{ \Carbon\Carbon::parse($permohonan->waktu_kembali)->format('d M, H:i') }}</td>
+                                <td class="px-4 py-3 text-sm whitespace-nowrap">
+                                    <button wire:click="bukaModalPerpanjangan({{ $permohonan->id }})"
+                                        class="font-semibold text-green-600 hover:text-green-900">Setujui</button>
+                                    <button wire:click="tolakPerpanjangan({{ $permohonan->id }})"
+                                        wire:confirm="Anda yakin ingin menolak permohonan ini?"
+                                        class="font-semibold text-red-600 hover:text-red-900 ml-4">Tolak</button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
     {{-- Panel Konfirmasi Pengembalian --}}
     @if ($menungguKonfirmasi->isNotEmpty())
         <div class="mb-8">
@@ -180,7 +219,8 @@ TODO SISWA DIMINTA EMAIL AKTIF BIAR BISA UBAH PASSWORD SENDIRI
             class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center">
             <svg wire:loading wire:target="simpanPeminjaman" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                    stroke-width="4">
                 </circle>
                 <path class="opacity-75" fill="currentColor"
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
@@ -643,7 +683,8 @@ TODO SISWA DIMINTA EMAIL AKTIF BIAR BISA UBAH PASSWORD SENDIRI
                         </div>
                         <div>
                             <label for="final_rusak_{{ $barang->id }}" class="text-sm mr-2">Jumlah Rusak
-                                (Final):</label>
+                                (Final)
+                                :</label>
                             <input type="number" id="final_rusak_{{ $barang->id }}"
                                 wire:model="kerusakanItems.{{ $barang->id }}"
                                 class="w-20 text-sm border-gray-300 rounded-md" min="0"
@@ -658,6 +699,36 @@ TODO SISWA DIMINTA EMAIL AKTIF BIAR BISA UBAH PASSWORD SENDIRI
                     class="px-4 py-2 bg-gray-200 rounded">Batal</button>
                 <button wire:click="finalisasiPengembalian" class="px-4 py-2 bg-primary text-white rounded">Selesaikan
                     Pengembalian</button>
+            </div>
+        </div>
+    </div>
+@endif
+
+{{-- Modal Persetujuan Perpanjangan --}}
+@if ($showPerpanjanganModal && $perpanjanganTransaksi)
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Setujui Perpanjangan Peminjaman</h3>
+            <p class="text-sm">Siswa: <strong>{{ $perpanjanganTransaksi->siswa->nama }}</strong></p>
+            <p class="text-sm mb-4">Waktu Kembali Saat Ini:
+                <strong>{{ \Carbon\Carbon::parse($perpanjanganTransaksi->waktu_kembali)->format('d M Y, H:i') }}</strong>
+            </p>
+
+            <div>
+                <label for="waktu_kembali_baru" class="block text-sm font-medium text-gray-700">Set Waktu Kembali
+                    Baru</label>
+                <input type="datetime-local" id="waktu_kembali_baru" wire:model="waktu_kembali_baru"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                @error('waktu_kembali_baru')
+                    <span class="text-red-500 text-xs">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-2">
+                <button type="button" wire:click="$set('showPerpanjanganModal', false)"
+                    class="px-4 py-2 bg-gray-200 rounded">Batal</button>
+                <button wire:click="setujuiPerpanjangan" class="px-4 py-2 bg-primary text-white rounded">Setujui
+                    Perpanjangan</button>
             </div>
         </div>
     </div>
