@@ -120,12 +120,12 @@
         {{-- Konten untuk Tab Ketersediaan Barang --}}
         @if ($activeTab == 'ketersediaan')
             {{-- Header dengan Filter Dropdown --}}
-            <div class="flex items-center gap-2 mb-4">
+            <div class="flex items-center gap-1 mb-4">
                 <h2 class="text-lg font-semibold text-gray-700 whitespace-nowrap">Daftar barang tersedia di:</h2>
 
                 <div class="relative">
                     <select wire:model.live="filterRuangan"
-                        class="block appearance-none w-full bg-transparent border-none text-gray-700 font-semibold py-2 pr-8 rounded leading-tight focus:outline-none focus:bg-transparent focus:border-none">
+                        class="block appearance-none w-full bg-transparent border-none text-primary font-semibold pr-8 rounded leading-tight focus:outline-none focus:bg-transparent focus:border-none">
                         <option value="">Semua Ruangan</option>
                         @foreach ($semuaRuangan as $ruangan)
                             <option value="{{ $ruangan->id }}">{{ $ruangan->nama_ruangan }}</option>

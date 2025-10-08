@@ -99,10 +99,13 @@
             </div>
         </div>
     @endif
+
     {{-- Modal Detail Ruangan --}}
     @if ($detailRuangan)
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
-            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[80vh] flex flex-col">
+            {{-- Inisialisasi Alpine.js untuk state tab --}}
+            <div x-data="{ activeTab: 'asal' }"
+                class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[80vh] flex flex-col">
                 <div class="flex justify-between items-center mb-4 border-b pb-2">
                     <h3 class="text-lg font-medium text-gray-900">Detail Ruangan:
                         {{ $detailRuangan['ruangan']->nama_ruangan }}</h3>
@@ -110,47 +113,94 @@
                         class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
                 </div>
 
-                <div class="overflow-y-auto space-y-6">
-                    {{-- Daftar Barang Asli --}}
-                    <div>
-                        <h4 class="font-semibold text-md text-gray-800 mb-2">Barang Asli di Ruangan Ini</h4>
-                        <div class="border rounded-md">
-                            @forelse($detailRuangan['barangAsal'] as $barang)
-                                <div
-                                    class="flex justify-between items-center p-3 {{ !$loop->last ? 'border-b' : '' }}">
-                                    <span class="text-sm">{{ $barang->nama_barang }}</span>
-                                    <span class="text-xs font-mono bg-gray-200 px-2 py-1 rounded">Stok Tersedia:
-                                        {{ $barang->jumlah_saat_ini }} / {{ $barang->jumlah_total }}</span>
-                                </div>
-                            @empty
-                                <p class="p-3 text-sm text-gray-500">Tidak ada barang yang berasal dari ruangan ini.</p>
-                            @endforelse
+                {{-- Navigasi Tab --}}
+                <div class="mb-4 border-b border-gray-200">
+                    <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                        <button @click="activeTab = 'asal'"
+                            :class="{ 'border-primary text-primary': activeTab === 'asal', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'asal' }"
+                            class="py-3 px-1 border-b-2 font-medium text-sm">
+                            Barang Asli di Ruangan Ini
+                        </button>
+                        <button @click="activeTab = 'pinjaman'"
+                            :class="{ 'border-primary text-primary': activeTab === 'pinjaman', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'pinjaman' }"
+                            class="py-3 px-1 border-b-2 font-medium text-sm">
+                            Barang Pinjaman di Ruangan Ini
+                        </button>
+                    </nav>
+                </div>
+
+                {{-- Konten Tab --}}
+                <div class="overflow-y-auto">
+                    {{-- Konten untuk Tab Barang Asli --}}
+                    <div x-show="activeTab === 'asal'">
+                        <div class="overflow-x-auto">
+                            <table class="w-full table-auto">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="px-4 py-2 text-left text-xs font-semibold text-primary uppercase">
+                                            Nama Barang</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold text-primary uppercase">
+                                            Kategori</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold text-primary uppercase">
+                                            Stok</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    @forelse($detailRuangan['barangAsal'] as $barang)
+                                        <tr>
+                                            <td class="px-4 py-3 text-sm">{{ $barang->nama_barang }}</td>
+                                            <td class="px-4 py-3 text-sm">{{ $barang->kategori->nama_kategori }}</td>
+                                            <td class="px-4 py-3 text-sm">{{ $barang->jumlah_saat_ini }} /
+                                                {{ $barang->jumlah_total }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="3" class="text-center py-4 text-gray-500">Tidak ada barang
+                                                asli di ruangan ini.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
-                    {{-- Daftar Barang Pinjaman --}}
-                    <div>
-                        <h4 class="font-semibold text-md text-gray-800 mb-2">Barang Pinjaman di Ruangan Ini</h4>
-                        <div class="border rounded-md">
-                            @forelse($detailRuangan['barangPinjamanMasuk'] as $transaksi)
-                                @foreach ($transaksi->barangs as $barang)
-                                    <div
-                                        class="flex justify-between items-center p-3 {{ !$loop->last ? 'border-b' : '' }}">
-                                        <div>
-                                            <p class="text-sm">{{ $barang->nama_barang }}</p>
-                                            <small class="text-xs text-gray-500">Dari:
-                                                {{ $barang->ruangan->nama_ruangan }} | Peminjam:
-                                                {{ $transaksi->siswa->nama }}</small>
-                                        </div>
-                                        <span
-                                            class="text-xs font-mono bg-yellow-200 text-yellow-800 px-2 py-1 rounded">Status:
-                                            {{ ucfirst($transaksi->status) }}</span>
-                                    </div>
-                                @endforeach
-                            @empty
-                                <p class="p-3 text-sm text-gray-500">Tidak ada barang pinjaman dari ruangan lain saat
-                                    ini.</p>
-                            @endforelse
+                    {{-- Konten untuk Tab Barang Pinjaman --}}
+                    <div x-show="activeTab === 'pinjaman'" style="display: none;">
+                        <div class="overflow-x-auto">
+                            <table class="w-full table-auto">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="px-4 py-2 text-left text-xs font-semibold text-primary uppercase">
+                                            Nama Barang</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold text-primary uppercase">
+                                            Asal Barang</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold text-primary uppercase">
+                                            Peminjam</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold text-primary uppercase">
+                                            Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    @forelse($detailRuangan['barangPinjamanMasuk'] as $transaksi)
+                                        @foreach ($transaksi->barangs as $barang)
+                                            <tr>
+                                                <td class="px-4 py-3 text-sm">{{ $barang->nama_barang }}</td>
+                                                <td class="px-4 py-3 text-sm">{{ $barang->ruangan->nama_ruangan }}</td>
+                                                <td class="px-4 py-3 text-sm">{{ $transaksi->siswa->nama }}</td>
+                                                <td class="px-4 py-3 text-sm">
+                                                    <span
+                                                        class="px-2 py-1 text-xs font-semibold leading-tight rounded-full bg-yellow-200 text-yellow-900">{{ ucfirst($transaksi->status) }}</span>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @empty
+                                        <tr>
+                                            <td colspan="4" class="text-center py-4 text-gray-500">Tidak ada barang
+                                                pinjaman di ruangan ini.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
