@@ -22,7 +22,8 @@ class Dashboard extends Component
     public $keranjang = [];
 
     // PROPERTI UNTUK MENGATUR TAB
-    public $activeTab = 'riwayat';
+    public $activeTab = 'ketersediaan';
+    public $filterRuangan = '';
 
     public $showReturnModal = false;
     public $returnTransaksi;
@@ -219,14 +220,20 @@ class Dashboard extends Component
         $riwayat = Transaksi::with('barangs')
             ->where('siswa_id', auth()->guard('siswa')->id())
             ->latest()->get();
-        $ruangansDenganBarang = Ruangan::with(['barangs' => function ($query) {
-            $query->where('jumlah_saat_ini', '>', 0);
-        }])->get();
+
+        // Logika baru untuk mengambil data barang
+        $query = Barang::with('ruangan', 'kategori')->where('jumlah_saat_ini', '>', 0);
+
+        if ($this->filterRuangan) {
+            $query->where('ruangan_id', $this->filterRuangan);
+        }
+
+        $semuaBarangTersedia = $query->get();
 
         return view('livewire.siswa.dashboard', [
             'riwayat' => $riwayat,
-            'ruangans' => Ruangan::all(),
-            'ruangansDenganBarang' => $ruangansDenganBarang,
+            'semuaBarangTersedia' => $semuaBarangTersedia, // Kirim data barang yang sudah difilter
+            'semuaRuangan' => Ruangan::all(),
         ]);
     }
 }

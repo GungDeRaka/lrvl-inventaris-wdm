@@ -1,4 +1,9 @@
 <div>
+
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">
+        Hai {{ auth()->guard('siswa')->user()->nama }}, ada barang yang mau dipinjam?
+    </h1>
+
     {{-- Notifikasi --}}
     @if (session()->has('message'))
         <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
@@ -21,93 +26,161 @@
     {{-- Navigasi Tab --}}
     <div class="mb-4 border-b border-gray-200">
         <nav class="-mb-px flex space-x-6" aria-label="Tabs">
-            <button wire:click="setActiveTab('riwayat')"
-                class="py-3 px-1 border-b-2 font-medium text-sm {{ $activeTab == 'riwayat' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
-                Riwayat Permintaan Anda
-            </button>
             <button wire:click="setActiveTab('ketersediaan')"
                 class="py-3 px-1 border-b-2 font-medium text-sm {{ $activeTab == 'ketersediaan' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                 Ketersediaan Barang
             </button>
+            <button wire:click="setActiveTab('riwayat')"
+                class="py-3 px-1 border-b-2 font-medium text-sm {{ $activeTab == 'riwayat' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                Riwayat Permintaan Anda
+            </button>
         </nav>
     </div>
+
+    <hr class="mb-2 border-t-4 border-primary">
 
     {{-- Konten Tab --}}
     <div>
         {{-- Konten untuk Tab Riwayat --}}
         @if ($activeTab == 'riwayat')
-            <div class="space-y-3">
-                @forelse($riwayat as $item)
-                    @php
-                        // Logika penentuan warna class
-                    @endphp
-                    <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 {{-- ... (kode border color Anda) ... --}}">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="font-bold text-gray-800 text-sm">
+            <div class="bg-white shadow-md rounded-lg overflow-x-auto">
+                <table class="w-full table-auto">
+                    <thead class="bg-primary">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Barang yang
+                                Dipinjam</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Jadwal Booking
+                            </th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Status</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        @forelse($riwayat as $item)
+                            @php
+                                // Tentukan class untuk badge status
+                                $statusBadgeClass = match ($item->status) {
+                                    'disetujui' => 'bg-cyan-100 text-cyan-800',
+                                    'dipinjam' => 'bg-blue-100 text-blue-800',
+                                    'dikembalikan' => 'bg-green-100 text-green-800',
+                                    'ditolak' => 'bg-red-100 text-red-800',
+                                    'menunggu-konfirmasi' => 'bg-yellow-100 text-yellow-800',
+                                    default => 'bg-gray-100 text-gray-800', // Untuk 'diajukan'
+                                };
+                            @endphp
+                            <tr>
+                                <td class="px-4 py-3 text-sm">
                                     @foreach ($item->barangs as $barang)
-                                        {{ $barang->nama_barang }} <strong>({{ $barang->pivot->kuantitas }}
-                                            unit)</strong>
+                                        <span class="block">{{ $barang->nama_barang }} ({{ $barang->pivot->kuantitas }}
+                                            unit)</span>
                                     @endforeach
-                                </p>
-                                <p class="text-xs text-gray-500 mt-1">
-                                    Booking: {{ \Carbon\Carbon::parse($item->waktu_pinjam)->format('d M, H:i') }} -
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-600">
+                                    {{ \Carbon\Carbon::parse($item->waktu_pinjam)->format('d M, H:i') }} -
                                     {{ \Carbon\Carbon::parse($item->waktu_kembali)->format('d M, H:i') }}
-                                </p>
-                            </div>
-                            <span
-                                class="text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap {{-- ... (kode badge class Anda) ... --}}">
-                                {{ ucfirst($item->status) }}
-                            </span>
-                        </div>
-                        @if ($item->status == 'ditolak' && $item->alasan_penolakan)
-                            <div class="mt-2 p-2 bg-red-50 border-l-4 border-red-400 text-red-700 text-xs">
-                                <p><strong class="font-semibold">Alasan:</strong> {{ $item->alasan_penolakan }}</p>
-                            </div>
-                        @endif
-                        @if ($item->status == 'diajukan' || $item->status == 'disetujui')
-                            <div class="mt-2 text-right">
-                                <button wire:click="batalkanPermintaan({{ $item->id }})" wire:confirm="Anda yakin?"
-                                    class="text-xs font-semibold text-red-600 hover:underline">Batalkan</button>
-                            </div>
-                        @endif
-                        {{-- Tampilkan tombol hanya jika status 'dipinjam' --}}
-                        @if ($item->status == 'dipinjam')
-                            <div class="mt-3 text-right">
-                                <button wire:click="bukaModalPengembalian({{ $item->id }})"
-                                    class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline">
-                                    Ajukan Pengembalian
-                                </button>
-                            </div>
-                        @endif
-                    </div>
-                @empty
-                    <p class="text-gray-500 text-center py-4">Anda belum memiliki riwayat permintaan.</p>
-                @endforelse
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span
+                                        class="text-xs font-semibold px-2.5 py-1 rounded-full {{ $statusBadgeClass }}">
+                                        {{ $item->status == 'menunggu-konfirmasi' ? 'Menunggu Konfirmasi' : ucfirst($item->status) }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-sm">
+                                    @if ($item->status == 'diajukan' || $item->status == 'disetujui')
+                                        <button wire:click="batalkanPermintaan({{ $item->id }})"
+                                            wire:confirm="Anda yakin?"
+                                            class="font-semibold text-red-600 hover:underline">Batalkan</button>
+                                    @endif
+                                    @if ($item->status == 'dipinjam')
+                                        <button wire:click="bukaModalPengembalian({{ $item->id }})"
+                                            class="font-semibold text-indigo-600 hover:underline">Ajukan
+                                            Pengembalian</button>
+                                    @endif
+                                </td>
+                            </tr>
+                            @if ($item->status == 'ditolak' && $item->alasan_penolakan)
+                                <tr>
+                                    <td colspan="4" class="px-4 pb-3 -pt-2 bg-red-50">
+                                        <p class="text-xs text-red-700"><strong class="font-semibold">Alasan:</strong>
+                                            {{ $item->alasan_penolakan }}</p>
+                                    </td>
+                                </tr>
+                            @endif
+                        @empty
+                            <tr>
+                                <td colspan="4" class="text-center py-6 text-gray-500">Anda belum memiliki riwayat
+                                    permintaan.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         @endif
 
         {{-- Konten untuk Tab Ketersediaan Barang --}}
         @if ($activeTab == 'ketersediaan')
-            <div class="space-y-6">
-                @foreach ($ruangansDenganBarang as $ruangan)
-                    @if ($ruangan->barangs->isNotEmpty())
-                        <div>
-                            <h3 class="text-md font-bold text-gray-800 mb-2 border-b pb-2">{{ $ruangan->nama_ruangan }}
-                            </h3>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
-                                @foreach ($ruangan->barangs as $barang)
-                                    <div class="bg-white p-3 rounded-lg shadow-sm text-center">
-                                        <p class="font-semibold text-sm text-gray-900">{{ $barang->nama_barang }}</p>
-                                        <p class="text-xs text-gray-500">Stok: {{ $barang->jumlah_saat_ini }}</p>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
-                @endforeach
+            {{-- Header dengan Filter Dropdown --}}
+            <div class="flex items-center gap-2 mb-4">
+                <h2 class="text-lg font-semibold text-gray-700 whitespace-nowrap">Daftar barang tersedia di:</h2>
+
+                <div class="relative">
+                    <select wire:model.live="filterRuangan"
+                        class="block appearance-none w-full bg-transparent border-none text-gray-700 font-semibold py-2 pr-8 rounded leading-tight focus:outline-none focus:bg-transparent focus:border-none">
+                        <option value="">Semua Ruangan</option>
+                        @foreach ($semuaRuangan as $ruangan)
+                            <option value="{{ $ruangan->id }}">{{ $ruangan->nama_ruangan }}</option>
+                        @endforeach
+                    </select>
+                    {{-- <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                        </svg>
+                    </div> --}}
+                </div>
+            </div>
+
+            {{-- Tabel Ketersediaan Barang Terpadu --}}
+            <div class="bg-white shadow-md rounded-lg overflow-x-auto">
+                <table class="w-full table-auto">
+                    <thead>
+                        <tr class="bg-primary">
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Nama Barang
+                            </th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Kategori</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Stok Tersedia
+                            </th>
+                            {{-- Tampilkan kolom Ruangan hanya jika tidak difilter --}}
+                            @if (!$filterRuangan)
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Ruangan
+                                </th>
+                            @endif
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        @forelse($semuaBarangTersedia as $barang)
+                            <tr class="block sm:table-row">
+                                <td class="px-4 py-3 text-sm font-semibold sm:font-normal" data-label="Nama Barang">
+                                    {{ $barang->nama_barang }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-600" data-label="Kategori">
+                                    {{ $barang->kategori->nama_kategori }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-600" data-label="Stok Tersedia">
+                                    {{ $barang->jumlah_saat_ini }}</td>
+                                @if (!$filterRuangan)
+                                    <td class="px-4 py-3 text-sm text-gray-600" data-label="Ruangan">
+                                        {{ $barang->ruangan->nama_ruangan }}</td>
+                                @endif
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="text-center py-6 text-gray-500">Tidak ada barang tersedia.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         @endif
+
     </div>
     {{-- Modal Form Permintaan --}}
     @if ($showRequestModal)
