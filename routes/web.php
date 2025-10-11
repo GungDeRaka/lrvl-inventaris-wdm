@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\Siswa\LoginController;
+use App\Http\Controllers\Siswa\Auth\PasswordResetController;
 use App\Livewire\Barang\Index as BarangIndex;
 use App\Livewire\User\Index as UserIndex;
 use App\Livewire\Kategori\Index as KategoriIndex;
@@ -44,6 +45,12 @@ Route::prefix('siswa')->name('siswa.')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+    Route::get('forgot-password', [PasswordResetController::class, 'create'])->name('password.request');
+    Route::post('forgot-password', [PasswordResetController::class, 'store'])->name('password.email');
+    Route::get('reset-password/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
+    Route::post('reset-password', [PasswordResetController::class, 'update'])->name('password.update');
+
 
     // Halaman yang terproteksi (hanya bisa diakses setelah login sebagai siswa)
     Route::middleware('auth:siswa')->group(function () {
