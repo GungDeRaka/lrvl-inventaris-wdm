@@ -25,15 +25,25 @@
                 Sistem Informasi Manajemen Inventaris<br>SMK Widiatmika
             </h1>
 
+
+
             {{-- Tombol Aksi --}}
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <a href="{{ route('siswa.login') }}" class="w-full sm:w-auto px-6 py-3 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-purple-800 transition">
-                        Login Sebagai Siswa
+            <div class="flex flex-col items-center justify-center gap-4">
+                {{-- Tombol Login Siswa --}}
+                <a href="{{ route('siswa.login') }}" class="w-full sm:w-auto px-6 py-3 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-purple-800 transition">
+                    Login Sebagai Siswa
+                </a>
+
+                {{-- Tombol Login Staff --}}
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <a href="{{ route('login') }}" class="w-full border border-amber-400 hover:bg-amber-400 sm:w-auto px-6 py-3 bg-white text-primary font-semibold rounded-lg shadow-md transition">
+                        Login Sebagai Kepala Gudang
                     </a>
-                    <a href="{{ route('login') }}" class="w-full sm:w-auto px-6 py-3 bg-white text-primary font-semibold rounded-lg shadow-md hover:bg-gray-50 transition">
-                        Login Sebagai Admin
+                    <a href="{{ route('login') }}" class="w-full sm:w-auto px-6 py-3 bg-white text-primary font-semibold rounded-lg shadow-md border border-amber-400 hover:bg-amber-400 transition">
+                        Login Sebagai Penjaga Gudang
                     </a>
                 </div>
+            </div>
         </div>
     </div>
 </body>

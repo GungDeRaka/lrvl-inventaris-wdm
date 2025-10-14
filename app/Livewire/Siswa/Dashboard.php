@@ -236,6 +236,7 @@ class Dashboard extends Component
 
         // Logika baru untuk mengambil data barang
         $query = Barang::with('ruangan', 'kategori')->where('jumlah_saat_ini', '>', 0);
+        $ruangans = Ruangan::all();
 
         if ($this->filterRuangan) {
             $query->where('ruangan_id', $this->filterRuangan);
@@ -247,6 +248,7 @@ class Dashboard extends Component
             'riwayat' => $riwayat,
             'semuaBarangTersedia' => $semuaBarangTersedia, // Kirim data barang yang sudah difilter
             'semuaRuangan' => Ruangan::all(),
+            'ruangans' => $ruangans,
         ]);
     }
 }
