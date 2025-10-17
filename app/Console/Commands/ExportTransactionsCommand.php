@@ -29,13 +29,15 @@ class ExportTransactionsCommand extends Command
         fputcsv($file, ['tanggal_pinjam', 'barang_id', 'kuantitas']);
 
         // Contoh menulis data (ubah sesuai model kamu)
-        $transactions = Transaksi::all();
-        foreach ($transactions as $transaction) {
-            fputcsv($file, [
-                $transaction->tanggal_pinjam,
-                $transaction->barang_id,
-                $transaction->kuantitas
-            ]);
+        $transaksis = Transaksi::all();
+        foreach ($transaksis as $transaksi) {
+            foreach ($transaksi->barangs as $barang) {
+                fputcsv($file, [
+                    $transaksi->waktu_pinjam,      // Kolom waktu
+                    $barang->id,                  // Kolom ID barang
+                    $barang->pivot->kuantitas,   // Kolom kuantitas
+                ]);
+            }
         }
 
         fclose($file);

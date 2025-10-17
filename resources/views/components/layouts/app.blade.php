@@ -9,7 +9,7 @@
     @livewireStyles
 </head>
 
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-300 font-sans">
     <div x-data="{ isMobileMenuOpen: false }" class="min-h-screen">
         {{-- HEADER UTAMA (Logo & Profil) --}}
         <header class="p-2 shadow-sm bg-gradient-to-tr from-fuchsia-300 to-primary relative">
