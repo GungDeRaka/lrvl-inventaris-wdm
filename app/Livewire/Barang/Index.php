@@ -6,6 +6,8 @@ use App\Models\Barang;
 use App\Models\Kategori;
 use App\Models\Ruangan;
 use App\Models\Transaksi;
+use App\Models\PengadaanBarang; // <-- Tambahkan model baru
+use Illuminate\Support\Facades\DB; // <-- Tambahkan DB facade
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
@@ -32,6 +34,39 @@ class Index extends Component
     public $filterKategori = '';
     public $search = '';
 
+    // Properti form pengadaan (baru)
+    public $jumlah, $harga_satuan, $sumber_dana, $tanggal_pengadaan;
+
+    // properti pengadaan untuk barang yang sudah ada
+    public $showTambahStokModal = false;
+    public $tambahStokBarangId;
+    public $tambahStokBarangNama;
+
+    protected function rules()
+    {
+        $rules = [
+            'kode_barang'   => ['required', 'string', Rule::unique('barangs')->ignore($this->barang_id)],
+            'nama_barang'   => 'required|string|min:3',
+            'kategori_id'   => 'required|exists:kategoris,id',
+            'ruangan_id'    => 'required|exists:ruangans,id',
+            // Aturan untuk pengadaan
+            'jumlah'        => 'required|integer|min:1',
+            'harga_satuan'  => 'nullable|numeric|min:0',
+            'sumber_dana'   => 'required|string|max:255',
+            'tanggal_pengadaan' => 'required|date',
+        ];
+
+        // Saat edit barang, field pengadaan tidak wajib
+        if ($this->barang_id) {
+            $rules['jumlah'] = 'nullable|integer|min:0'; // Jumlah opsional saat edit
+            $rules['harga_satuan'] = 'nullable|numeric|min:0';
+            $rules['sumber_dana'] = 'nullable|string|max:255';
+            $rules['tanggal_pengadaan'] = 'nullable|date';
+        }
+
+        return $rules;
+    }
+
     public function openModal()
     {
         $this->resetInput();
@@ -45,12 +80,18 @@ class Index extends Component
 
     public function resetInput()
     {
-        $this->barang_id = null;
-        $this->kode_barang = '';
-        $this->nama_barang = '';
-        $this->kategori_id = '';
-        $this->ruangan_id = '';
-        $this->jumlah_total = '';
+        $this->reset([
+            'barang_id',
+            'kode_barang',
+            'nama_barang',
+            'kategori_id',
+            'ruangan_id',
+            'jumlah',
+            'harga_satuan',
+            'sumber_dana',
+            'tanggal_pengadaan' // Reset field baru
+        ]);
+        $this->resetErrorBag(); // Hapus pesan error lama
     }
     public function updatingFilterKategori()
     {
@@ -62,44 +103,49 @@ class Index extends Component
         $this->resetPage();
     }
 
-
-
-
+    // Ganti method simpanBarang() dengan ini
     public function simpanBarang()
     {
-        $validatedData = $this->validate([
-            'kode_barang'   => ['required', 'string', Rule::unique('barangs', 'kode_barang')->ignore($this->barang_id)],
-            'nama_barang'   => 'required|string|min:3',
-            'kategori_id'   => 'required|exists:kategoris,id',
-            'ruangan_id'    => 'required|exists:ruangans,id',
-            'jumlah_total'  => 'required|integer|min:0',
-        ], [
-            'kode_barang.unique' => 'Kode barang ini sudah digunakan.'
-        ]);
+        $validatedData = $this->validate();
 
-        if ($this->barang_id) {
-            // Logic untuk UPDATE
-            $barang = Barang::find($this->barang_id);
-            $jumlahTotalLama = $barang->jumlah_total;
-            // Update data barang dengan data tervalidasi
-            $barang->update($validatedData);
+        try {
+            DB::transaction(function () use ($validatedData) {
+                if ($this->barang_id) {
+                    // Logic untuk UPDATE BARANG (Hanya data barang, bukan stok)
+                    $barang = Barang::find($this->barang_id);
+                    $barang->update([
+                        'kode_barang' => $validatedData['kode_barang'],
+                        'nama_barang' => $validatedData['nama_barang'],
+                        'kategori_id' => $validatedData['kategori_id'],
+                        'ruangan_id' => $validatedData['ruangan_id'],
+                    ]);
+                    session()->flash('message', 'Data barang berhasil diperbarui.');
+                } else {
+                    // Logic untuk CREATE BARANG BARU
+                    $barang = Barang::create([
+                        'kode_barang' => $validatedData['kode_barang'],
+                        'nama_barang' => $validatedData['nama_barang'],
+                        'kategori_id' => $validatedData['kategori_id'],
+                        'ruangan_id' => $validatedData['ruangan_id'],
+                        'jumlah_total' => $validatedData['jumlah'], // Stok awal dari pengadaan pertama
+                        'jumlah_saat_ini' => $validatedData['jumlah'],
+                    ]);
 
-            // Hitung selisih antara jumlah baru dan lama
-            $selisih = $this->jumlah_total - $jumlahTotalLama;
-
-            // Sesuaikan jumlah saat ini berdasarkan selisih
-            // method increment() bisa menangani nilai positif (menambah) dan negatif (mengurangi)
-            $barang->increment('jumlah_saat_ini', $selisih);
-
-            session()->flash('message', 'Data barang berhasil diperbarui.');
-        } else {
-            // Logic untuk CREATE
-            $validatedData['jumlah_saat_ini'] = $this->jumlah_total;
-            Barang::create($validatedData);
-            session()->flash('message', 'Barang baru berhasil ditambahkan.');
+                    // Buat record pengadaan pertama untuk barang baru
+                    PengadaanBarang::create([
+                        'barang_id' => $barang->id,
+                        'jumlah' => $validatedData['jumlah'],
+                        'harga_satuan' => $validatedData['harga_satuan'] ?? 0,
+                        'sumber_dana' => $validatedData['sumber_dana'],
+                        'tanggal_pengadaan' => $validatedData['tanggal_pengadaan'],
+                    ]);
+                    session()->flash('message', 'Barang baru berhasil ditambahkan.');
+                }
+            });
+            $this->closeModal();
+        } catch (\Exception $e) {
+            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-
-        $this->closeModal();
     }
 
     public function edit($id)
@@ -110,7 +156,10 @@ class Index extends Component
         $this->nama_barang = $barang->nama_barang;
         $this->kategori_id = $barang->kategori_id;
         $this->ruangan_id = $barang->ruangan_id;
-        $this->jumlah_total = $barang->jumlah_total;
+
+        // Kosongkan field pengadaan saat mode edit
+        $this->reset(['jumlah', 'harga_satuan', 'sumber_dana', 'tanggal_pengadaan']);
+
         $this->showModal = true;
     }
 
@@ -180,6 +229,63 @@ class Index extends Component
     {
         $this->detailBarangId = null;
     }
+
+    // method ini untuk membuka modal tambah stok
+    public function openTambahStokModal($id)
+    {
+        $barang = Barang::findOrFail($id);
+        $this->tambahStokBarangId = $id;
+        $this->tambahStokBarangNama = $barang->nama_barang;
+        // Reset field form pengadaan
+        $this->reset(['jumlah', 'harga_satuan', 'sumber_dana', 'tanggal_pengadaan']);
+        $this->resetErrorBag(); // Hapus error lama
+        $this->showTambahStokModal = true;
+    }
+
+    //  method ini untuk menutup modal tambah stok
+    public function closeTambahStokModal()
+    {
+        $this->showTambahStokModal = false;
+    }
+
+    //  method ini untuk memproses penambahan stok
+    public function prosesTambahStok()
+    {
+        // Validasi hanya field pengadaan
+        $validatedData = $this->validate([
+            'jumlah'        => 'required|integer|min:1',
+            'harga_satuan'  => 'nullable|numeric|min:0',
+            'sumber_dana'   => 'required|string|max:255',
+            'tanggal_pengadaan' => 'required|date',
+        ]);
+
+        try {
+            DB::transaction(function () use ($validatedData) {
+                // 1. Cari barang yang akan ditambah stoknya
+                $barang = Barang::findOrFail($this->tambahStokBarangId);
+
+                // 2. Buat record pengadaan baru
+                PengadaanBarang::create([
+                    'barang_id' => $barang->id,
+                    'jumlah' => $validatedData['jumlah'],
+                    'harga_satuan' => $validatedData['harga_satuan'] ?? 0,
+                    'sumber_dana' => $validatedData['sumber_dana'],
+                    'tanggal_pengadaan' => $validatedData['tanggal_pengadaan'],
+                ]);
+
+                // 3. Update jumlah total dan jumlah saat ini di tabel barangs
+                $barang->increment('jumlah_total', $validatedData['jumlah']);
+                $barang->increment('jumlah_saat_ini', $validatedData['jumlah']);
+            });
+
+            session()->flash('message', 'Stok barang berhasil ditambahkan.');
+            $this->closeTambahStokModal();
+        } catch (\Exception $e) {
+            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            // Jangan tutup modal jika error
+        }
+    }
+
     public function render()
     {
 

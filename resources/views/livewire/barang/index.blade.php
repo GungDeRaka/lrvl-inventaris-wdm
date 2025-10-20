@@ -80,6 +80,8 @@
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
                             <button wire:click="edit({{ $barang->id }})"
                                 class="text-yellow-600 hover:text-yellow-900 mr-2 font-semibold">Edit</button>
+                            <button wire:click="openTambahStokModal({{ $barang->id }})"
+                                class="font-semibold text-green-600 hover:text-green-900 ml-2 mr-2">Tambah Stok</button>
                             <button wire:click="konfirmasiStatusRusak({{ $barang->id }})"
                                 class="text-red-600 hover:text-red-900 font-semibold">
                                 Tandai Rusak
@@ -110,14 +112,19 @@
     {{-- MODAL UNTUK TAMBAH/EDIT BARANG --}}
     @if ($showModal)
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
-            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md" @click.away="closeModal()">
+            {{-- Wrapper utama modal --}}
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 relative"
+                @click.away="closeModal()">
+
                 <form wire:submit.prevent="simpanBarang">
                     <input type="hidden" wire:model="barang_id">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">
+
+                    <h3 class="text-lg font-medium text-gray-900 mb-4 sticky top-0 bg-white z-10 py-2 border-b">
                         {{ $barang_id ? 'Edit Data Barang' : 'Tambah Barang Baru' }}
                     </h3>
 
                     <div class="space-y-4">
+                        {{-- kode barang --}}
                         <div>
                             <label for="kode_barang" class="block text-sm font-medium text-gray-700">Kode Barang</label>
                             <input type="text" wire:model="kode_barang" id="kode_barang"
@@ -126,6 +133,8 @@
                                 <span class="text-red-500 text-xs">{{ $message }}</span>
                             @enderror
                         </div>
+
+                        {{-- nama barang --}}
                         <div>
                             <label for="nama_barang" class="block text-sm font-medium text-gray-700">Nama Barang</label>
                             <input type="text" wire:model="nama_barang" id="nama_barang"
@@ -134,6 +143,8 @@
                                 <span class="text-red-500 text-xs">{{ $message }}</span>
                             @enderror
                         </div>
+
+                        {{-- kategori --}}
                         <div>
                             <label for="kategori_id" class="block text-sm font-medium text-gray-700">Kategori</label>
                             <select wire:model="kategori_id" id="kategori_id"
@@ -147,6 +158,8 @@
                                 <span class="text-red-500 text-xs">{{ $message }}</span>
                             @enderror
                         </div>
+
+                        {{-- ruangan --}}
                         <div>
                             <label for="ruangan_id" class="block text-sm font-medium text-gray-700">Lokasi /
                                 Ruangan</label>
@@ -161,18 +174,56 @@
                                 <span class="text-red-500 text-xs">{{ $message }}</span>
                             @enderror
                         </div>
-                        <div>
-                            <label for="jumlah_total" class="block text-sm font-medium text-gray-700">Jumlah
-                                Total</label>
-                            <input type="number" wire:model="jumlah_total" id="jumlah_total"
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                            @error('jumlah_total')
-                                <span class="text-red-500 text-xs">{{ $message }}</span>
-                            @enderror
-                        </div>
+
+                        @if (!$barang_id)
+                            <hr class="my-4 border-t-2 border-gray-200">
+                            <p class="text-sm font-semibold text-gray-700">Detail Pengadaan Awal</p>
+
+                            <div>
+                                <label for="jumlah" class="block text-sm font-medium text-gray-700">Jumlah
+                                    Awal</label>
+                                <input type="number" wire:model="jumlah" id="jumlah"
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                                @error('jumlah')
+                                    <span class="text-red-500 text-xs">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="harga_satuan" class="block text-sm font-medium text-gray-700">Harga Satuan
+                                    (Rp)</label>
+                                <input type="number" step="0.01" wire:model="harga_satuan" id="harga_satuan"
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                                @error('harga_satuan')
+                                    <span class="text-red-500 text-xs">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="sumber_dana" class="block text-sm font-medium text-gray-700">Sumber
+                                    Dana</label>
+                                <input type="text" wire:model="sumber_dana" id="sumber_dana"
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                                    placeholder="Contoh: Dana BOS, Internal Sekolah">
+                                @error('sumber_dana')
+                                    <span class="text-red-500 text-xs">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="tanggal_pengadaan" class="block text-sm font-medium text-gray-700">Tanggal
+                                    Pengadaan</label>
+                                <input type="date" wire:model="tanggal_pengadaan" id="tanggal_pengadaan"
+                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                                @error('tanggal_pengadaan')
+                                    <span class="text-red-500 text-xs">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        @endif
                     </div>
 
-                    <div class="mt-6 flex justify-end space-x-2">
+                    {{-- Tombol aksi --}}
+                    <div class="mt-6 flex justify-end space-x-2 sticky bottom-0 bg-white py-3 border-t z-10">
                         <button type="button" wire:click="closeModal()"
                             class="px-4 py-2 bg-gray-200 rounded">Batal</button>
                         <button type="submit" class="px-4 py-2 bg-purple-700 text-white rounded">
@@ -183,6 +234,7 @@
             </div>
         </div>
     @endif
+
 
     {{-- tandai barang rusak --}}
     @if ($barangIdToUpdateStatus)
@@ -346,6 +398,65 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- Modal Tambah Stok --}}
+    @if ($showTambahStokModal)
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
+            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+                <form wire:submit.prevent="prosesTambahStok">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Tambah Stok: {{ $tambahStokBarangNama }}</h3>
+
+                    <div class="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+                        <p class="text-sm font-semibold text-gray-700">Detail Pengadaan Baru</p>
+                        <div>
+                            <label for="tambah_jumlah" class="block text-sm font-medium text-gray-700">Jumlah
+                                Ditambah</label>
+                            <input type="number" wire:model="jumlah" id="tambah_jumlah"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                            @error('jumlah')
+                                <span class="text-red-500 text-xs">{{ $message }}</span>
+                            @enderror
+                        </div>
+                        <div>
+                            <label for="tambah_harga_satuan" class="block text-sm font-medium text-gray-700">Harga
+                                Satuan (Rp)</label>
+                            <input type="number" step="0.01" wire:model="harga_satuan" id="tambah_harga_satuan"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                            @error('harga_satuan')
+                                <span class="text-red-500 text-xs">{{ $message }}</span>
+                            @enderror
+                        </div>
+                        <div>
+                            <label for="tambah_sumber_dana" class="block text-sm font-medium text-gray-700">Sumber
+                                Dana</label>
+                            <input type="text" wire:model="sumber_dana" id="tambah_sumber_dana"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                                placeholder="Contoh: Dana BOS, Internal">
+                            @error('sumber_dana')
+                                <span class="text-red-500 text-xs">{{ $message }}</span>
+                            @enderror
+                        </div>
+                        <div>
+                            <label for="tambah_tanggal_pengadaan"
+                                class="block text-sm font-medium text-gray-700">Tanggal Pengadaan</label>
+                            <input type="date" wire:model="tanggal_pengadaan" id="tambah_tanggal_pengadaan"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                            @error('tanggal_pengadaan')
+                                <span class="text-red-500 text-xs">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end space-x-2">
+                        <button type="button" wire:click="closeTambahStokModal()"
+                            class="px-4 py-2 bg-gray-200 rounded">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-primary text-white rounded">Simpan
+                            Penambahan</button>
+                    </div>
+                </form>
             </div>
         </div>
     @endif
