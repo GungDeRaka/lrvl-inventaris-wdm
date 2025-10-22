@@ -77,29 +77,40 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-center md:justify-start h-14 space-x-8">
                     <a href="{{ route('dashboard') }}"
-                        class="font-semibold hover:text-gray-300 {{ request()->routeIs('dashboard') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
+                        class="font-semibold text-center hover:text-gray-300 {{ request()->routeIs('dashboard') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
                         DASHBOARD TRANSAKSI
                     </a>
                     <a href="{{ route('barang.index') }}"
-                        class="font-semibold hover:text-gray-300 {{ request()->routeIs('barang.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
+                        class="font-semibold text-center hover:text-gray-300 {{ request()->routeIs('barang.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
                         MANAJEMEN BARANG
                     </a>
+                    @if (Auth::user()->peran === 'penjaga_gudang')
+                        <a href="{{ route('rab.create') }}"
+                            class="font-semibold text-center text-white hover:text-gray-300 {{ request()->routeIs('rab.create') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
+                            AJUKAN RAB
+                        </a>
+                    @endif
+
                     @can('kelola-pengguna')
                         <a href="{{ route('kategori.index') }}"
-                            class="font-semibold hover:text-gray-300 {{ request()->routeIs('kategori.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
+                            class="font-semibold text-center hover:text-gray-300 {{ request()->routeIs('kategori.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
                             MANAJEMEN KATEGORI
                         </a>
                         <a href="{{ route('ruangan.index') }}"
-                            class="font-semibold hover:text-gray-300 {{ request()->routeIs('ruangan.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white ' }}">
+                            class="font-semibold text-center hover:text-gray-300 {{ request()->routeIs('ruangan.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white ' }}">
                             MANAJEMEN RUANGAN
                         </a>
                         <a href="{{ route('user.index') }}"
-                            class="font-semibold hover:text-gray-300 {{ request()->routeIs('user.index') ? 'border-b-2 border-amber-400 text-amber-400' : ' text-white' }}">
+                            class="font-semibold text-center hover:text-gray-300 {{ request()->routeIs('user.index') ? 'border-b-2 border-amber-400 text-amber-400' : ' text-white' }}">
                             MANAJEMEN ADMIN
                         </a>
                         <a href="{{ route('siswa.index') }}"
-                            class="font-semibold text-white hover:text-gray-300 {{ request()->routeIs('siswa.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
+                            class="font-semibold text-center text-white hover:text-gray-300 {{ request()->routeIs('siswa.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
                             MANAJEMEN SISWA
+                        </a>
+                        <a href="{{ route('rab.index') }}"
+                            class="font-semibold text-center text-white hover:text-gray-300 {{ request()->routeIs('rab.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
+                            PERSETUJUAN RAB
                         </a>
                     @endcan
                 </div>
@@ -113,13 +124,25 @@
                     class="block px-3 py-2 rounded-md text-base font-medium text-white">DASHBOARD TRANSAKSI</a>
                 <a href="{{ route('barang.index') }}"
                     class="block px-3 py-2 rounded-md text-base font-medium text-white">MANAJEMEN BARANG</a>
+
+                @if (Auth::user()->peran === 'penjaga_gudang')
+                    <a href="{{ route('rab.create') }}"
+                        class="font-semibold text-white hover:text-gray-300 {{ request()->routeIs('rab.create') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
+                        AJUKAN RAB
+                    </a>
+                @endif
+
                 @can('kelola-pengguna')
                     <a href="{{ route('kategori.index') }}"
                         class="block px-3 py-2 rounded-md text-base font-medium text-white">MANAJEMEN KATEGORI</a>
                     <a href="{{ route('ruangan.index') }}"
                         class="block px-3 py-2 rounded-md text-base font-medium text-white">MANAJEMEN RUANGAN</a>
                     <a href="{{ route('user.index') }}"
-                        class="block px-3 py-2 rounded-md text-base font-medium text-white">MANAJEMEN PENGGUNA</a>
+                        class="block px-3 py-2 rounded-md text-base font-medium text-white">MANAJEMEN ADMIN</a>
+                    <a href="{{ route('siswa.index') }}"
+                        class="block px-3 py-2 rounded-md text-base font-medium text-white">MANAJEMEN SISWA</a>
+                    <a href="{{ route('rab.index') }}"
+                        class="block px-3 py-2 rounded-md text-base font-medium text-white">PERSETUJUAN RAB</a>
                 @endcan
                 {{-- Di menu mobile, kita juga bisa tambahkan link profil dan logout --}}
                 <div class="border-t border-purple-400 mt-4 pt-4">

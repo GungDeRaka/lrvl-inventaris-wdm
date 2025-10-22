@@ -12,12 +12,14 @@ use App\Livewire\Kategori\Index as KategoriIndex;
 use App\Livewire\Ruangan\Index as RuanganIndex;
 use App\Livewire\Siswa\Index as SiswaIndex;
 use App\Livewire\Siswa\Profil as SiswaProfil;
+use App\Livewire\Rab\Create as RabCreate;
+use App\Livewire\Rab\Index as RabIndex;
 
 Route::get('/', function () {
     return view('welcome');
 });
-
-Route::middleware(['auth', 'verified', 'cek.jam.kerja'])->group(function () {
+// 'cek.jam.kerja'
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', \App\Livewire\Dashboard\Index::class)->name('dashboard');
 
     // Rute untuk Manajemen Barang
@@ -32,6 +34,11 @@ Route::middleware(['auth', 'verified', 'cek.jam.kerja'])->group(function () {
     Route::get('/ruangan', RuanganIndex::class)->name('ruangan.index')->middleware('can:kelola-pengguna');
     // Rute untuk manajemen siswa
     Route::get('/siswa', SiswaIndex::class)->name('siswa.index')->middleware('can:kelola-pengguna');
+// rute pengajuan RAB
+    Route::get('/rab/create', RabCreate::class)->name('rab.create');
+
+    // Rute baru untuk daftar & persetujuan RAB
+    Route::get('/rab', Rabindex::class)->name('rab.index')->middleware('can:kelola-pengguna');
 });
 
 Route::middleware('auth')->group(function () {
