@@ -35,10 +35,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Rute untuk manajemen siswa
     Route::get('/siswa', SiswaIndex::class)->name('siswa.index')->middleware('can:kelola-pengguna');
 // rute pengajuan RAB
-    Route::get('/rab/create', RabCreate::class)->name('rab.create');
+    // Route::get('/rab/create', RabCreate::class)->name('rab.create');
 
     // Rute baru untuk daftar & persetujuan RAB
-    Route::get('/rab', Rabindex::class)->name('rab.index')->middleware('can:kelola-pengguna');
+    Route::get('/rab', RabIndex::class)->name('rab.index');
 });
 
 Route::middleware('auth')->group(function () {
@@ -68,3 +68,8 @@ Route::prefix('siswa')->name('siswa.')->group(function () {
 
 
 require __DIR__ . '/auth.php';
+
+
+// todo tambahin view riwayat penambahan barang di tab detail barang
+// todo tambahin riwayat pengajuan rab
+// todo tambahin cetak laporan tiap transaksi pada siswa dan admin

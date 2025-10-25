@@ -84,12 +84,7 @@
                         class="font-semibold text-center hover:text-gray-300 {{ request()->routeIs('barang.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
                         MANAJEMEN BARANG
                     </a>
-                    @if (Auth::user()->peran === 'penjaga_gudang')
-                        <a href="{{ route('rab.create') }}"
-                            class="font-semibold text-center text-white hover:text-gray-300 {{ request()->routeIs('rab.create') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
-                            AJUKAN RAB
-                        </a>
-                    @endif
+
 
                     @can('kelola-pengguna')
                         <a href="{{ route('kategori.index') }}"
@@ -105,14 +100,15 @@
                             MANAJEMEN ADMIN
                         </a>
                         <a href="{{ route('siswa.index') }}"
-                            class="font-semibold text-center text-white hover:text-gray-300 {{ request()->routeIs('siswa.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
+                            class="font-semibold text-center hover:text-gray-300 {{ request()->routeIs('siswa.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
                             MANAJEMEN SISWA
                         </a>
-                        <a href="{{ route('rab.index') }}"
-                            class="font-semibold text-center text-white hover:text-gray-300 {{ request()->routeIs('rab.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
-                            PERSETUJUAN RAB
-                        </a>
                     @endcan
+
+                    <a href="{{ route('rab.index') }}"
+                        class="font-semibold text-center hover:text-gray-300 {{ request()->routeIs('rab.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
+                        MANAJEMEN RAB
+                    </a>
                 </div>
             </div>
         </nav>
@@ -125,13 +121,6 @@
                 <a href="{{ route('barang.index') }}"
                     class="block px-3 py-2 rounded-md text-base font-medium text-white">MANAJEMEN BARANG</a>
 
-                @if (Auth::user()->peran === 'penjaga_gudang')
-                    <a href="{{ route('rab.create') }}"
-                        class="font-semibold text-white hover:text-gray-300 {{ request()->routeIs('rab.create') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
-                        AJUKAN RAB
-                    </a>
-                @endif
-
                 @can('kelola-pengguna')
                     <a href="{{ route('kategori.index') }}"
                         class="block px-3 py-2 rounded-md text-base font-medium text-white">MANAJEMEN KATEGORI</a>
@@ -141,9 +130,10 @@
                         class="block px-3 py-2 rounded-md text-base font-medium text-white">MANAJEMEN ADMIN</a>
                     <a href="{{ route('siswa.index') }}"
                         class="block px-3 py-2 rounded-md text-base font-medium text-white">MANAJEMEN SISWA</a>
-                    <a href="{{ route('rab.index') }}"
-                        class="block px-3 py-2 rounded-md text-base font-medium text-white">PERSETUJUAN RAB</a>
                 @endcan
+
+                <a href="{{ route('rab.index') }}"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-white">MANAJEMEN RAB</a>
                 {{-- Di menu mobile, kita juga bisa tambahkan link profil dan logout --}}
                 <div class="border-t border-purple-400 mt-4 pt-4">
                     <a href="{{ route('profile.edit') }}"
