@@ -91,16 +91,21 @@ class Index extends Component
             session()->flash('error', 'Gagal mengajukan RAB: ' . $e->getMessage());
         }
     }
+
+
     // --- AKHIR LOGIKA PENGAJUAN ---
 
     // --- LOGIKA UNTUK PERSETUJUAN RAB (dari Rab/Index lama) ---
     public function showDetail($id)
     {
-        // Hanya Kepala Gudang
-        if (Auth::user()->peran !== 'kepala_gudang') return;
+        // Method ini sekarang bisa dipakai oleh kedua peran
+        $rab = RabPengadaan::with('pengaju', 'peninjau', 'items.barang')->findOrFail($id);
 
-        $this->selectedRab = RabPengadaan::with('pengaju', 'items.barang')->findOrFail($id);
-        $this->catatan_kepala = $this->selectedRab->catatan_kepala ?? '';
+        
+            $this->catatan_kepala = $rab->catatan_kepala ?? '';
+        
+
+        $this->selectedRab = $rab;
         $this->showDetailModal = true;
     }
 
@@ -115,7 +120,7 @@ class Index extends Component
         if (!$this->selectedRab || Auth::user()->peran !== 'kepala_gudang') return;
 
         $this->validate(['catatan_kepala' => 'nullable|string']);
-        $this->selectedRab->update([ 
+        $this->selectedRab->update([
             'status' => $status, // 'disetujui' atau 'ditolak'
             'disetujui_oleh' => Auth::id(),
             'tanggal_keputusan' => now()->toDateString(),
@@ -132,12 +137,11 @@ class Index extends Component
         $rabData = [];
 
         if ($user->peran === 'kepala_gudang') {
-            // Kepala Gudang: lihat RAB yang perlu diproses & riwayat yang sudah diproses
+            // Kepala Gudang: lihat RAB yang diajukan & riwayat persetujuan
             $rabData['rabDiajukan'] = RabPengadaan::with('pengaju')
                 ->where('status', 'diajukan')
                 ->latest('tanggal_pengajuan')->paginate(10, ['*'], 'diajukanPage');
 
-            // AMBIL RIWAYAT RAB YANG SUDAH DIPROSES
             $rabData['rabDiproses'] = RabPengadaan::with('pengaju', 'peninjau')
                 ->whereIn('status', ['disetujui', 'ditolak'])
                 ->latest('tanggal_keputusan')->paginate(10, ['*'], 'diprosesPage');

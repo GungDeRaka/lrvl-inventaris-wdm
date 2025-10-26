@@ -159,7 +159,7 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($rabSaya as $rab)
-                        <tr class="hover:bg-gray-50">
+                        <tr wire:click="showDetail({{ $rab->id }})" class="hover:bg-gray-100 cursor-pointer">
                             <td class="px-4 py-3 text-sm text-gray-700">
                                 {{ \Carbon\Carbon::parse($rab->tanggal_pengajuan)->format('d M Y') }}</td>
                             <td class="px-4 py-3 text-sm">
@@ -251,25 +251,25 @@
         <h2 class="text-2xl font-semibold text-gray-800 mb-4">Riwayat RAB Diproses</h2>
         <div class="bg-white shadow-md rounded-lg overflow-x-auto">
             <table class="w-full table-auto">
-                <thead class="bg-gray-50">
+                <thead class="bg-fuchsia-200">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                             Tgl. Pengajuan</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                             Diajukan Oleh</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                             Status</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                             Diproses Oleh</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                             Tgl. Keputusan</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-primary uppercase tracking-wider">
                             Catatan</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($rabDiproses as $rab)
-                        <tr class="hover:bg-gray-50">
+                        <tr wire:click="showDetail({{ $rab->id }})" class="hover:bg-gray-100 cursor-pointer">
                             <td class="px-4 py-3 text-sm text-gray-700">
                                 {{ \Carbon\Carbon::parse($rab->tanggal_pengajuan)->format('d M Y') }}</td>
                             <td class="px-4 py-3 text-sm text-gray-700">{{ $rab->pengaju->name }}</td>
@@ -356,23 +356,38 @@
                     </div>
 
                     <div class="mt-6">
-                        <label for="catatan_kepala" class="block text-sm font-medium text-gray-700">Catatan
-                            (Opsional)</label>
-                        <textarea wire:model="catatan_kepala" id="catatan_kepala" rows="2"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"></textarea>
+                        <label for="catatan_kepala" class="block text-sm font-medium text-gray-700">
+                            @if ($selectedRab->status == 'diajukan' && auth()->user()->peran === 'kepala_gudang')
+                                Catatan (Opsional)
+                            @else
+                                Catatan Kepala Gudang
+                            @endif
+                        </label>
+                        <textarea wire:model="catatan_kepala" id="catatan_kepala"  rows="2"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary
+                           {{-- Tambahkan class ini untuk menonaktifkan tampilan --}}
+                           @if ($selectedRab->status != 'diajukan' || auth()->user()->peran === 'penjaga_gudang') bg-gray-100 cursor-not-allowed @endif
+                    "
+                            {{-- Tambahkan atribut disabled --}} @if ($selectedRab->status != 'diajukan' || auth()->user()->peran === 'penjaga_gudang') disabled @endif></textarea>
                         @error('catatan_kepala')
                             <span class="text-red-500 text-xs">{{ $message }}</span>
                         @enderror
                     </div>
+
                 </div>
 
-                <div class="p-6 border-t flex justify-end space-x-3 flex-shrink-0">
+                <div
+                    class="p-6 border-t flex {{ $selectedRab->status == 'diajukan' && auth()->user()->peran === 'kepala_gudang' ? 'justify-end' : 'justify-center' }} space-x-3 flex-shrink-0">
                     <button type="button" wire:click="closeModal"
                         class="px-4 py-2 bg-gray-600 text-white rounded-md shadow-sm hover:bg-gray-700">Tutup</button>
-                    <button type="button" wire:click="prosesKeputusan('ditolak')"
-                        class="px-4 py-2 bg-red-600 text-white rounded-md shadow-sm hover:bg-red-700">Tolak</button>
-                    <button type="button" wire:click="prosesKeputusan('disetujui')"
-                        class="px-4 py-2 bg-primary text-white rounded-md shadow-sm hover:bg-purple-800">Setujui</button>
+
+                    {{-- Tombol aksi hanya muncul jika status 'diajukan' dan user adalah Kepala Gudang --}}
+                    @if ($selectedRab->status == 'diajukan' && auth()->user()->peran === 'kepala_gudang')
+                        <button type="button" wire:click="prosesKeputusan('ditolak')"
+                            class="px-4 py-2 bg-red-600 text-white rounded-md shadow-sm hover:bg-red-700">Tolak</button>
+                        <button type="button" wire:click="prosesKeputusan('disetujui')"
+                            class="px-4 py-2 bg-primary text-white rounded-md shadow-sm hover:bg-purple-800">Setujui</button>
+                    @endif
                 </div>
             </div>
         </div>
