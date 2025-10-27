@@ -71,5 +71,6 @@ require __DIR__ . '/auth.php';
 
 
 // todo tambahin view riwayat penambahan barang di tab detail barang
-// todo tambahin riwayat pengajuan rab
+//! done tambahin riwayat pengajuan rab 
 // todo tambahin cetak laporan tiap transaksi pada siswa dan admin
+// 
