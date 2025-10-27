@@ -304,19 +304,19 @@
     @endif
 
     {{-- Modal Detail Distribusi Barang --}}
-    @if ($detailBarang)
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
+    @if ($detailBarangId && $detailBarang)
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30 p-4">
             <div x-data="{ activeTab: 'ringkasan' }"
-                class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[80vh] flex flex-col">
-                <div class="flex justify-between items-center mb-4 border-b pb-2">
-                    <h3 class="text-lg font-medium text-gray-900">Detail Barang:
+                class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[85vh] flex flex-col">
+                <div class="flex justify-between items-center p-6 border-b flex-shrink-0">
+                    <h3 class="text-xl font-bold text-gray-900">Detail Barang:
                         {{ $detailBarang['barang']->nama_barang }}</h3>
                     <button wire:click="closeDetailModal"
-                        class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+                        class="text-gray-500 hover:text-gray-800 text-3xl leading-none">&times;</button>
                 </div>
 
                 {{-- Navigasi Tab --}}
-                <div class="mb-4 border-b border-gray-200">
+                <div class="mb-4 border-b border-gray-200 px-6">
                     <nav class="-mb-px flex space-x-6" aria-label="Tabs">
                         <button @click="activeTab = 'ringkasan'"
                             :class="{ 'border-primary text-primary': activeTab === 'ringkasan', 'border-transparent text-gray-500 hover:text-gray-700': activeTab !== 'ringkasan' }"
@@ -326,13 +326,19 @@
                         <button @click="activeTab = 'distribusi'"
                             :class="{ 'border-primary text-primary': activeTab === 'distribusi', 'border-transparent text-gray-500 hover:text-gray-700': activeTab !== 'distribusi' }"
                             class="py-3 px-1 border-b-2 font-medium text-sm">
-                            Detail Distribusi Peminjaman
+                            Distribusi Peminjaman
+                        </button>
+                        {{-- TAB BARU --}}
+                        <button @click="activeTab = 'pengadaan'"
+                            :class="{ 'border-primary text-primary': activeTab === 'pengadaan', 'border-transparent text-gray-500 hover:text-gray-700': activeTab !== 'pengadaan' }"
+                            class="py-3 px-1 border-b-2 font-medium text-sm">
+                            Riwayat Pengadaan
                         </button>
                     </nav>
                 </div>
 
                 {{-- Konten Tab --}}
-                <div class="overflow-y-auto">
+                <div class="overflow-y-auto p-6 pt-0 flex-1">
                     {{-- Konten untuk Tab Ringkasan Stok --}}
                     <div x-show="activeTab === 'ringkasan'">
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -397,6 +403,49 @@
                             </table>
                         </div>
                     </div>
+
+                    {{-- KONTEN TAB BARU: RIWAYAT PENGADAAN --}}
+                    <div x-show="activeTab === 'pengadaan'" style="display: none;">
+                        <div class="overflow-x-auto">
+                            <table class="w-full table-auto">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
+                                            Tgl. Pengadaan</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
+                                            Jumlah</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
+                                            Harga Satuan</th>
+                                        <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
+                                            Sumber Dana</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    @forelse($detailBarang['riwayatPengadaan'] as $pengadaan)
+                                        <tr>
+                                            <td class="px-4 py-3 text-sm">
+                                                {{ \Carbon\Carbon::parse($pengadaan->tanggal_pengadaan)->format('d M Y') }}
+                                            </td>
+                                            <td class="px-4 py-3 text-sm">{{ $pengadaan->jumlah }} unit</td>
+                                            <td class="px-4 py-3 text-sm">Rp
+                                                {{ number_format($pengadaan->harga_satuan, 0, ',', '.') }}</td>
+                                            <td class="px-4 py-3 text-sm">{{ $pengadaan->sumber_dana }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="4" class="text-center py-4 text-gray-500">Belum ada
+                                                riwayat pengadaan untuk barang ini.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 border-t flex justify-center flex-shrink-0">
+                    <button type="button" wire:click="closeDetailModal"
+                        class="px-6 py-2 bg-gray-600 text-white rounded-md shadow-sm hover:bg-gray-700">Tutup</button>
                 </div>
             </div>
         </div>

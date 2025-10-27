@@ -288,23 +288,10 @@ class Index extends Component
 
     public function render()
     {
-
-        $kategoris = Kategori::all();
-        $ruangans = Ruangan::all();
-        $barangs = Barang::with('kategori', 'ruangan')
-            ->where(function ($query) {
-                // Terapkan pencarian pada nama atau kode barang
-                $query->where('nama_barang', 'like', '%' . $this->search . '%')
-                    ->orWhere('kode_barang', 'like', '%' . $this->search . '%');
-            })
-            ->when($this->filterKategori, function ($query) {
-                $query->where('kategori_id', $this->filterKategori);
-            })
-            ->latest()
-            ->paginate(10);
         $detailBarang = null;
         if ($this->detailBarangId) {
-            $barang = Barang::findOrFail($this->detailBarangId);
+            $barang = Barang::with('riwayatPengadaan') 
+                ->findOrFail($this->detailBarangId);
 
             $distribusi = Transaksi::with('siswa')
                 ->whereHas('barangs', function ($query) {
@@ -317,15 +304,29 @@ class Index extends Component
             $detailBarang = [
                 'barang' => $barang,
                 'distribusi' => $distribusi,
+                'riwayatPengadaan' => $barang->riwayatPengadaan, // Kirim data pengadaan
             ];
         }
 
+        // Query untuk tabel utama
+        $kategoris = Kategori::all();
+        $ruangans = Ruangan::all();
+        $barangs = Barang::with('kategori', 'ruangan')
+            ->where(function ($query) {
+                $query->where('nama_barang', 'like', '%' . $this->search . '%')
+                    ->orWhere('kode_barang', 'like', '%' . $this->search . '%');
+            })
+            ->when($this->filterKategori, function ($query) {
+                $query->where('kategori_id', $this->filterKategori);
+            })
+            ->latest()
+            ->paginate(10);
 
         return view('livewire.barang.index', [
             'barangs' => $barangs,
             'kategoris' => $kategoris,
-            'detailBarang' => $detailBarang,
             'ruangans' => $ruangans,
+            'detailBarang' => $detailBarang,
         ]);
     }
 }

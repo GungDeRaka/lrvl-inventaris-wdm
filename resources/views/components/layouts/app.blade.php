@@ -77,36 +77,36 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-center md:justify-start h-14 space-x-8">
                     <a href="{{ route('dashboard') }}"
-                        class="font-semibold text-center hover:text-gray-300 {{ request()->routeIs('dashboard') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
+                        class="font-semibold text-center hover:text-amber-500 {{ request()->routeIs('dashboard') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
                         DASHBOARD TRANSAKSI
                     </a>
                     <a href="{{ route('barang.index') }}"
-                        class="font-semibold text-center hover:text-gray-300 {{ request()->routeIs('barang.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
+                        class="font-semibold text-center hover:text-amber-500 {{ request()->routeIs('barang.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
                         MANAJEMEN BARANG
                     </a>
 
 
                     @can('kelola-pengguna')
                         <a href="{{ route('kategori.index') }}"
-                            class="font-semibold text-center hover:text-gray-300 {{ request()->routeIs('kategori.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
+                            class="font-semibold text-center hover:text-amber-500 {{ request()->routeIs('kategori.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
                             MANAJEMEN KATEGORI
                         </a>
                         <a href="{{ route('ruangan.index') }}"
-                            class="font-semibold text-center hover:text-gray-300 {{ request()->routeIs('ruangan.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white ' }}">
+                            class="font-semibold text-center hover:text-amber-500 {{ request()->routeIs('ruangan.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white ' }}">
                             MANAJEMEN RUANGAN
                         </a>
                         <a href="{{ route('user.index') }}"
-                            class="font-semibold text-center hover:text-gray-300 {{ request()->routeIs('user.index') ? 'border-b-2 border-amber-400 text-amber-400' : ' text-white' }}">
+                            class="font-semibold text-center hover:text-amber-500 {{ request()->routeIs('user.index') ? 'border-b-2 border-amber-400 text-amber-400' : ' text-white' }}">
                             MANAJEMEN ADMIN
                         </a>
                         <a href="{{ route('siswa.index') }}"
-                            class="font-semibold text-center hover:text-gray-300 {{ request()->routeIs('siswa.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
+                            class="font-semibold text-center hover:text-amber-500 {{ request()->routeIs('siswa.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
                             MANAJEMEN SISWA
                         </a>
                     @endcan
 
                     <a href="{{ route('rab.index') }}"
-                        class="font-semibold text-center hover:text-gray-300 {{ request()->routeIs('rab.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
+                        class="font-semibold text-center hover:text-amber-500 {{ request()->routeIs('rab.index') ? 'border-b-2 border-amber-400 text-amber-400' : 'text-white' }}">
                         MANAJEMEN RAB
                     </a>
                 </div>
