@@ -1,20 +1,3 @@
-{{-- // TODO Untuk Finalisasi:
-done TAMBAHIN TABEL BARANG READY DI SISWA, JUST VIEW -
- TOD0ne BUAT CARD VIEW STOK BARANG DI SISWA JADI BENTUK TABEL
- done ADD JUMLAH BARANG YG MAU DIPINJAM
- done TAMBAHAIN BARANG YANG TERSEDIA DI SETIAP RUANGAN
- TOD0ne YG ATAS JADIKAN TABEL JUGA
- done SISWA BISA UBAH PASS
-TODO SISWA DIMINTA EMAIL AKTIF BIAR BISA UBAH PASSWORD SENDIRI
-
- TOD0ne FORMULIR PENGEMBALIAN BARANG DARI SISWA. SISWA MENGEMBALIKAN BARANG SECARA MANDIRI -> SETELAH PENGEMBALIAN, ADMIN HARUS CEK BARANG YANG DIKEMBALIKAN-> JIKA BAARNG ADA RUSAK, KIRIM WA SISWA DAN TANGGUHKAN-> BARANG GAADA RUSAK, BIARIN AJA
-
-    TODO 1. Buat LSTM.
-    TODO 2. Batasi peminjaman: Peminjaman pada siswa ga bole booking setelah jam 16.00, begitu juga pada pengembalian barang dan peminjaman jalur admin.
-    . KETIKA SISWA MENGEMBALIKAN BARANG DALAM KEADAAN RUSAK, TANGGUHKAN AKUN SISWA UNTUK SESAAT(SISWA TIDAK BISA MENGAJUKAN PEMINJAMAN HINGGA ADMIN MEMBATALKAN PENANGGUHAN). TAMBAHKAN FITUR "BATAL PENANGGUHAN" PADA MANAGEMENT SISWA //?--done--.
-    5. KETIKA PEMINJAMAN SISWA AKAN BERAKHIR SETENGAH JAM LAGI, SEDIAKAN TOMBOL KIRIM NOTIF KE WA SISWA BERSANGKUTAN --done--
-    --}}
-
 <div>
     {{-- Notifikasi --}}
     @if (session()->has('message'))
@@ -232,8 +215,8 @@ TODO SISWA DIMINTA EMAIL AKTIF BIAR BISA UBAH PASSWORD SENDIRI
                 <tr>
                     <th class="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Nama
                         Barang</th>
-                    <th class="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Asal
-                        Barang</th>
+                    {{-- <th class="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Asal
+                        Barang</th> --}}
                     <th class="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Nama
                         Peminjam</th>
                     <th class="px-3 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Ruang
@@ -268,22 +251,25 @@ TODO SISWA DIMINTA EMAIL AKTIF BIAR BISA UBAH PASSWORD SENDIRI
                     @endphp
                     <tr class="border-b border-gray-200 {{ $isJatuhTempo ? 'bg-red-100' : 'hover:bg-gray-50' }}">
                         {{-- nama barang --}}
-                        <td class="px-3 py-4 text-sm">
+                        <td class="px-2 py-4 text-sm">
                             <ul class="list-disc list-inside">
                                 @foreach ($transaksi->barangs as $barang)
                                     <li>
-                                        {{ $barang->nama_barang }} <strong
-                                            class="text-primary">({{ $barang->pivot->kuantitas }} unit)</strong>
+                                        <strong class="text-primary">({{ $barang->pivot->kuantitas }})</strong>
+                                        {{ $barang->nama_barang }}
+                                        <span class="text-xs text-blue-500">
+                                            ({{ $barang->ruangan->nama_ruangan }}
+                                        </span>
                                     </li>
                                 @endforeach
                             </ul>
                         </td>
                         {{-- nama ruangan --}}
-                        <td class="px-3 py-4 text-sm">
+                        {{-- <td class="px-3 py-4 text-sm">
                             @foreach ($transaksi->barangs as $barang)
                                 <span class="block">{{ $barang->ruangan->nama_ruangan }}</span>
                             @endforeach
-                        </td>
+                        </td> --}}
                         {{-- <td class="px-3 py-4 text-sm">
                              @foreach ($transaksi->barangs as $barang)
                             {{ optional($transaksi->barangs->first()?->ruangan)->nama_ruangan ?? 'N/A' }}</td> --}}
@@ -312,6 +298,10 @@ TODO SISWA DIMINTA EMAIL AKTIF BIAR BISA UBAH PASSWORD SENDIRI
                                     Kirim Pengingat WA
                                 </a>
                             @endif
+                            <a href="{{ route('transaksi.cetak', $transaksi->id) }}" target="_blank"
+                                class="font-semibold text-gray-600 hover:underline">
+                                Cetak
+                            </a>
 
                             @if ($transaksi->status == 'disetujui')
                                 <button wire:click="konfirmasiAmbil({{ $transaksi->id }})"

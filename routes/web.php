@@ -24,8 +24,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Rute untuk Manajemen Barang
     Route::get('/barang', BarangIndex::class)->name('barang.index');
-
+// rute laporan transaksi berdasarkan periode tertentu
     Route::get('/laporan/transaksi', [LaporanController::class, 'cetakTransaksi'])->name('laporan.transaksi');
+
+// rute cetak struk transaksi
+    Route::get('/transaksi/{id}/cetak', [LaporanController::class, 'cetakStruk'])->name('transaksi.cetak');
+    
     // Rute untuk manajemen pengguna
     Route::get('/pengguna', UserIndex::class)->name('user.index')->middleware('can:kelola-pengguna');
     // Rute untuk manajemen kategori
