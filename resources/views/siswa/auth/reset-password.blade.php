@@ -5,7 +5,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Reset Password - Portal Siswa</title>
+    {{-- @vite('resources/css/app.css') --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> --}}
 </head>
 
 <body class="font-sans text-gray-900 antialiased bg-gray-100">
