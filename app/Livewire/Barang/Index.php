@@ -6,14 +6,16 @@ use App\Models\Barang;
 use App\Models\Kategori;
 use App\Models\Ruangan;
 use App\Models\Transaksi;
-use App\Models\PengadaanBarang; // <-- Tambahkan model baru
-use Illuminate\Support\Facades\DB; // <-- Tambahkan DB facade
+use App\Models\PengadaanBarang; 
+use Illuminate\Support\Facades\DB; 
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Illuminate\Validation\Rule;
 
 #[Layout('components.layouts.app')]
+#[Title('Manajemen Barang')]
 class Index extends Component
 {
     use WithPagination;

@@ -9,11 +9,13 @@ use App\Models\Transaksi;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 
 #[Layout('components.layouts.app')]
+#[Title('Dashboard Transaksi')]
 class Index extends Component
 {
     use WithPagination;

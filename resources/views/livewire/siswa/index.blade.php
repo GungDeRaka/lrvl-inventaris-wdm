@@ -61,6 +61,7 @@
                                 <button wire:click="batalTangguhan({{ $siswa->id }})"
                                     class="font-semibold text-green-600 hover:text-green-900">Batal Tangguhan</button>
                             @endif
+                            
                             <button wire:click="edit({{ $siswa->id }})"
                                 class="font-semibold text-yellow-600 hover:text-yellow-900">Edit</button>
 

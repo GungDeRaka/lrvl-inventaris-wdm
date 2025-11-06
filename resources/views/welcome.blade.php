@@ -24,8 +24,8 @@
         <div
             class="relative z-10 flex flex-col justify-center items-center text-center lg:items-start lg:text-left 
                    bg-primary/95 lg:bg-primary text-white backdrop-blur-sm lg:backdrop-blur-none
-                   w-full lg:w-8/12 min-h-[50vh] lg:min-h-screen
-                   px-6 sm:px-10 lg:px-16 py-10 sm:py-16 lg:py-0
+                   w-full lg:w-6/12 min-h-[50vh] lg:min-h-screen
+                   px-4 sm:px-8 lg:px-14 py-10 sm:py-16 lg:py-0
                    mt-10 sm:my-12 md:my-12 lg:my-0">
 
             {{-- Kontainer isi agar mudah diatur --}}

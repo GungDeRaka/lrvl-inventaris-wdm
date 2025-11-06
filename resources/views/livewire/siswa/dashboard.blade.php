@@ -112,6 +112,10 @@
                                             class="font-semibold text-indigo-600 hover:underline">Ajukan
                                             Pengembalian</button>
                                     @endif
+                                    <a href="{{ route('transaksi.cetak', $item->id) }}" target="_blank"
+                                        class="font-semibold text-gray-600 hover:underline">
+                                        Cetak
+                                    </a>
                                 </td>
                             </tr>
                             @if ($item->status == 'ditolak' && $item->alasan_penolakan)

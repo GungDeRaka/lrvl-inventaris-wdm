@@ -47,6 +47,7 @@
         </div>
         {{-- Card Jatuh Tempo --}}
         <div class="bg-white p-6 rounded-lg shadow-md flex items-center">
+        
             <div>
                 <p class="text-sm font-medium text-gray-500">Jatuh Tempo</p>
                 <p class="text-3xl font-bold text-yellow-500">{{ $jatuhTempo }}</p>

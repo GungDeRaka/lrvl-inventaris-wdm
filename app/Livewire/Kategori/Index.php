@@ -6,9 +6,11 @@ use App\Models\Kategori;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Illuminate\Validation\Rule;
 
 #[Layout('components.layouts.app')]
+#[Title('Manajemen Kategori')]
 class Index extends Component
 {
     use WithPagination;

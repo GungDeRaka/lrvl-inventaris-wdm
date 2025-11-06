@@ -7,9 +7,11 @@ use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Illuminate\Validation\Rule;
 
 #[Layout('components.layouts.app')]
+#[Title('Manajemen Siswa')]
 class Index extends Component
 {
     use WithPagination;

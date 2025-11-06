@@ -9,8 +9,10 @@ use Illuminate\Support\Facades\Auth; // <-- Tambahkan Auth
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 
 #[Layout('components.layouts.app')]
+#[Title('Manajemen RAB')]
 class Index extends Component
 {
     use WithPagination;

@@ -8,8 +8,10 @@ use App\Models\Ruangan;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Illuminate\Validation\Rule;
 
+#[Title('Manajemen Ruangan')]
 #[Layout('components.layouts.app')]
 class Index extends Component
 {

@@ -7,9 +7,11 @@ use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 
+#[Title('Manajemen Admin Gudang')]
 #[Layout('components.layouts.app')]
 class Index extends Component
 {
