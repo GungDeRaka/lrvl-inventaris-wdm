@@ -181,12 +181,12 @@
             <div class="flex items-center gap-2 w-full sm:w-auto">
 
                 {{-- cetak laporan --}}
-                @can('kelola-pengguna')
+                {{-- @can('kelola-pengguna') --}}
                     <button wire:click="openReportModal"
                         class="w-1/2 sm:w-auto flex justify-center items-center bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded text-sm">
                         Cetak Laporan
                     </button>
-                @endcan
+                {{-- @endcan --}}
 
 
                 {{-- form peminjaman --}}

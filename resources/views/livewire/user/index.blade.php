@@ -73,7 +73,8 @@
                         <div>
                             <label for="email" class="block text-sm font-medium">Email</label>
                             <input type="email" wire:model="email" id="email"
-                                class="mt-1 block w-full border-gray-300 rounded-md" {{ $user_id ? 'readonly' : '' }}>
+                                class="mt-1 block w-full border-gray-300 rounded-md">
+                                 {{-- {{ $user_id ? 'readonly' : '' }}> --}}
                             @error('email')
                                 <span class="text-red-500 text-xs">{{ $message }}</span>
                             @enderror

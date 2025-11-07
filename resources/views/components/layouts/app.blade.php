@@ -21,8 +21,8 @@
         {{-- ============================================= --}}
         {{-- SIDEBAR NAVIGASI (KIRI) --}}
         {{-- ============================================= --}}
-        <aside class="bg-primary text-white flex flex-col transition-all duration-300 ease-in-out"
-            :class="isSidebarOpen ? 'w-64' : 'w-20'">
+        <aside class="bg-primary text-white flex flex-col transition-all duration-300 ease-in-out overflow-hidden"
+            :class="isSidebarOpen ? 'w-64' : 'w-0 lg:w-20'">
 
             {{-- Logo dan Nama Admin --}}
             <div class="flex items-center justify-center h-20 shadow-md">

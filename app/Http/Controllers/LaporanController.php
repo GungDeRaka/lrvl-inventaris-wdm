@@ -39,7 +39,7 @@ class LaporanController extends Controller
         $pdf = Pdf::loadView('laporan.transaksi_pdf', $data);
         return $pdf->download('laporan-transaksi-inventaris.pdf');
     }
-    
+
     public function cetakStruk($id)
     {
         // Ambil data transaksi spesifik beserta relasinya
@@ -57,7 +57,7 @@ class LaporanController extends Controller
         $pdf = Pdf::loadView('laporan.struk_transaksi_pdf', $data);
 
         // Kita buat ukuran kertasnya kecil, seperti struk (misal A6)
-        $pdf->setPaper('a6', 'portrait');
+        $pdf->setPaper('a4', 'portrait');
 
         // Tampilkan di browser (stream) alih-alih download
         return $pdf->stream('struk-peminjaman-' . $transaksi->id . '.pdf');

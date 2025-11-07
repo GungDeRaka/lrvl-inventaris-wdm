@@ -26,6 +26,7 @@
         </div>
 
         {{-- TOMBOL TAMBAH BARANG --}}
+        {{-- //TODO KETIKA PENAMBAHAN BARANG, BARANG JANGAN LANGSUNG DISIMPAN. BARANG YANG DITAMBAHKAN , DIMINTA KONFIRMASI DLU KE KEPALA GUDANG. SETELAH ACC, BARANG OTOMATIS TER-INPUT DI SISTEM  --}}
         <button wire:click="openModal()"
             class="bg-purple-700 hover:bg-purple-800 text-white font-bold py-2 px-4 rounded">
             Tambah Barang
@@ -59,10 +60,10 @@
             </thead>
             <tbody>
                 @forelse ($barangs as $barang)
-                    <tr class="hover:bg-gray-50">
+                    <tr wire:click="$set('detailBarangId', {{ $barang->id }})" class="hover:bg-gray-300 cursor-pointer">
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">{{ $barang->kode_barang }}</td>
                         <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">
-                            <button wire:click="$set('detailBarangId', {{ $barang->id }})"
+                            <button 
                                 class="font-semibold text-indigo-600 hover:underline">
                                 {{ $barang->nama_barang }}
                             </button>
@@ -375,6 +376,8 @@
                                             Digunakan di Ruang</th>
                                         <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
                                             Waktu Kembali</th>
+                                            {{-- //TODO TAMBAHIN DETAIL JUMLAH DIPINJAM DAN WAKTU MINJAM START-END  --}}
+                                            {{--//TODO PEMINDAHAN BARANG: BARANG DAPAT DIPINDAHKAN KE RUANGAN LALINNYA, HAL INI MEMBUAT PENGURANGAN STOK TOTAL BARANG. PADA TABEL PENGADAAN, STOK BARANG DIBIARKAN SAJA, NAMUN KITA TAMBAHKAN TAB RIWAYAT PEMINDAHAN BARANG --}}
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
