@@ -1,5 +1,5 @@
-{{-- //TODO Perbaiki RAB pengajuan pengadaan barang: ketika input form RAB, berikan detail barang yang ingin diadakan akan dibawa ke ruangan mana, jumlah yang ingin diadakan, kode barang, etc yang sesuai dengan form penambahan barang--}}
-{{--! kemungkinan sulit --}}
+{{-- //TODO Perbaiki RAB pengajuan pengadaan barang: ketika input form RAB, berikan detail barang yang ingin diadakan akan dibawa ke ruangan mana, jumlah yang ingin diadakan, kode barang, etc yang sesuai dengan form penambahan barang --}}
+{{-- ! kemungkinan sulit --}}
 
 <div>
     {{-- Notifikasi --}}
@@ -310,6 +310,18 @@
             <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[85vh] flex flex-col">
                 <div class="flex justify-between items-center p-6 border-b flex-shrink-0">
                     <h3 class="text-xl font-bold text-gray-900">Detail Pengajuan RAB</h3>
+                    @if (session()->has('message'))
+                        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md shadow-sm"
+                            role="alert">
+                            {{ session('message') }}
+                        </div>
+                    @endif
+                    @if (session()->has('error'))
+                        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md shadow-sm"
+                            role="alert">
+                            {{ session('error') }}
+                        </div>
+                    @endif
                     <button wire:click="closeModal"
                         class="text-gray-500 hover:text-gray-800 text-3xl leading-none">&times;</button>
                 </div>
@@ -366,7 +378,7 @@
                                 Catatan Kepala Gudang
                             @endif
                         </label>
-                        <textarea wire:model="catatan_kepala" id="catatan_kepala"  rows="2"
+                        <textarea wire:model="catatan_kepala" id="catatan_kepala" rows="2"
                             class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary
                            {{-- Tambahkan class ini untuk menonaktifkan tampilan --}}
                            @if ($selectedRab->status != 'diajukan' || auth()->user()->peran === 'penjaga_gudang') bg-gray-100 cursor-not-allowed @endif

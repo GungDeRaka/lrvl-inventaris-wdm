@@ -6,8 +6,11 @@ use App\Models\Barang;
 use App\Models\Kategori;
 use App\Models\Ruangan;
 use App\Models\Transaksi;
-use App\Models\PengadaanBarang; 
-use Illuminate\Support\Facades\DB; 
+use App\Models\PengadaanBarang;
+use App\Models\RabPengadaan;
+use App\Models\RabItem;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
@@ -105,43 +108,74 @@ class Index extends Component
         $this->resetPage();
     }
 
-    // Ganti method simpanBarang() dengan ini
+
     public function simpanBarang()
     {
         $validatedData = $this->validate();
+        $user = Auth::user();
 
         try {
-            DB::transaction(function () use ($validatedData) {
+            DB::transaction(function () use ($validatedData, $user) {
+
                 if ($this->barang_id) {
-                    // Logic untuk UPDATE BARANG (Hanya data barang, bukan stok)
+                    // LOGIKA EDIT (Tetap sama, hanya edit info barang)
                     $barang = Barang::find($this->barang_id);
                     $barang->update([
                         'kode_barang' => $validatedData['kode_barang'],
                         'nama_barang' => $validatedData['nama_barang'],
                         'kategori_id' => $validatedData['kategori_id'],
                         'ruangan_id' => $validatedData['ruangan_id'],
+                        'stok_minimum' => $validatedData['stok_minimum'] ?? $barang->stok_minimum,
                     ]);
                     session()->flash('message', 'Data barang berhasil diperbarui.');
                 } else {
-                    // Logic untuk CREATE BARANG BARU
-                    $barang = Barang::create([
-                        'kode_barang' => $validatedData['kode_barang'],
-                        'nama_barang' => $validatedData['nama_barang'],
-                        'kategori_id' => $validatedData['kategori_id'],
-                        'ruangan_id' => $validatedData['ruangan_id'],
-                        'jumlah_total' => $validatedData['jumlah'], // Stok awal dari pengadaan pertama
-                        'jumlah_saat_ini' => $validatedData['jumlah'],
-                    ]);
+                    // LOGIKA TAMBAH BARANG BARU
+                    if ($user->peran === 'kepala_gudang') {
+                        // KEPALA GUDANG: Langsung simpan (Kode Anda sebelumnya sudah benar)
+                        $barang = Barang::create([
+                            'kode_barang' => $validatedData['kode_barang'],
+                            'nama_barang' => $validatedData['nama_barang'],
+                            'kategori_id' => $validatedData['kategori_id'],
+                            'ruangan_id' => $validatedData['ruangan_id'],
+                            'stok_minimum' => $validatedData['stok_minimum'] ?? 0,
+                            'jumlah_total' => $validatedData['jumlah'],
+                            'jumlah_saat_ini' => $validatedData['jumlah'],
+                        ]);
 
-                    // Buat record pengadaan pertama untuk barang baru
-                    PengadaanBarang::create([
-                        'barang_id' => $barang->id,
-                        'jumlah' => $validatedData['jumlah'],
-                        'harga_satuan' => $validatedData['harga_satuan'] ?? 0,
-                        'sumber_dana' => $validatedData['sumber_dana'],
-                        'tanggal_pengadaan' => $validatedData['tanggal_pengadaan'],
-                    ]);
-                    session()->flash('message', 'Barang baru berhasil ditambahkan.');
+                        PengadaanBarang::create([
+                            'barang_id' => $barang->id,
+                            'jumlah' => $validatedData['jumlah'],
+                            'harga_satuan' => $validatedData['harga_satuan'] ?? 0,
+                            'sumber_dana' => $validatedData['sumber_dana'],
+                            'tanggal_pengadaan' => $validatedData['tanggal_pengadaan'],
+                        ]);
+                        session()->flash('message', 'Barang baru berhasil ditambahkan.');
+                    } else {
+                        // PENJAGA GUDANG: Buat RAB (Dengan data lengkap)
+                        $rab = RabPengadaan::create([
+                            'user_id' => $user->id,
+                            'keterangan' => 'Pengajuan barang baru: ' . $validatedData['nama_barang'],
+                            'tanggal_pengajuan' => $validatedData['tanggal_pengadaan'], // Ambil tanggal dari form
+                            'status' => 'diajukan',
+                        ]);
+
+                        // PERBAIKAN: Simpan semua data barang baru ke rab_items
+                        RabItem::create([
+                            'rab_pengadaan_id' => $rab->id,
+                            'barang_id' => null,
+                            'nama_barang_baru' => $validatedData['nama_barang'],
+                            'kode_barang_baru' => $validatedData['kode_barang'], // <-- BARU
+                            'kategori_id' => $validatedData['kategori_id'],     // <-- BARU
+                            'ruangan_id' => $validatedData['ruangan_id'],      // <-- BARU
+                            'stok_minimum_baru' => $validatedData['stok_minimum'] ?? 0, // <-- BARU
+                            'spesifikasi' => 'Barang baru',
+                            'jumlah' => $validatedData['jumlah'],
+                            'harga_satuan' => $validatedData['harga_satuan'] ?? 0,
+                            'harga_total' => ($validatedData['jumlah'] * ($validatedData['harga_satuan'] ?? 0)),
+                        ]);
+
+                        session()->flash('message', 'Pengajuan barang baru telah dikirim ke Kepala Gudang.');
+                    }
                 }
             });
             $this->closeModal();
@@ -253,7 +287,6 @@ class Index extends Component
     //  method ini untuk memproses penambahan stok
     public function prosesTambahStok()
     {
-        // Validasi hanya field pengadaan
         $validatedData = $this->validate([
             'jumlah'        => 'required|integer|min:1',
             'harga_satuan'  => 'nullable|numeric|min:0',
@@ -261,30 +294,56 @@ class Index extends Component
             'tanggal_pengadaan' => 'required|date',
         ]);
 
+        $user = Auth::user();
+
         try {
-            DB::transaction(function () use ($validatedData) {
-                // 1. Cari barang yang akan ditambah stoknya
+            DB::transaction(function () use ($validatedData, $user) {
                 $barang = Barang::findOrFail($this->tambahStokBarangId);
 
-                // 2. Buat record pengadaan baru
-                PengadaanBarang::create([
-                    'barang_id' => $barang->id,
-                    'jumlah' => $validatedData['jumlah'],
-                    'harga_satuan' => $validatedData['harga_satuan'] ?? 0,
-                    'sumber_dana' => $validatedData['sumber_dana'],
-                    'tanggal_pengadaan' => $validatedData['tanggal_pengadaan'],
-                ]);
+                // JIKA KEPALA GUDANG: Langsung eksekusi
+                if ($user->peran === 'kepala_gudang') {
+                    PengadaanBarang::create([
+                        'barang_id' => $barang->id,
+                        'jumlah' => $validatedData['jumlah'],
+                        'harga_satuan' => $validatedData['harga_satuan'] ?? 0,
+                        'sumber_dana' => $validatedData['sumber_dana'],
+                        'tanggal_pengadaan' => $validatedData['tanggal_pengadaan'],
+                    ]);
 
-                // 3. Update jumlah total dan jumlah saat ini di tabel barangs
-                $barang->increment('jumlah_total', $validatedData['jumlah']);
-                $barang->increment('jumlah_saat_ini', $validatedData['jumlah']);
+                    $barang->increment('jumlah_total', $validatedData['jumlah']);
+                    $barang->increment('jumlah_saat_ini', $validatedData['jumlah']);
+
+                    session()->flash('message', 'Stok barang berhasil ditambahkan.');
+                }
+                // JIKA PENJAGA GUDANG: Buat RAB untuk persetujuan
+                else {
+                    $rab = RabPengadaan::create([
+                        'user_id' => $user->id,
+                        'keterangan' => 'Pengajuan tambah stok untuk: ' . $validatedData['nama_barang'],
+                        'tanggal_pengajuan' => $validatedData['tanggal_pengadaan'],
+                        'status' => 'diajukan',
+                    ]);
+
+                    RabItem::create([
+                        'rab_pengadaan_id' => $rab->id,
+                        'barang_id' => $barang->id, // Tautkan ke barang yang sudah ada
+                        'nama_barang_baru' => $barang->nama_barang,
+                        'kode_barang_baru' => $validatedData['kode_barang'], // <-- BARU
+                        'kategori_id' => $validatedData['kategori_id'],     // <-- BARU
+                        'ruangan_id' => $validatedData['ruangan_id'],      // <-- BARU
+                        'stok_minimum_baru' => $validatedData['stok_minimum'] ?? 0, // <-- BARU
+                        'spesifikasi' => 'Tambah stok untuk barang yang ada.',
+                        'jumlah' => $validatedData['jumlah'],
+                        'harga_satuan' => $validatedData['harga_satuan'] ?? 0,
+                        'harga_total' => ($validatedData['jumlah'] * ($validatedData['harga_satuan'] ?? 0)),
+                    ]);
+
+                    session()->flash('message', 'Pengajuan tambah stok telah dikirim ke Kepala Gudang.');
+                }
             });
-
-            session()->flash('message', 'Stok barang berhasil ditambahkan.');
             $this->closeTambahStokModal();
         } catch (\Exception $e) {
             session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
-            // Jangan tutup modal jika error
         }
     }
 
@@ -292,7 +351,7 @@ class Index extends Component
     {
         $detailBarang = null;
         if ($this->detailBarangId) {
-            $barang = Barang::with('riwayatPengadaan') 
+            $barang = Barang::with('riwayatPengadaan')
                 ->findOrFail($this->detailBarangId);
 
             $distribusi = Transaksi::with('siswa')

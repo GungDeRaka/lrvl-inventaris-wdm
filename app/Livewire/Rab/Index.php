@@ -4,6 +4,8 @@ namespace App\Livewire\Rab;
 
 use App\Models\RabPengadaan;
 use App\Models\RabItem;
+use App\Models\Barang;
+use App\Models\PengadaanBarang;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth; // <-- Tambahkan Auth
 use Livewire\Component;
@@ -103,9 +105,9 @@ class Index extends Component
         // Method ini sekarang bisa dipakai oleh kedua peran
         $rab = RabPengadaan::with('pengaju', 'peninjau', 'items.barang')->findOrFail($id);
 
-        
-            $this->catatan_kepala = $rab->catatan_kepala ?? '';
-        
+
+        $this->catatan_kepala = $rab->catatan_kepala ?? '';
+
 
         $this->selectedRab = $rab;
         $this->showDetailModal = true;
@@ -122,14 +124,66 @@ class Index extends Component
         if (!$this->selectedRab || Auth::user()->peran !== 'kepala_gudang') return;
 
         $this->validate(['catatan_kepala' => 'nullable|string']);
-        $this->selectedRab->update([
-            'status' => $status, // 'disetujui' atau 'ditolak'
-            'disetujui_oleh' => Auth::id(),
-            'tanggal_keputusan' => now()->toDateString(),
-            'catatan_kepala' => $this->catatan_kepala,
-        ]);
-        session()->flash('message', 'RAB telah berhasil di-' . ($status == 'disetujui' ? 'setujui' : 'tolak') . '.');
-        $this->closeModal();
+
+        try {
+            DB::transaction(function () use ($status) {
+                // 1. Update status RAB (Tidak berubah)
+                $this->selectedRab->update([
+                    'status' => $status,
+                    'disetujui_oleh' => Auth::id(),
+                    'tanggal_keputusan' => now()->toDateString(),
+                    'catatan_kepala' => $this->catatan_kepala,
+                ]);
+
+                // 2. JIKA DISETUJUI, proses ke inventaris (LOGIKA DIPERBAIKI)
+                if ($status == 'disetujui') {
+                    foreach ($this->selectedRab->items as $item) {
+
+                        $barangIdToUse = $item->barang_id; // Ambil ID barang yang sudah ada
+
+                        // Cek apakah ini BARANG BARU (barang_id di rab_items adalah null)
+                        if (is_null($item->barang_id)) {
+
+                            // KASUS 1: BUAT BARANG BARU TERLEBIH DAHULU
+                            $barangBaru = Barang::create([
+                                'kode_barang' => $item->kode_barang_baru,
+                                'nama_barang' => $item->nama_barang_baru,
+                                'kategori_id' => $item->kategori_id,
+                                'ruangan_id' => $item->ruangan_id,
+                                'stok_minimum' => $item->stok_minimum_baru,
+                                'jumlah_total' => $item->jumlah,
+                                'jumlah_saat_ini' => $item->jumlah,
+                            ]);
+                            $barangIdToUse = $barangBaru->id; // Ambil ID dari barang yang baru dibuat
+
+                        } else {
+                            // KASUS 2: TAMBAH STOK BARANG YANG ADA
+                            $barang = Barang::find($item->barang_id);
+                            if ($barang) {
+                                $barang->increment('jumlah_total', $item->jumlah);
+                                $barang->increment('jumlah_saat_ini', $item->jumlah);
+                            }
+                        }
+
+                        // 3. Catat di riwayat pengadaan (SETELAH BARANG DIBUAT/DITEMUKAN)
+                        if ($barangIdToUse) {
+                            PengadaanBarang::create([
+                                'barang_id' => $barangIdToUse, // <-- Sekarang ID-nya dijamin ada
+                                'jumlah' => $item->jumlah,
+                                'harga_satuan' => $item->harga_satuan,
+                                'sumber_dana' => 'Disetujui dari RAB #' . $this->selectedRab->id,
+                                'tanggal_pengadaan' => $this->selectedRab->tanggal_keputusan,
+                            ]);
+                        }
+                    }
+                }
+            });
+
+            session()->flash('message', 'RAB telah berhasil di-' . ($status == 'disetujui' ? 'setujui dan stok diperbarui' : 'tolak') . '.');
+            $this->closeModal();
+        } catch (\Exception $e) {
+            session()->flash('error', 'Gagal memproses RAB: ' . $e->getMessage());
+        }
     }
     // --- AKHIR LOGIKA PERSETUJUAN ---
 
