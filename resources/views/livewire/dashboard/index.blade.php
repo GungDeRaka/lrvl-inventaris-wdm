@@ -47,7 +47,7 @@
         </div>
         {{-- Card Jatuh Tempo --}}
         <div class="bg-white p-6 rounded-lg shadow-md flex items-center">
-        
+
             <div>
                 <p class="text-sm font-medium text-gray-500">Jatuh Tempo</p>
                 <p class="text-3xl font-bold text-yellow-500">{{ $jatuhTempo }}</p>
@@ -182,10 +182,10 @@
 
                 {{-- cetak laporan --}}
                 {{-- @can('kelola-pengguna') --}}
-                    <button wire:click="openReportModal"
-                        class="w-1/2 sm:w-auto flex justify-center items-center bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded text-sm">
-                        Cetak Laporan
-                    </button>
+                <button wire:click="openReportModal"
+                    class="w-1/2 sm:w-auto flex justify-center items-center bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2 px-4 rounded text-sm">
+                    Cetak Laporan
+                </button>
                 {{-- @endcan --}}
 
 
@@ -259,7 +259,7 @@
                                         <strong class="text-primary">({{ $barang->pivot->kuantitas }})</strong>
                                         {{ $barang->nama_barang }}
                                         <span class="text-xs text-blue-500">
-                                            ({{ $barang->ruangan->nama_ruangan }}
+                                            ({{ $barang->ruangan->nama_ruangan }})
                                         </span>
                                     </li>
                                 @endforeach
@@ -282,7 +282,14 @@
                         <td class="px-3 py-4 text-sm">
                             {{ \Carbon\Carbon::parse($transaksi->waktu_pinjam)->format('d M Y, H:i') }}</td>
                         <td class="px-3 py-4 text-sm">
-                            {{ \Carbon\Carbon::parse($transaksi->waktu_kembali)->format('d M Y, H:i') }}</td>
+                            @if ($transaksi->waktu_pengembalian_aktual)
+                                {{-- Tampilkan waktu aktual jika sudah dikembalikan --}}
+                                {{ \Carbon\Carbon::parse($transaksi->waktu_pengembalian_aktual)->format('d M Y, H:i') }}
+                            @else
+                                {{-- Tampilkan waktu jatuh tempo jika belum dikembalikan --}}
+                                {{ \Carbon\Carbon::parse($transaksi->waktu_kembali)->format('d M Y, H:i') }}
+                            @endif
+                        </td>
                         <td class="px-3 py-4 text-sm">
                             <span class="px-2 py-1 font-semibold leading-tight rounded-full {{ $statusBadgeClass }}">
                                 {{ $isJatuhTempo ? 'Jatuh Tempo' : ucfirst($transaksi->status) }}

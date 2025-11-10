@@ -314,7 +314,7 @@ class Index extends Component
 
         DB::transaction(function () use ($adaKerusakan) {
             $transaksi = $this->transaksiTerpilih;
-            $transaksi->update(['status' => 'dikembalikan']);
+            $transaksi->update(['status' => 'dikembalikan', 'waktu_pengembalian_aktual' => now()]);
 
             foreach ($transaksi->barangs as $barang) {
                 $kuantitasPinjam = $barang->pivot->kuantitas;
@@ -414,7 +414,8 @@ class Index extends Component
 
         DB::transaction(function () use ($adaKerusakan) {
             $transaksi = $this->konfirmasiTransaksi;
-            $transaksi->update(['status' => 'dikembalikan']);
+            $transaksi->update(['status' => 'dikembalikan', 
+            'waktu_pengembalian_aktual' => now()]);
 
             foreach ($transaksi->barangs as $barang) {
                 $kuantitasPinjam = $barang->pivot->kuantitas;

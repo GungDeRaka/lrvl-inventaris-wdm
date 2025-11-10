@@ -1,5 +1,5 @@
 {{-- //TODO Perbaiki RAB pengajuan pengadaan barang: ketika input form RAB, berikan detail barang yang ingin diadakan akan dibawa ke ruangan mana, jumlah yang ingin diadakan, kode barang, etc yang sesuai dengan form penambahan barang --}}
-{{-- ! kemungkinan sulit --}}
+{{-- ! kemungkinan sulit ✅ --}}
 
 <div>
     {{-- Notifikasi --}}

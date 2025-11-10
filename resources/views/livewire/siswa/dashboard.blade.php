@@ -76,9 +76,12 @@
                                     @endforeach
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-600">
-                                    {{ \Carbon\Carbon::parse($item->waktu_pinjam)->format('d M, H:i') }} -
-                                    {{ \Carbon\Carbon::parse($item->waktu_kembali)->format('d M, H:i') }}
-                                </td>
+    @php
+        // Tampilkan waktu aktual jika ada, jika tidak, tampilkan waktu jatuh tempo
+        $waktuSelesai = $item->waktu_pengembalian_aktual ?? $item->waktu_kembali;
+    @endphp
+    {{ \Carbon\Carbon::parse($item->waktu_pinjam)->format('d M, H:i') }} - {{ \Carbon\Carbon::parse($waktuSelesai)->format('d M, H:i') }}
+</td>
                                 <td class="px-4 py-3">
                                     <span
                                         class="text-xs font-semibold px-2.5 py-1 rounded-full {{ $statusBadgeClass }}">
