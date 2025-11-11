@@ -9,6 +9,7 @@ use App\Models\Transaksi;
 use App\Models\PengadaanBarang;
 use App\Models\RabPengadaan;
 use App\Models\RabItem;
+use App\Models\PemindahanBarang;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -38,6 +39,16 @@ class Index extends Component
     public $maxPerbaikan;
     public $filterKategori = '';
     public $search = '';
+
+    // Kumpulan properti untuk fitur pemindahan barang
+    public $showPindahModal = false;
+    public $pindahBarangId;
+    public $pindahBarang; // Untuk menyimpan objek barang asal
+    public $jumlahPindah;
+    public $ruanganTujuanId;
+    public $kodeBaruPindahan;
+    public $namaBaruPindahan;
+
 
     // Properti form pengadaan (baru)
     public $jumlah, $harga_satuan, $sumber_dana, $tanggal_pengadaan;
@@ -111,6 +122,7 @@ class Index extends Component
 
     public function simpanBarang()
     {
+        // Validasi aturan dasar
         $validatedData = $this->validate();
         $user = Auth::user();
 
@@ -118,20 +130,20 @@ class Index extends Component
             DB::transaction(function () use ($validatedData, $user) {
 
                 if ($this->barang_id) {
-                    // LOGIKA EDIT (Tetap sama, hanya edit info barang)
+                    // --- LOGIKA EDIT ---
+                    // (Hanya edit info, tidak mengubah stok. Tetap sama untuk kedua peran)
                     $barang = Barang::find($this->barang_id);
                     $barang->update([
                         'kode_barang' => $validatedData['kode_barang'],
                         'nama_barang' => $validatedData['nama_barang'],
                         'kategori_id' => $validatedData['kategori_id'],
-                        'ruangan_id' => $validatedData['ruangan_id'],
-                        'stok_minimum' => $validatedData['stok_minimum'] ?? $barang->stok_minimum,
+                        'stok_minimum' => $validatedData['stok_minimum'] ?? $barang->stok_minimum, // asumsikan stok_minimum ada di rules
                     ]);
                     session()->flash('message', 'Data barang berhasil diperbarui.');
                 } else {
-                    // LOGIKA TAMBAH BARANG BARU
+                    // --- LOGIKA TAMBAH BARANG BARU ---
                     if ($user->peran === 'kepala_gudang') {
-                        // KEPALA GUDANG: Langsung simpan (Kode Anda sebelumnya sudah benar)
+                        // KEPALA GUDANG: Langsung simpan ke inventaris
                         $barang = Barang::create([
                             'kode_barang' => $validatedData['kode_barang'],
                             'nama_barang' => $validatedData['nama_barang'],
@@ -142,6 +154,7 @@ class Index extends Component
                             'jumlah_saat_ini' => $validatedData['jumlah'],
                         ]);
 
+                        // Catat di riwayat pengadaan
                         PengadaanBarang::create([
                             'barang_id' => $barang->id,
                             'jumlah' => $validatedData['jumlah'],
@@ -149,32 +162,29 @@ class Index extends Component
                             'sumber_dana' => $validatedData['sumber_dana'],
                             'tanggal_pengadaan' => $validatedData['tanggal_pengadaan'],
                         ]);
+
                         session()->flash('message', 'Barang baru berhasil ditambahkan.');
-                    } else {
-                        // PENJAGA GUDANG: Buat RAB (Dengan data lengkap)
+                    }
+                    // PENJAGA GUDANG: Buat RAB untuk persetujuan
+                    else {
                         $rab = RabPengadaan::create([
                             'user_id' => $user->id,
                             'keterangan' => 'Pengajuan barang baru: ' . $validatedData['nama_barang'],
-                            'tanggal_pengajuan' => $validatedData['tanggal_pengadaan'], // Ambil tanggal dari form
+                            'tanggal_pengajuan' => $validatedData['tanggal_pengadaan'],
                             'status' => 'diajukan',
                         ]);
 
-                        // PERBAIKAN: Simpan semua data barang baru ke rab_items
                         RabItem::create([
                             'rab_pengadaan_id' => $rab->id,
-                            'barang_id' => null,
+                            'barang_id' => null, // null karena barang baru
                             'nama_barang_baru' => $validatedData['nama_barang'],
-                            'kode_barang_baru' => $validatedData['kode_barang'], // <-- BARU
-                            'kategori_id' => $validatedData['kategori_id'],     // <-- BARU
-                            'ruangan_id' => $validatedData['ruangan_id'],      // <-- BARU
-                            'stok_minimum_baru' => $validatedData['stok_minimum'] ?? 0, // <-- BARU
-                            'spesifikasi' => 'Barang baru',
+                            'spesifikasi' => 'Kode: ' . $validatedData['kode_barang'],
                             'jumlah' => $validatedData['jumlah'],
                             'harga_satuan' => $validatedData['harga_satuan'] ?? 0,
                             'harga_total' => ($validatedData['jumlah'] * ($validatedData['harga_satuan'] ?? 0)),
                         ]);
 
-                        session()->flash('message', 'Pengajuan barang baru telah dikirim ke Kepala Gudang.');
+                        session()->flash('message', 'Pengajuan barang baru telah dikirim ke Kepala Gudang untuk persetujuan.');
                     }
                 }
             });
@@ -319,7 +329,7 @@ class Index extends Component
                 else {
                     $rab = RabPengadaan::create([
                         'user_id' => $user->id,
-                        'keterangan' => 'Pengajuan tambah stok untuk: ' . $validatedData['nama_barang'],
+                        'keterangan' => 'Pengajuan tambah stok untuk: ' . $barang->nama_barang,
                         'tanggal_pengajuan' => $validatedData['tanggal_pengadaan'],
                         'status' => 'diajukan',
                     ]);
@@ -328,17 +338,13 @@ class Index extends Component
                         'rab_pengadaan_id' => $rab->id,
                         'barang_id' => $barang->id, // Tautkan ke barang yang sudah ada
                         'nama_barang_baru' => $barang->nama_barang,
-                        'kode_barang_baru' => $validatedData['kode_barang'], // <-- BARU
-                        'kategori_id' => $validatedData['kategori_id'],     // <-- BARU
-                        'ruangan_id' => $validatedData['ruangan_id'],      // <-- BARU
-                        'stok_minimum_baru' => $validatedData['stok_minimum'] ?? 0, // <-- BARU
                         'spesifikasi' => 'Tambah stok untuk barang yang ada.',
                         'jumlah' => $validatedData['jumlah'],
                         'harga_satuan' => $validatedData['harga_satuan'] ?? 0,
                         'harga_total' => ($validatedData['jumlah'] * ($validatedData['harga_satuan'] ?? 0)),
                     ]);
 
-                    session()->flash('message', 'Pengajuan tambah stok telah dikirim ke Kepala Gudang.');
+                    session()->flash('message', 'Pengajuan tambah stok telah dikirim ke Kepala Gudang untuk persetujuan.');
                 }
             });
             $this->closeTambahStokModal();
@@ -347,13 +353,93 @@ class Index extends Component
         }
     }
 
+    // Method untuk membuka modal
+    public function openPindahModal($id)
+    {
+        $this->pindahBarang = Barang::findOrFail($id);
+        $this->pindahBarangId = $id;
+        $this->namaBaruPindahan = $this->pindahBarang->nama_barang; // Default nama sama
+        $this->reset(['jumlahPindah', 'ruanganTujuanId', 'kodeBaruPindahan']);
+        $this->resetErrorBag();
+        $this->showPindahModal = true;
+    }
+
+    // Method untuk menutup modal
+    public function closePindahModal()
+    {
+        $this->showPindahModal = false;
+    }
+
+    // Method untuk memproses pemindahan
+    public function prosesPemindahan()
+    {
+        // Hanya Kepala Gudang
+        if (Auth::user()->peran !== 'kepala_gudang') return;
+
+        $validated = $this->validate([
+            'jumlahPindah' => 'required|integer|min:1|max:' . $this->pindahBarang->jumlah_saat_ini,
+            'ruanganTujuanId' => 'required|exists:ruangans,id',
+            'kodeBaruPindahan' => 'required|string|unique:barangs,kode_barang',
+            'namaBaruPindahan' => 'required|string|min:3',
+        ], [
+            'jumlahPindah.max' => 'Jumlah pindah tidak boleh melebihi stok tersedia.',
+            'kodeBaruPindahan.unique' => 'Kode barang baru ini sudah digunakan.',
+        ]);
+
+        try {
+            DB::transaction(function () use ($validated) {
+                // 1. Kurangi stok barang asal
+                $barangAsal = $this->pindahBarang;
+                $barangAsal->decrement('jumlah_total', $validated['jumlahPindah']);
+                $barangAsal->decrement('jumlah_saat_ini', $validated['jumlahPindah']);
+
+                // 2. Buat barang baru (tujuan)
+                $barangTujuan = Barang::create([
+                    'kode_barang' => $validated['kodeBaruPindahan'],
+                    'nama_barang' => $validated['namaBaruPindahan'],
+                    'kategori_id' => $barangAsal->kategori_id, // Warisi kategori
+                    'ruangan_id' => $validated['ruanganTujuanId'],
+                    'stok_minimum' => 0, // Default stok minimum 0
+                    'jumlah_total' => $validated['jumlahPindah'],
+                    'jumlah_saat_ini' => $validated['jumlahPindah'],
+                ]);
+
+                // 3. Catat di tabel pemindahan
+                PemindahanBarang::create([
+                    'barang_asal_id' => $barangAsal->id,
+                    'barang_tujuan_id' => $barangTujuan->id,
+                    'jumlah_dipindahkan' => $validated['jumlahPindah'],
+                    'user_id' => Auth::id(),
+                ]);
+            });
+
+            session()->flash('message', 'Barang berhasil dipindahkan.');
+            $this->closePindahModal();
+            $this->closeDetailModal(); // Tutup juga modal detail
+
+        } catch (\Exception $e) {
+            session()->flash('error', 'Gagal memindahkan barang: ' . $e->getMessage());
+        }
+    }
+
+
+    // app/Livewire/Barang/Index.php
+
     public function render()
     {
-        $detailBarang = null;
+        $dataDetail = null;
+
+        // Cek jika ID sudah di-set (setelah user mengklik tombol)
         if ($this->detailBarangId) {
-            $barang = Barang::with('riwayatPengadaan')
+            // Ambil data barang, DAN SEMUA RELASI yang dibutuhkan oleh modal
+            $barang = Barang::with([
+                'riwayatPengadaan',
+                'pemindahanKeluar.barangTujuan.ruangan',
+                'pemindahanMasuk.barangAsal.ruangan'
+            ])
                 ->findOrFail($this->detailBarangId);
 
+            // Ambil data distribusi
             $distribusi = Transaksi::with('siswa')
                 ->whereHas('barangs', function ($query) {
                     $query->where('barang_id', $this->detailBarangId);
@@ -362,14 +448,16 @@ class Index extends Component
                 ->get()
                 ->groupBy('ruang_pemakaian');
 
-            $detailBarang = [
+            $dataDetail = [
                 'barang' => $barang,
                 'distribusi' => $distribusi,
-                'riwayatPengadaan' => $barang->riwayatPengadaan, // Kirim data pengadaan
+                'riwayatPengadaan' => $barang->riwayatPengadaan,
+                'riwayatPemindahanKeluar' => $barang->pemindahanKeluar,
+                'riwayatPemindahanMasuk' => $barang->pemindahanMasuk,
             ];
         }
 
-        // Query untuk tabel utama
+        // Bagian ini untuk tabel utama (tidak berubah)
         $kategoris = Kategori::all();
         $ruangans = Ruangan::all();
         $barangs = Barang::with('kategori', 'ruangan')
@@ -387,7 +475,7 @@ class Index extends Component
             'barangs' => $barangs,
             'kategoris' => $kategoris,
             'ruangans' => $ruangans,
-            'detailBarang' => $detailBarang,
+            'detailBarang' => $dataDetail,
         ]);
     }
 }

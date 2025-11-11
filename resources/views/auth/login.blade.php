@@ -50,7 +50,7 @@
                         </span>
                         <x-text-input id="email" class="block w-full pl-10 bg-gray-100 border-none" type="email"
                             name="email" :value="old('email')" required autofocus autocomplete="username"
-                            placeholder="Username" />
+                            placeholder="Email" />
                     </div>
 
                     <div class="relative mb-6">

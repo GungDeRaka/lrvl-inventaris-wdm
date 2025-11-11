@@ -258,7 +258,7 @@
                                     <li>
                                         <strong class="text-primary">({{ $barang->pivot->kuantitas }})</strong>
                                         {{ $barang->nama_barang }}
-                                        <span class="text-xs text-blue-500">
+                                        <span class="text-xs text-amber-300">
                                             ({{ $barang->ruangan->nama_ruangan }})
                                         </span>
                                     </li>

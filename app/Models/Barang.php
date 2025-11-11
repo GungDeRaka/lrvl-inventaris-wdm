@@ -39,8 +39,17 @@ class Barang extends Model
             ->withPivot('kuantitas')
             ->withTimestamps();
     }
-    public function riwayatPengadaan (): HasMany
+    public function riwayatPengadaan(): HasMany
     {
         return $this->hasMany(PengadaanBarang::class)->orderBy('tanggal_pengadaan', 'desc');
+    }
+
+    public function pemindahanKeluar(): HasMany
+    {
+        return $this->hasMany(PemindahanBarang::class, 'barang_asal_id');
+    }
+    public function pemindahanMasuk(): HasMany
+    {
+        return $this->hasMany(PemindahanBarang::class, 'barang_tujuan_id');
     }
 }
