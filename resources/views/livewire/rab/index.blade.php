@@ -33,6 +33,9 @@
                 @enderror
             </div>
 
+            {{-- //TODO tambahin filter sumber dana. cetak laporan berdasarkan filter sumber dana sama tanggal --}}
+            {{-- //TODO atribut pada tabel ditambahin sumber dana dan total penggunaan dana --}}
+
             {{-- Form Tambah Item --}}
             <div class="border rounded-md p-4 mb-6 bg-gray-50">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-3">Tambah Item Barang</h3>

@@ -48,6 +48,7 @@ class Index extends Component
     public $ruanganTujuanId;
     public $kodeBaruPindahan;
     public $namaBaruPindahan;
+    public $showRiwayatPindahModal = false;
 
 
     // Properti form pengadaan (baru)
@@ -92,6 +93,17 @@ class Index extends Component
     public function closeModal()
     {
         $this->showModal = false;
+    }
+
+    public function openRiwayatPindahModal()
+    {
+        $this->showRiwayatPindahModal = true;
+    }
+
+    // Method untuk menutup modal
+    public function closeRiwayatPindahModal()
+    {
+        $this->showRiwayatPindahModal = false;
     }
 
     public function resetInput()
@@ -358,8 +370,9 @@ class Index extends Component
     {
         $this->pindahBarang = Barang::findOrFail($id);
         $this->pindahBarangId = $id;
-        $this->namaBaruPindahan = $this->pindahBarang->nama_barang; // Default nama sama
-        $this->reset(['jumlahPindah', 'ruanganTujuanId', 'kodeBaruPindahan']);
+
+        // Reset input
+        $this->reset(['jumlahPindah', 'ruanganTujuanId']);
         $this->resetErrorBag();
         $this->showPindahModal = true;
     }
@@ -373,55 +386,64 @@ class Index extends Component
     // Method untuk memproses pemindahan
     public function prosesPemindahan()
     {
-        // Hanya Kepala Gudang
         if (Auth::user()->peran !== 'kepala_gudang') return;
 
         $validated = $this->validate([
             'jumlahPindah' => 'required|integer|min:1|max:' . $this->pindahBarang->jumlah_saat_ini,
-            'ruanganTujuanId' => 'required|exists:ruangans,id',
-            'kodeBaruPindahan' => 'required|string|unique:barangs,kode_barang',
-            'namaBaruPindahan' => 'required|string|min:3',
+            'ruanganTujuanId' => 'required|exists:ruangans,id|different:pindahBarang.ruangan_id',
         ], [
-            'jumlahPindah.max' => 'Jumlah pindah tidak boleh melebihi stok tersedia.',
-            'kodeBaruPindahan.unique' => 'Kode barang baru ini sudah digunakan.',
+            'jumlahPindah.max' => 'Jumlah pindah melebihi stok tersedia.',
+            'ruanganTujuanId.different' => 'Ruangan tujuan harus berbeda dengan ruangan asal.',
         ]);
 
         try {
             DB::transaction(function () use ($validated) {
-                // 1. Kurangi stok barang asal
                 $barangAsal = $this->pindahBarang;
+
+                // 1. Cek apakah barang dengan kode yang sama SUDAH ADA di ruangan tujuan?
+                $barangTujuan = Barang::where('kode_barang', $barangAsal->kode_barang)
+                    ->where('ruangan_id', $validated['ruanganTujuanId'])
+                    ->first();
+
+                if ($barangTujuan) {
+                    // KASUS A: Barang sudah ada di ruangan tujuan -> GABUNGKAN STOK
+                    $barangTujuan->increment('jumlah_total', $validated['jumlahPindah']);
+                    $barangTujuan->increment('jumlah_saat_ini', $validated['jumlahPindah']);
+                } else {
+                    // KASUS B: Barang belum ada di ruangan tujuan -> BUAT BARU (CLONE)
+                    // Kita salin semua data dari barang asal, kecuali ID dan Ruangan
+                    $barangTujuan = Barang::create([
+                        'kode_barang' => $barangAsal->kode_barang, // Kode SAMA
+                        'nama_barang' => $barangAsal->nama_barang, // Nama SAMA
+                        'kategori_id' => $barangAsal->kategori_id,
+                        'ruangan_id'  => $validated['ruanganTujuanId'], // Ruangan BARU
+                        'stok_minimum' => $barangAsal->stok_minimum,
+                        'jumlah_total' => $validated['jumlahPindah'],
+                        'jumlah_saat_ini' => $validated['jumlahPindah'],
+                    ]);
+                }
+
+                // 2. Kurangi stok barang asal
                 $barangAsal->decrement('jumlah_total', $validated['jumlahPindah']);
                 $barangAsal->decrement('jumlah_saat_ini', $validated['jumlahPindah']);
 
-                // 2. Buat barang baru (tujuan)
-                $barangTujuan = Barang::create([
-                    'kode_barang' => $validated['kodeBaruPindahan'],
-                    'nama_barang' => $validated['namaBaruPindahan'],
-                    'kategori_id' => $barangAsal->kategori_id, // Warisi kategori
-                    'ruangan_id' => $validated['ruanganTujuanId'],
-                    'stok_minimum' => 0, // Default stok minimum 0
-                    'jumlah_total' => $validated['jumlahPindah'],
-                    'jumlah_saat_ini' => $validated['jumlahPindah'],
-                ]);
-
-                // 3. Catat di tabel pemindahan
+                // 3. Catat Riwayat Pemindahan
                 PemindahanBarang::create([
                     'barang_asal_id' => $barangAsal->id,
                     'barang_tujuan_id' => $barangTujuan->id,
                     'jumlah_dipindahkan' => $validated['jumlahPindah'],
                     'user_id' => Auth::id(),
+                    'catatan' => 'Pemindahan stok antar ruangan',
                 ]);
             });
 
             session()->flash('message', 'Barang berhasil dipindahkan.');
             $this->closePindahModal();
-            $this->closeDetailModal(); // Tutup juga modal detail
-
+            $this->closeDetailModal();
         } catch (\Exception $e) {
-            session()->flash('error', 'Gagal memindahkan barang: ' . $e->getMessage());
+            session()->flash('error', 'Gagal: ' . $e->getMessage());
         }
     }
-
 
     // app/Livewire/Barang/Index.php
 
@@ -468,14 +490,23 @@ class Index extends Component
             ->when($this->filterKategori, function ($query) {
                 $query->where('kategori_id', $this->filterKategori);
             })
+            ->where('jumlah_total', '>', 0)
             ->latest()
             ->paginate(10);
+
+        $riwayatPemindahan = [];
+        if ($this->showRiwayatPindahModal) {
+            $riwayatPemindahan = PemindahanBarang::with(['barangAsal', 'barangTujuan.ruangan', 'user'])
+                ->latest()
+                ->paginate(10, ['*'], 'pindahPage');
+        }
 
         return view('livewire.barang.index', [
             'barangs' => $barangs,
             'kategoris' => $kategoris,
             'ruangans' => $ruangans,
             'detailBarang' => $dataDetail,
+            'riwayatPemindahan' => $riwayatPemindahan,
         ]);
     }
 }
