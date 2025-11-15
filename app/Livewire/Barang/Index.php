@@ -7,6 +7,7 @@ use App\Models\Kategori;
 use App\Models\Ruangan;
 use App\Models\Transaksi;
 use App\Models\PengadaanBarang;
+use App\Models\SumberDana;
 use App\Models\RabPengadaan;
 use App\Models\RabItem;
 use App\Models\PemindahanBarang;
@@ -52,7 +53,13 @@ class Index extends Component
 
 
     // Properti form pengadaan (baru)
-    public $jumlah, $harga_satuan, $sumber_dana, $tanggal_pengadaan;
+    public $jumlah, $harga_satuan, $tanggal_pengadaan;
+    public $sumber_dana_id;
+
+    // Properti untuk fitur "Tambah Sumber Dana Baru" di modal
+    public $sumberDanaBaru = '';
+    public $isAddingSumberDana = false;
+
 
     // properti pengadaan untuk barang yang sudah ada
     public $showTambahStokModal = false;
@@ -131,11 +138,35 @@ class Index extends Component
         $this->resetPage();
     }
 
+    // Method toggle input sumber dana baru
+    public function toggleSumberDanaBaru()
+    {
+        $this->isAddingSumberDana = !$this->isAddingSumberDana;
+        $this->sumberDanaBaru = '';
+        $this->sumber_dana_id = '';
+    }
+
+    // Method simpan sumber dana baru
+    public function simpanSumberDanaBaru()
+    {
+        $this->validate(['sumberDanaBaru' => 'required|string|unique:sumber_danas,nama_sumber']);
+        $sumber = SumberDana::create(['nama_sumber' => $this->sumberDanaBaru]);
+        $this->sumber_dana_id = $sumber->id; // Otomatis pilih yang baru dibuat
+        $this->isAddingSumberDana = false;
+        $this->sumberDanaBaru = '';
+        session()->flash('message', 'Sumber dana berhasil ditambahkan.');
+    }
 
     public function simpanBarang()
     {
         // Validasi aturan dasar
         $validatedData = $this->validate();
+        $this->validate([
+            'jumlah' => 'required|integer|min:1',
+            'harga_satuan' => 'required|numeric|min:0',
+            'sumber_dana_id' => 'required|exists:sumber_danas,id',
+            'tanggal_pengadaan' => 'required|date',
+        ]);
         $user = Auth::user();
 
         try {
@@ -150,6 +181,15 @@ class Index extends Component
                         'nama_barang' => $validatedData['nama_barang'],
                         'kategori_id' => $validatedData['kategori_id'],
                         'stok_minimum' => $validatedData['stok_minimum'] ?? $barang->stok_minimum, // asumsikan stok_minimum ada di rules
+                    ]);
+                    PengadaanBarang::create([
+                        'barang_id' => $barang->id,
+                        'sumber_dana_id' => $this->sumber_dana_id,
+                        'jumlah' => $this->jumlah, // Sesuaikan nama kolom di DB ('jumlah' atau 'jumlah_pengadaan')
+                        'harga_satuan' => $this->harga_satuan,
+                        'total_harga' => $this->jumlah * $this->harga_satuan,
+                        'tanggal_pengadaan' => $this->tanggal_pengadaan,
+                        'user_id' => Auth::id(),
                     ]);
                     session()->flash('message', 'Data barang berhasil diperbarui.');
                 } else {
@@ -295,7 +335,7 @@ class Index extends Component
         $this->tambahStokBarangId = $id;
         $this->tambahStokBarangNama = $barang->nama_barang;
         // Reset field form pengadaan
-        $this->reset(['jumlah', 'harga_satuan', 'sumber_dana', 'tanggal_pengadaan']);
+        $this->reset(['jumlah', 'harga_satuan', 'sumber_dana_id', 'tanggal_pengadaan']);
         $this->resetErrorBag(); // Hapus error lama
         $this->showTambahStokModal = true;
     }
@@ -309,31 +349,33 @@ class Index extends Component
     //  method ini untuk memproses penambahan stok
     public function prosesTambahStok()
     {
-        $validatedData = $this->validate([
-            'jumlah'        => 'required|integer|min:1',
-            'harga_satuan'  => 'nullable|numeric|min:0',
-            'sumber_dana'   => 'required|string|max:255',
+        $validated = $this->validate([
+            'jumlah' => 'required|integer|min:1',
+            'harga_satuan' => 'required|numeric|min:0',
+            'sumber_dana_id' => 'required|exists:sumber_danas,id',
             'tanggal_pengadaan' => 'required|date',
         ]);
 
         $user = Auth::user();
 
         try {
-            DB::transaction(function () use ($validatedData, $user) {
+            DB::transaction(function () use ($validated, $user) {
                 $barang = Barang::findOrFail($this->tambahStokBarangId);
 
                 // JIKA KEPALA GUDANG: Langsung eksekusi
                 if ($user->peran === 'kepala_gudang') {
                     PengadaanBarang::create([
-                        'barang_id' => $barang->id,
-                        'jumlah' => $validatedData['jumlah'],
-                        'harga_satuan' => $validatedData['harga_satuan'] ?? 0,
-                        'sumber_dana' => $validatedData['sumber_dana'],
-                        'tanggal_pengadaan' => $validatedData['tanggal_pengadaan'],
+                        'barang_id' => $this->tambahStokBarangId,
+                        'sumber_dana_id' => $this->sumber_dana_id,
+                        'jumlah' => $validated['jumlah'],
+                        'harga_satuan' => $validated['harga_satuan'],
+                        'total_harga' => $validated['jumlah'] * $validated['harga_satuan'],
+                        'tanggal_pengadaan' => $validated['tanggal_pengadaan'],
+                        'user_id' => Auth::id(),
                     ]);
 
-                    $barang->increment('jumlah_total', $validatedData['jumlah']);
-                    $barang->increment('jumlah_saat_ini', $validatedData['jumlah']);
+                    $barang->increment('jumlah_total', $validated['jumlah']);
+                    $barang->increment('jumlah_saat_ini', $validated['jumlah']);
 
                     session()->flash('message', 'Stok barang berhasil ditambahkan.');
                 }
@@ -342,7 +384,7 @@ class Index extends Component
                     $rab = RabPengadaan::create([
                         'user_id' => $user->id,
                         'keterangan' => 'Pengajuan tambah stok untuk: ' . $barang->nama_barang,
-                        'tanggal_pengajuan' => $validatedData['tanggal_pengadaan'],
+                        'tanggal_pengajuan' => $validated['tanggal_pengadaan'],
                         'status' => 'diajukan',
                     ]);
 
@@ -351,9 +393,9 @@ class Index extends Component
                         'barang_id' => $barang->id, // Tautkan ke barang yang sudah ada
                         'nama_barang_baru' => $barang->nama_barang,
                         'spesifikasi' => 'Tambah stok untuk barang yang ada.',
-                        'jumlah' => $validatedData['jumlah'],
-                        'harga_satuan' => $validatedData['harga_satuan'] ?? 0,
-                        'harga_total' => ($validatedData['jumlah'] * ($validatedData['harga_satuan'] ?? 0)),
+                        'jumlah' => $validated['jumlah'],
+                        'harga_satuan' => $validated['harga_satuan'] ?? 0,
+                        'harga_total' => ($validated['jumlah'] * ($validated['harga_satuan'] ?? 0)),
                     ]);
 
                     session()->flash('message', 'Pengajuan tambah stok telah dikirim ke Kepala Gudang untuk persetujuan.');

@@ -25,4 +25,12 @@ class PengadaanBarang extends Model
     {
         return $this->belongsTo(Barang::class);
     }
+    public function sumberDana()
+    {
+        return $this->belongsTo(SumberDana::class);
+    }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
