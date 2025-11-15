@@ -271,13 +271,45 @@
                                 @enderror
                             </div>
 
-                            <div>
-                                <label for="sumber_dana" class="block text-sm font-medium text-gray-700">Sumber
-                                    Dana</label>
-                                <input type="text" wire:model="sumber_dana" id="sumber_dana"
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                                    placeholder="Contoh: Dana BOS, Internal Sekolah">
-                                @error('sumber_dana')
+                            <div class="mt-4">
+                                <label class="block text-sm font-medium text-gray-700">Sumber Dana</label>
+
+                                @if ($isAddingSumberDana)
+                                    {{-- Input Text untuk Sumber Dana Baru --}}
+                                    <div class="flex gap-2 mt-1">
+                                        <input type="text" wire:model="sumberDanaBaru"
+                                            placeholder="Nama Sumber Dana Baru"
+                                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm">
+                                        <button type="button" wire:click="simpanSumberDanaBaru"
+                                            class="bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 text-xs font-bold">Simpan</button>
+                                        <button type="button" wire:click="toggleSumberDanaBaru"
+                                            class="bg-gray-300 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-400 text-xs font-bold">Batal</button>
+                                    </div>
+                                    @error('sumberDanaBaru')
+                                        <span class="text-red-500 text-xs">{{ $message }}</span>
+                                    @enderror
+                                @else
+                                    {{-- Dropdown Sumber Dana --}}
+                                    <select wire:model="sumber_dana_id"
+                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm">
+                                        <option value="">Pilih Sumber Dana</option>
+                                        @foreach (\App\Models\SumberDana::all() as $sumber)
+                                            <option value="{{ $sumber->id }}">{{ $sumber->nama_sumber }}</option>
+                                        @endforeach
+                                    </select>
+
+                                    {{-- Tombol Kecil "Tambah Baru" --}}
+                                    <button type="button" wire:click="toggleSumberDanaBaru"
+                                        class="text-xs text-indigo-600 hover:text-indigo-800 mt-1 flex items-center font-semibold focus:outline-none">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                        Tambah Sumber Dana Baru
+                                    </button>
+                                @endif
+                                @error('sumber_dana_id')
                                     <span class="text-red-500 text-xs">{{ $message }}</span>
                                 @enderror
                             </div>
