@@ -386,7 +386,7 @@ class Index extends Component
     // Method untuk memproses pemindahan
     public function prosesPemindahan()
     {
-        if (Auth::user()->peran !== 'kepala_gudang') return;
+        // if (Auth::user()->peran !== 'kepala_gudang') return;
 
         $validated = $this->validate([
             'jumlahPindah' => 'required|integer|min:1|max:' . $this->pindahBarang->jumlah_saat_ini,

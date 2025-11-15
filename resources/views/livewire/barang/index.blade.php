@@ -36,7 +36,7 @@
             </div>
         </div>
 
-        {{-- //TODO kode barang dibuat FIX aja saat penambahan barang, gak bisa diedit. pindah ruanganpun kodenya tetap sama --}}
+        {{-- //TODO kode barang dibuat FIX aja saat penambahan barang, gak bisa diedit. pindah ruanganpun kodenya tetap sama✅ --}}
         {{-- //TODO penjaga gudang juga bisa bebas melakukan pemindahan ✅ --}}
         {{-- TOMBOL TAMBAH BARANG --}}
         {{-- //TODO KETIKA PENAMBAHAN BARANG, BARANG JANGAN LANGSUNG DISIMPAN. BARANG YANG DITAMBAHKAN , DIMINTA KONFIRMASI DLU KE KEPALA GUDANG. SETELAH ACC, BARANG OTOMATIS TER-INPUT DI SISTEM ✅ --}}

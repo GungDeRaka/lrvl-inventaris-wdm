@@ -25,14 +25,29 @@ class Index extends Component
     public $catatan_kepala = '';
 
     // Properti untuk form pengajuan RAB (Penjaga Gudang)
+
+    public $judul = '';
     public $keterangan = '';
     public $items = [];
     public $newItemNama = '';
     public $newItemSpec = '';
     public $newItemJumlah = 1;
     public $newItemHarga = 0;
+    public $showCreateModal = false;
 
     // --- LOGIKA UNTUK PENGAJUAN RAB (dari Rab/Create) ---
+
+    // Method untuk membuka/menutup modal create
+    public function openCreateModal()
+    {
+        $this->reset(['judul', 'keterangan', 'items', 'newItemNama', 'newItemSpec', 'newItemJumlah', 'newItemHarga']);
+        $this->showCreateModal = true;
+    }
+
+    public function closeCreateModal()
+    {
+        $this->showCreateModal = false;
+    }
     public function addItem()
     {
         $this->validate([
@@ -63,6 +78,7 @@ class Index extends Component
         if (Auth::user()->peran !== 'penjaga_gudang') return;
 
         $this->validate([
+            'judul' => 'required|string|min:5|max:30', // Validasi judul (5-30 karakter)
             'keterangan' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.nama' => 'required|string',
@@ -74,6 +90,7 @@ class Index extends Component
             DB::transaction(function () {
                 $rab = RabPengadaan::create([
                     'user_id' => Auth::id(),
+                    'judul' => $this->judul, // Simpan judul
                     'keterangan' => $this->keterangan,
                     'tanggal_pengajuan' => now()->toDateString(),
                     'status' => 'diajukan',
@@ -90,7 +107,7 @@ class Index extends Component
                 }
             });
             session()->flash('message', 'Pengajuan RAB berhasil dikirim.');
-            $this->reset(['keterangan', 'items']);
+            $this->closeCreateModal(); // Tutup modal setelah sukses
         } catch (\Exception $e) {
             session()->flash('error', 'Gagal mengajukan RAB: ' . $e->getMessage());
         }

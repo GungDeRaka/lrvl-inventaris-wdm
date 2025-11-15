@@ -40,7 +40,7 @@
             {{-- Daftar Menu Navigasi --}}
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
                 {{-- Link Dashboard --}}
-                <a href="{{ route('dashboard') }}"
+                <a href="{{ route('dashboard') }}" title="Dashboard Transaksi Peminjaman"
                     class="flex items-center space-x-3 p-3 rounded-md hover:bg-white/20 {{ request()->routeIs('dashboard') ? 'bg-white/20' : '' }}">
                     <svg class="h-6 w-6 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
@@ -52,7 +52,7 @@
                 </a>
 
                 {{-- Link Manajemen Barang --}}
-                <a href="{{ route('barang.index') }}"
+                <a href="{{ route('barang.index') }} " title="Manajemen Barang"
                     class="flex items-center space-x-3 p-3 rounded-md hover:bg-white/20 {{ request()->routeIs('barang.index') ? 'bg-white/20' : '' }}">
                     <svg class="h-6 w-6 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
@@ -67,7 +67,7 @@
                 </a>
 
                 {{-- Link Manajemen RAB --}}
-                <a href="{{ route('rab.index') }}"
+                <a href="{{ route('rab.index') }}" title="Manajemen RAB"
                     class="flex items-center space-x-3 p-3 rounded-md hover:bg-white/20 {{ request()->routeIs('rab.index') ? 'bg-white/20' : '' }}">
                     <svg class="h-6 w-6 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
@@ -85,7 +85,7 @@
                     <p :class="!isSidebarOpen && 'hidden'"
                         class="px-3 pt-2 text-xs font-semibold text-purple-200 uppercase tracking-wider">Admin Area</p>
 
-                    <a href="{{ route('kategori.index') }}"
+                    <a href="{{ route('kategori.index') }}" title="Manajemen Kategori"
                         class="flex items-center space-x-3 p-3 rounded-md hover:bg-white/20 {{ request()->routeIs('kategori.index') ? 'bg-white/20' : '' }}">
                         <svg class="h-6 w-6 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
@@ -97,7 +97,7 @@
                             Kategori</span>
                     </a>
 
-                    <a href="{{ route('ruangan.index') }}"
+                    <a href="{{ route('ruangan.index') }}" title="Manajemen Ruangan"
                         class="flex items-center space-x-3 p-3 rounded-md hover:bg-white/20 {{ request()->routeIs('ruangan.index') ? 'bg-white/20' : '' }}">
                         <svg class="h-6 w-6 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
@@ -108,7 +108,7 @@
                             Ruangan</span>
                     </a>
 
-                    <a href="{{ route('user.index') }}"
+                    <a href="{{ route('user.index') }}" title="Manajemen Admin Gudang"
                         class="flex items-center space-x-3 p-3 rounded-md hover:bg-white/20 {{ request()->routeIs('user.index') ? 'bg-white/20' : '' }}">
                         <svg class="h-6 w-6 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
@@ -119,7 +119,7 @@
                             Admin</span>
                     </a>
 
-                    <a href="{{ route('siswa.index') }}"
+                    <a href="{{ route('siswa.index') }}" title="Manajemen Siswa"
                         class="flex items-center space-x-3 p-3 rounded-md hover:bg-white/20 {{ request()->routeIs('siswa.index') ? 'bg-white/20' : '' }}">
                         <svg class="h-6 w-6 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">

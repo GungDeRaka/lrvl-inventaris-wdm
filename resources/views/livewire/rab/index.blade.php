@@ -1,4 +1,4 @@
-{{-- //TODO Perbaiki RAB pengajuan pengadaan barang: ketika input form RAB, berikan detail barang yang ingin diadakan akan dibawa ke ruangan mana, jumlah yang ingin diadakan, kode barang, etc yang sesuai dengan form penambahan barang --}}
+{{-- //T0DO Perbaiki RAB pengajuan pengadaan barang: ketika input form RAB, berikan detail barang yang ingin diadakan akan dibawa ke ruangan mana, jumlah yang ingin diadakan, kode barang, etc yang sesuai dengan form penambahan barang --}}
 {{-- ! kemungkinan sulit ✅ --}}
 
 <div>
@@ -18,135 +18,13 @@
     {{-- Tampilan untuk Penjaga Gudang --}}
     {{-- ============================================= --}}
     @if (auth()->user()->peran === 'penjaga_gudang')
-        <h1 class="text-3xl font-bold text-gray-800 mb-6">Form Pengajuan RAB</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Riwayat Pengajuan RAB Anda</h1>
 
         {{-- Form Pengajuan RAB --}}
-        <form wire:submit.prevent="ajukanRab" class="mb-8 p-6 bg-white shadow-xl rounded-lg border border-gray-200">
-            {{-- Keterangan Umum --}}
-            <div class="mb-6">
-                <label for="keterangan" class="block text-sm font-medium text-gray-700 mb-1">Keterangan/Alasan
-                    Pengajuan</label>
-                <textarea wire:model="keterangan" id="keterangan" rows="3"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary"></textarea>
-                @error('keterangan')
-                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                @enderror
-            </div>
-
-            {{-- //TODO tambahin filter sumber dana. cetak laporan berdasarkan filter sumber dana sama tanggal --}}
-            {{-- //TODO atribut pada tabel ditambahin sumber dana dan total penggunaan dana --}}
-
-            {{-- Form Tambah Item --}}
-            <div class="border rounded-md p-4 mb-6 bg-gray-50">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-3">Tambah Item Barang</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                        <label for="newItemNama" class="block text-sm font-medium text-gray-700">Nama Barang*</label>
-                        <input type="text" wire:model="newItemNama" id="newItemNama"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary">
-                        @error('newItemNama')
-                            <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                        @enderror
-                    </div>
-                    <div>
-                        <label for="newItemSpec" class="block text-sm font-medium text-gray-700">Spesifikasi</label>
-                        <input type="text" wire:model="newItemSpec" id="newItemSpec"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary">
-                        @error('newItemSpec')
-                            <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                        @enderror
-                    </div>
-                    <div>
-                        <label for="newItemJumlah" class="block text-sm font-medium text-gray-700">Jumlah*</label>
-                        <input type="number" wire:model="newItemJumlah" id="newItemJumlah"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary">
-                        @error('newItemJumlah')
-                            <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                        @enderror
-                    </div>
-                    <div>
-                        <label for="newItemHarga" class="block text-sm font-medium text-gray-700">Harga Satuan
-                            (Rp)*</label>
-                        <input type="number" step="0.01" wire:model="newItemHarga" id="newItemHarga"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary">
-                        @error('newItemHarga')
-                            <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                        @enderror
-                    </div>
-                </div>
-                <div class="text-right mt-4">
-                    <button type="button" wire:click="addItem"
-                        class="px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Tambah
-                        ke Daftar</button>
-                </div>
-            </div>
-
-            {{-- Daftar Item yang Ditambahkan --}}
-            @if (!empty($items))
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-3 text-gray-800">Daftar Barang Diajukan</h3>
-                    <div class="overflow-x-auto bg-white rounded-lg shadow border">
-                        <table class="w-full table-auto">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                        Nama Barang</th>
-                                    <th
-                                        class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                        Spesifikasi</th>
-                                    <th
-                                        class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                        Jumlah</th>
-                                    <th
-                                        class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                        Harga Satuan</th>
-                                    <th
-                                        class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                        Harga Total</th>
-                                    <th
-                                        class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                        Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                @foreach ($items as $index => $item)
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-4 py-3 text-sm text-gray-700">{{ $item['nama'] }}</td>
-                                        <td class="px-4 py-3 text-sm text-gray-700">{{ $item['spesifikasi'] ?: '-' }}
-                                        </td>
-                                        <td class="px-4 py-3 text-sm text-gray-700 text-center">{{ $item['jumlah'] }}
-                                        </td>
-                                        <td class="px-4 py-3 text-sm text-gray-700 text-right">Rp
-                                            {{ number_format($item['harga'], 0, ',', '.') }}</td>
-                                        <td class="px-4 py-3 text-sm text-gray-700 text-right">Rp
-                                            {{ number_format($item['total'], 0, ',', '.') }}</td>
-                                        <td class="px-4 py-3 text-sm text-center">
-                                            <button type="button" wire:click="removeItem({{ $index }})"
-                                                class="text-red-600 hover:text-red-800 text-xs font-semibold">Hapus</button>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                    @error('items')
-                        <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                    @enderror
-                </div>
-            @endif
-
-            {{-- Tombol Submit Utama --}}
-            <div class="text-right border-t pt-6 mt-6">
-                <button type="submit"
-                    class="px-6 py-2 bg-primary text-white font-bold rounded-lg shadow-md hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">Ajukan
-                    RAB</button>
-            </div>
-        </form>
-
+    
         {{-- Riwayat Pengajuan RAB Saya --}}
-        <hr class="my-10 border-t-2">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-6">Riwayat Pengajuan RAB Anda</h2>
+        <hr class="my-5 border-t-2">
+        
         <div class="bg-white shadow-md rounded-lg overflow-x-auto">
             <table class="w-full table-auto">
                 <thead class="bg-gray-50">
@@ -202,6 +80,16 @@
                 <div class="p-4 border-t">{{ $rabSaya->links() }}</div>
             @endif
         </div>
+
+        <button wire:click="openCreateModal"
+            class="fixed bottom-8 right-8 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-purple-800 transition transform hover:scale-110 focus:outline-none z-50 flex items-center justify-center"
+            title="Buat Pengajuan RAB Baru">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span class="mx-2 text-sm font-semibold">Ajukan RAB</span>
+        </button>
 
         {{-- ============================================= --}}
         {{-- Tampilan untuk Kepala Gudang --}}
@@ -312,7 +200,7 @@
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30 p-4">
             <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[85vh] flex flex-col">
                 <div class="flex justify-between items-center p-6 border-b flex-shrink-0">
-                    <h3 class="text-xl font-bold text-gray-900">Detail Pengajuan RAB</h3>
+                    <h3 class="text-xl font-bold text-gray-900">Detail Pengajuan RAB: {{ $selectedRab->judul }}</h3>
                     @if (session()->has('message'))
                         <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md shadow-sm"
                             role="alert">
@@ -410,4 +298,169 @@
             </div>
         </div>
     @endif
+
+    {{-- Modal Buat RAB Baru --}}
+    @if ($showCreateModal)
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div class="bg-white w-full max-w-4xl max-h-[92vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+
+                {{-- Header --}}
+                <div class="flex justify-between items-center px-6 py-4 border-b">
+                    <h2 class="text-2xl font-bold text-gray-800">Buat Pengajuan RAB Baru</h2>
+                    <button wire:click="closeCreateModal"
+                        class="text-gray-500 hover:text-gray-800 text-3xl leading-none">&times;</button>
+                </div>
+
+                {{-- Body --}}
+                <div class="flex-1 overflow-y-auto px-6 py-5">
+
+                    <form wire:submit.prevent="ajukanRab">
+
+                        {{-- Judul --}}
+                        <div class="mb-5">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Judul Pengajuan*</label>
+                            <input type="text" wire:model="judul"
+                                class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"
+                                placeholder="Contoh: Pengadaan Alat Tulis Semester Genap">
+                            @error('judul')
+                                <span class="text-red-500 text-xs">{{ $message }}</span>
+                            @enderror
+                            <p class="text-xs text-gray-500 mt-1">Panjang judul 5 - 30 karakter.</p>
+                        </div>
+
+                        {{-- Keterangan --}}
+                        <div class="mb-7">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Keterangan / Alasan</label>
+                            <textarea rows="2" wire:model="keterangan"
+                                class="w-full rounded-lg border-gray-300 focus:border-indigo-600 focus:ring-indigo-600"></textarea>
+                            @error('keterangan')
+                                <span class="text-red-500 text-xs">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        {{-- Tambah Item --}}
+                        <div class="border border-indigo-200 rounded-xl bg-indigo-50 px-5 py-4 mb-6">
+                            <h3 class="text-lg font-bold text-indigo-700 mb-3">Tambah Item Barang</h3>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                                {{-- Nama --}}
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700">Nama Barang*</label>
+                                    <input type="text" wire:model="newItemNama"
+                                        class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-600 focus:ring-indigo-600">
+                                    @error('newItemNama')
+                                        <span class="text-red-500 text-xs">{{ $message }}</span>
+                                    @enderror
+                                </div>
+
+                                {{-- Spec --}}
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700">Spesifikasi</label>
+                                    <input type="text" wire:model="newItemSpec"
+                                        class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-600 focus:ring-indigo-600">
+                                    @error('newItemSpec')
+                                        <span class="text-red-500 text-xs">{{ $message }}</span>
+                                    @enderror
+                                </div>
+
+                                {{-- Jumlah --}}
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700">Jumlah*</label>
+                                    <input type="number" wire:model="newItemJumlah"
+                                        class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-600 focus:ring-indigo-600">
+                                    @error('newItemJumlah')
+                                        <span class="text-red-500 text-xs">{{ $message }}</span>
+                                    @enderror
+                                </div>
+
+                                {{-- Harga --}}
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700">Harga Satuan (Rp)*</label>
+                                    <input type="number" wire:model="newItemHarga"
+                                        class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-600 focus:ring-indigo-600">
+                                    @error('newItemHarga')
+                                        <span class="text-red-500 text-xs">{{ $message }}</span>
+                                    @enderror
+                                </div>
+
+                            </div>
+
+                            <div class="text-right mt-4">
+                                <button type="button" wire:click="addItem"
+                                    class="px-4 py-2 bg-gray-700 text-white rounded-lg text-sm font-semibold shadow hover:bg-gray-800">
+                                    Tambah ke Daftar
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Daftar Item --}}
+                        @if (!empty($items))
+                            <div class="mb-6">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-3">Daftar Barang Diajukan</h3>
+
+                                <div class="overflow-x-auto rounded-xl border shadow-sm">
+                                    <table class="w-full text-sm">
+                                        <thead class="bg-gray-100 text-gray-700 uppercase text-xs font-bold">
+                                            <tr>
+                                                <th class="px-4 py-3 text-left">Nama</th>
+                                                <th class="px-4 py-3 text-left">Spesifikasi</th>
+                                                <th class="px-4 py-3 text-center">Jumlah</th>
+                                                <th class="px-4 py-3 text-right">Harga Satuan</th>
+                                                <th class="px-4 py-3 text-right">Total</th>
+                                                <th class="px-4 py-3 text-center">Aksi</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody class="divide-y divide-gray-200">
+                                            @foreach ($items as $index => $item)
+                                                <tr class="hover:bg-gray-50">
+                                                    <td class="px-4 py-3">{{ $item['nama'] }}</td>
+                                                    <td class="px-4 py-3">{{ $item['spesifikasi'] ?: '-' }}</td>
+                                                    <td class="px-4 py-3 text-center">{{ $item['jumlah'] }}</td>
+                                                    <td class="px-4 py-3 text-right">
+                                                        Rp {{ number_format($item['harga'], 0, ',', '.') }}
+                                                    </td>
+                                                    <td class="px-4 py-3 text-right">
+                                                        Rp {{ number_format($item['total'], 0, ',', '.') }}
+                                                    </td>
+                                                    <td class="px-4 py-3 text-center">
+                                                        <button wire:click="removeItem({{ $index }})"
+                                                            class="text-red-600 hover:text-red-800 font-semibold text-xs">
+                                                            Hapus
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                @error('items')
+                                    <span class="text-red-500 text-xs">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        @endif
+
+                        {{-- Tombol Aksi --}}
+                        <div class="flex justify-end space-x-3 border-t pt-4">
+                            <button type="button" wire:click="closeCreateModal"
+                                class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">
+                                Batal
+                            </button>
+
+                            <button type="submit"
+                                class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg shadow hover:bg-indigo-700">
+                                Ajukan RAB
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+        </div>
+    @endif
+
 </div>
