@@ -30,9 +30,9 @@ class Index extends Component
     public $barang_id;
     public $kode_barang, $nama_barang, $kategori_id, $ruangan_id, $jumlah_total;
     public $stok_minimum; // Tambahan untuk stok minimum
-    
+
     // --- PROPERTI DETAIL (Hanya ID, data diambil di render) ---
-    public $detailBarangId = null; 
+    public $detailBarangId = null;
 
     // --- PROPERTI STATUS / HAPUS ---
     public $barangIdToDelete;
@@ -44,7 +44,7 @@ class Index extends Component
     public $barangNamaForRepair;
     public $jumlahYangDiperbaiki = 1;
     public $maxPerbaikan;
-    
+
     // --- PROPERTI FILTER ---
     public $filterKategori = '';
     public $search = '';
@@ -52,7 +52,7 @@ class Index extends Component
     // --- PROPERTI PEMINDAHAN BARANG ---
     public $showPindahModal = false;
     public $pindahBarangId;
-    public $pindahBarang; 
+    public $pindahBarang;
     public $jumlahPindah;
     public $ruanganTujuanId;
     public $showRiwayatPindahModal = false;
@@ -60,7 +60,11 @@ class Index extends Component
     // --- PROPERTI PENGADAAN (Formulir) ---
     public $jumlah, $harga_satuan, $tanggal_pengadaan;
     public $sumber_dana_id;
-    
+
+    // Properti untuk Riwayat Pengadaan
+    public $showRiwayatPengadaanModal = false;
+    public $filterSumberDana = '';
+
     // --- PROPERTI SUMBER DANA BARU ---
     public $sumberDanaBaru = '';
     public $isAddingSumberDana = false;
@@ -78,11 +82,11 @@ class Index extends Component
             'kategori_id'   => 'required|exists:kategoris,id',
             'ruangan_id'    => 'required|exists:ruangans,id',
             'stok_minimum'  => 'required|integer|min:0',
-            
+
             // Aturan untuk pengadaan
             'jumlah'        => 'required|integer|min:1',
             'harga_satuan'  => 'nullable|numeric|min:0',
-            'sumber_dana_id'=> 'required|exists:sumber_danas,id',
+            'sumber_dana_id' => 'required|exists:sumber_danas,id',
             'tanggal_pengadaan' => 'required|date',
         ];
 
@@ -101,8 +105,16 @@ class Index extends Component
     public function resetInput()
     {
         $this->reset([
-            'barang_id', 'kode_barang', 'nama_barang', 'kategori_id', 'ruangan_id', 'stok_minimum',
-            'jumlah', 'harga_satuan', 'sumber_dana_id', 'tanggal_pengadaan'
+            'barang_id',
+            'kode_barang',
+            'nama_barang',
+            'kategori_id',
+            'ruangan_id',
+            'stok_minimum',
+            'jumlah',
+            'harga_satuan',
+            'sumber_dana_id',
+            'tanggal_pengadaan'
         ]);
         $this->resetErrorBag();
     }
@@ -145,6 +157,17 @@ class Index extends Component
         $this->isAddingSumberDana = false;
         $this->sumberDanaBaru = '';
         session()->flash('message', 'Sumber dana berhasil ditambahkan.');
+    }
+    // Method untuk Modal Riwayat Pengadaan
+    public function openRiwayatPengadaanModal()
+    {
+        $this->showRiwayatPengadaanModal = true;
+    }
+
+    public function closeRiwayatPengadaanModal()
+    {
+        $this->showRiwayatPengadaanModal = false;
+        $this->filterSumberDana = ''; // Reset filter saat tutup
     }
 
     // --- METHOD CRUD BARANG ---
@@ -371,7 +394,7 @@ class Index extends Component
             session()->flash('message', 'Barang berhasil dipindahkan.');
             $this->closePindahModal();
             // Jika sedang melihat detail, tutup juga
-            $this->detailBarangId = null; 
+            $this->detailBarangId = null;
         } catch (\Exception $e) {
             session()->flash('error', 'Gagal: ' . $e->getMessage());
         }
@@ -451,14 +474,14 @@ class Index extends Component
     {
         // 1. Logika Data Detail (Hanya jika modal dibuka)
         $detailData = null; // Variabel lokal untuk data detail
-        
+
         if ($this->detailBarangId) {
             $barang = Barang::with([
-                            'riwayatPengadaan.sumberDana', 
-                            'pemindahanKeluar.barangTujuan.ruangan',
-                            'pemindahanMasuk.barangAsal.ruangan'
-                        ])
-                        ->findOrFail($this->detailBarangId);
+                'riwayatPengadaan.sumberDana',
+                'pemindahanKeluar.barangTujuan.ruangan',
+                'pemindahanMasuk.barangAsal.ruangan'
+            ])
+                ->findOrFail($this->detailBarangId);
 
             $distribusi = Transaksi::with('siswa')
                 ->whereHas('barangs', function ($query) {
@@ -484,10 +507,20 @@ class Index extends Component
                 ->latest()
                 ->paginate(10, ['*'], 'pindahPage');
         }
+        $riwayatPengadaan = [];
+        if ($this->showRiwayatPengadaanModal) {
+            $riwayatPengadaan = PengadaanBarang::with(['barang', 'sumberDana', 'user'])
+                ->when($this->filterSumberDana, function ($query) {
+                    $query->where('sumber_dana_id', $this->filterSumberDana);
+                })
+                ->latest('tanggal_pengadaan')
+                ->paginate(10, ['*'], 'pengadaanPage');
+        }
 
         // 3. Logika Utama Tabel Barang
         $kategoris = Kategori::all();
         $ruangans = Ruangan::all();
+        $sumberDanas = SumberDana::all();
         $barangs = Barang::with('kategori', 'ruangan')
             ->where(function ($query) {
                 $query->where('nama_barang', 'like', '%' . $this->search . '%')
@@ -499,13 +532,15 @@ class Index extends Component
             ->where('jumlah_total', '>', 0)
             ->latest()
             ->paginate(10);
-        
+
         return view('livewire.barang.index', [
             'barangs' => $barangs,
             'kategoris' => $kategoris,
             'ruangans' => $ruangans,
             'detailBarang' => $detailData, // Mengirim variabel lokal $detailData sebagai 'detailBarang'
             'riwayatPemindahan' => $riwayatPemindahan,
+            'riwayatPengadaan' => $riwayatPengadaan,
+            'sumberDanas' => $sumberDanas,
         ]);
     }
 }

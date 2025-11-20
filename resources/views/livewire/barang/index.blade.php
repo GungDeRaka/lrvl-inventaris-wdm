@@ -1,224 +1,264 @@
-<div>
-    {{-- Notifikasi Sukses --}}
+<div class="relative min-h-screen">
+    {{-- Notifikasi --}}
     @if (session()->has('message'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <span class="block sm:inline">{{ session('message') }}</span>
+        <div class="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm flex items-center"
+            role="alert">
+            <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
+            </svg>
+            <p>{{ session('message') }}</p>
+        </div>
+    @endif
+    @if (session()->has('error'))
+        <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm flex items-center"
+            role="alert">
+            <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                    clip-rule="evenodd" />
+            </svg>
+            <p>{{ session('error') }}</p>
         </div>
     @endif
 
-    <div class="flex justify-between items-center mb-6">
-        <div class="flex justify-between items-center">
-            <h1 class="text-2xl font-semibold mr-3 text-gray-800">Manajemen Data Barang</h1>
+    {{-- Header & Filter --}}
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        <h1 class="text-2xl font-bold text-gray-800">Manajemen Data Barang</h1>
 
-            {{-- FILTER BARANG --}}
-            <div class="flex items-center space-x-2 w-full md:w-auto">
-
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            {{-- Search --}}
+            <div class="relative w-full md:w-64">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </span>
                 <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari kode atau nama..."
-                    class="w-full md:w-auto px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm transition duration-150 ease-in-out">
+            </div>
 
-                <select wire:model.live="filterKategori" class="block w-full border-fuchsia-500 rounded-md shadow-sm">
+            {{-- Filter Kategori --}}
+            <div class="w-full md:w-48">
+                <select wire:model.live="filterKategori"
+                    class="w-full border border-gray-300 rounded-lg shadow-sm py-2 px-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm bg-white">
                     <option value="">Semua Kategori</option>
                     @foreach ($kategoris as $kategori)
                         <option value="{{ $kategori->id }}">{{ $kategori->nama_kategori }}</option>
                     @endforeach
                 </select>
-                {{-- TOMBOL RIWAYAT PEMINDAHAN BARU --}}
+            </div>
+
+            {{-- Tombol Aksi Header --}}
+            <div class="flex gap-2">
                 <button wire:click="openRiwayatPindahModal"
-                    class="inline-flex items-center gap-2 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium py-2.5 px-4 rounded-lg shadow-sm transition duration-150 ease-in-out"
-                    title="Riwayat Pemindahan Barang">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8"
-                        stroke="currentColor" class="w-5 h-5 text-gray-600">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M16 3h5v5m0 0l-6.5 6.5M21 8H8m0 13H3v-5m0 0l6.5-6.5M3 16h13" />
+                    class="flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition"
+                    title="Riwayat Pemindahan">
+                    <svg class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                     </svg>
-                    <span>Riwayat Pemindahan</span>
+                    <span class="text-sm font-medium">Pemindahan</span>
+                </button>
+                <button wire:click="openRiwayatPengadaanModal"
+                    class="flex items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition"
+                    title="Riwayat Pengadaan">
+                    <svg class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    <span class="text-sm font-medium">Pengadaan</span>
                 </button>
             </div>
         </div>
-
-        {{-- //TODO kode barang dibuat FIX aja saat penambahan barang, gak bisa diedit. pindah ruanganpun kodenya tetap sama✅ --}}
-        {{-- //TODO penjaga gudang juga bisa bebas melakukan pemindahan ✅ --}}
-        {{-- TOMBOL TAMBAH BARANG --}}
-        {{-- //TODO KETIKA PENAMBAHAN BARANG, BARANG JANGAN LANGSUNG DISIMPAN. BARANG YANG DITAMBAHKAN , DIMINTA KONFIRMASI DLU KE KEPALA GUDANG. SETELAH ACC, BARANG OTOMATIS TER-INPUT DI SISTEM ✅ --}}
-        <button wire:click="openModal()"
-            class="bg-purple-700 hover:bg-purple-800 text-white font-bold py-2 px-4 rounded">
-            Tambah Barang
-        </button>
     </div>
 
-    {{-- Tabel Manajemen Barang --}}
-    <div class="bg-white shadow-md rounded-lg overflow-x-auto">
-        <table class="min-w-full leading-normal">
-            <thead class="bg-gray-200">
-                <tr>
-                    <th
-                        class="px-5 py-3 border-b-2 border-gray-200 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Kode Barang</th>
-                    <th
-                        class="px-5 py-3 border-b-2 border-gray-200 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Nama Barang</th>
-                    <th
-                        class="px-5 py-3 border-b-2 border-gray-200 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Kategori</th>
-                    <th
-                        class="px-5 py-3 border-b-2 border-gray-200 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Lokasi/Ruangan</th>
-                    <th
-                        class="px-5 py-3 border-b-2 border-gray-200 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Stok</th>
-                    <th
-                        class="px-5 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($barangs as $barang)
-                    <tr class="hover:bg-gray-300 ">
-                        <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-center">
-                            {{ $barang->kode_barang }}</td>
-                        <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-center">
-                            <button wire:click="$set('detailBarangId', {{ $barang->id }})"
-                                class="font-semibold text-indigo-600 hover:underline">
-                                {{ $barang->nama_barang }}
-                            </button>
-                        </td>
-                        <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-center">
-                            {{ $barang->kategori->nama_kategori }}</td>
-                        <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-center">
-                            {{ $barang->ruangan->nama_ruangan }}</td>
-                        <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-center">
-                            {{ $barang->jumlah_saat_ini }}
-                            /
-                            {{ $barang->jumlah_total }}
-                            @if ($barang->jumlah_rusak > 0)
-                                <span class="text-red-600 block text-xs">(Rusak: {{ $barang->jumlah_rusak }})</span>
-                            @endif
-                        </td>
-                        <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-center">
-                            <div class="flex flex-wrap items-center justify-center gap-2">
-
-                                {{-- Tombol Edit --}}
-                                <button wire:click="edit({{ $barang->id }})"
-                                    class="inline-flex items-center gap-1 border border-yellow-400 text-yellow-600 hover:bg-yellow-50 text-sm font-medium px-3 py-1.5 rounded-md transition duration-150 ease-in-out"
-                                    title="Edit Barang">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.8" stroke="currentColor" class="w-4 h-4">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M16.862 4.487l2.651 2.651m-2.651-2.651L6.75 16.599V19.5h2.901L19.513 7.138m-2.651-2.651a2.25 2.25 0 113.182 3.182L19.5 7.137m-2.651-2.651z" />
-                                    </svg>
-                                    <span>Edit</span>
+    {{-- Tabel Barang --}}
+    <div class="bg-white shadow-xl rounded-xl overflow-hidden border border-gray-100">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kode
+                        </th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama
+                            Barang</th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Kategori</th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Lokasi</th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok
+                        </th>
+                        <th scope="col"
+                            class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @forelse ($barangs as $barang)
+                        @php $isStokMenipis = $barang->jumlah_saat_ini <= $barang->stok_minimum; @endphp
+                        <tr class="hover:bg-gray-50 transition duration-150 {{ $isStokMenipis ? 'bg-yellow-50' : '' }}">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {{ $barang->kode_barang }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <button wire:click="$set('detailBarangId', {{ $barang->id }})"
+                                    class="font-semibold text-purple-700 hover:text-purple-900 hover:underline focus:outline-none">
+                                    {{ $barang->nama_barang }}
                                 </button>
-
-                                {{-- Tombol Tambah Stok --}}
-                                <button wire:click="openTambahStokModal({{ $barang->id }})"
-                                    class="inline-flex items-center gap-1 border border-green-400 text-green-600 hover:bg-green-50 text-sm font-medium px-3 py-1.5 rounded-md transition duration-150 ease-in-out"
-                                    title="Tambah Stok Barang">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.8" stroke="currentColor" class="w-4 h-4">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                                    </svg>
-                                    <span>Tambah</span>
-                                </button>
-
-                                {{-- Tombol Pindahkan --}}
-                                <button wire:click="openPindahModal({{ $barang->id }})"
-                                    class="inline-flex items-center gap-1 border border-blue-400 text-blue-600 hover:bg-blue-50 text-sm font-medium px-3 py-1.5 rounded-md transition duration-150 ease-in-out"
-                                    title="Pindahkan Barang">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.8" stroke="currentColor" class="w-4 h-4">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M16 3h5v5m0 0l-6.5 6.5M21 8H8m0 13H3v-5m0 0l6.5-6.5M3 16h13" />
-                                    </svg>
-                                    <span>Pindahkan</span>
-                                </button>
-
-                                {{-- Tombol Tandai Rusak --}}
-                                <button wire:click="konfirmasiStatusRusak({{ $barang->id }})"
-                                    class="inline-flex items-center gap-1 border border-red-400 text-red-600 hover:bg-red-50 text-sm font-medium px-3 py-1.5 rounded-md transition duration-150 ease-in-out"
-                                    title="Tandai Barang Rusak">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.8" stroke="currentColor" class="w-4 h-4">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <span>Rusak</span>
-                                </button>
-
-                                {{-- Tombol Perbaiki (jika ada barang rusak) --}}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ $barang->kategori->nama_kategori }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ $barang->ruangan->nama_ruangan }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <span
+                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $isStokMenipis ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' }}">
+                                    {{ $barang->jumlah_saat_ini }} / {{ $barang->jumlah_total }}
+                                </span>
                                 @if ($barang->jumlah_rusak > 0)
-                                    <button wire:click="konfirmasiPerbaikan({{ $barang->id }})"
-                                        class="inline-flex items-center gap-1 border border-emerald-400 text-emerald-600 hover:bg-emerald-50 text-sm font-medium px-3 py-1.5 rounded-md transition duration-150 ease-in-out"
-                                        title="Perbaiki Barang Rusak">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                            stroke-width="1.8" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M4 16l5 5L20 7M17 7l3 3-9 9-3-3 9-9z" />
-                                        </svg>
-                                        <span>Perbaiki</span>
-                                    </button>
+                                    <small class="block text-red-600 mt-1 font-semibold">(Rusak:
+                                        {{ $barang->jumlah_rusak }})</small>
                                 @endif
 
-                            </div>
-
-                        </td>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="text-center py-4">Tidak ada data barang.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                                <div class="flex justify-center space-x-2">
+                                    <button wire:click="edit({{ $barang->id }})"
+                                        class="text-yellow-600 hover:text-yellow-900 border border-yellow-200 bg-yellow-50 hover:bg-yellow-100 px-2 py-1 rounded flex items-center gap-1 transition">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
+                                            </path>
+                                        </svg> Edit
+                                    </button>
+                                    <button wire:click="openTambahStokModal({{ $barang->id }})"
+                                        class="text-green-600 hover:text-green-900 border border-green-200 bg-green-50 hover:bg-green-100 px-2 py-1 rounded flex items-center gap-1 transition">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                        </svg> Stok
+                                    </button>
+                                    @can('kelola-pengguna')
+                                        <button wire:click="openPindahModal({{ $barang->id }})"
+                                            class="text-blue-600 hover:text-blue-900 border border-blue-200 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded flex items-center gap-1 transition">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                            </svg> Pindah
+                                        </button>
+                                        <button wire:click="konfirmasiStatusRusak({{ $barang->id }})"
+                                            class="text-red-600 hover:text-red-900 border border-red-200 bg-red-50 hover:bg-red-100 px-2 py-1 rounded flex items-center gap-1 transition">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                                                </path>
+                                            </svg> Rusak
+                                        </button>
+                                        {{-- Tombol Perbaiki (jika ada barang rusak) --}}
+                                        @if ($barang->jumlah_rusak > 0)
+                                            <button wire:click="konfirmasiPerbaikan({{ $barang->id }})"
+                                                class="inline-flex items-center gap-1 border border-emerald-400 text-emerald-600 hover:bg-emerald-50 text-sm font-medium px-3 py-1.5 rounded-md transition duration-150 ease-in-out"
+                                                title="Perbaiki Barang Rusak">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"
+                                                    class="w-4 h-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M4 16l5 5L20 7M17 7l3 3-9 9-3-3 9-9z" />
+                                                </svg>
+                                                <span>Perbaiki</span>
+                                            </button>
+                                        @endif
+                                    @endcan
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="px-6 py-10 text-center text-gray-500">
+                                <div class="flex flex-col items-center justify-center">
+                                    <svg class="h-12 w-12 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
+                                        </path>
+                                    </svg>
+                                    <p class="text-lg font-medium">Tidak ada barang ditemukan.</p>
+                                    <p class="text-sm text-gray-400">Coba kata kunci lain atau tambahkan barang baru.
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
         @if ($barangs->hasPages())
-            <div class="p-4">
+            <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
                 {{ $barangs->links() }}
             </div>
         @endif
     </div>
 
-    {{-- MODAL UNTUK TAMBAH/EDIT BARANG --}}
+    {{-- FAB: Tambah Barang --}}
+    <button wire:click="openModal"
+        class="fixed bottom-8 right-8 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-purple-800 transition transform hover:scale-110 focus:outline-none z-50 flex items-center justify-center"
+            title="Buat Pengajuan RAB Baru">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span class="mx-2 text-sm font-semibold">Tambah Barang</span>
+    </button>
+
+    {{-- Modal Tambah/Edit Barang --}}
     @if ($showModal)
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
-            {{-- Wrapper utama modal --}}
-            <div class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 relative"
-                @click.away="closeModal()">
-
-                <form wire:submit.prevent="simpanBarang">
-                    <input type="hidden" wire:model="barang_id">
-
-                    <h3 class="text-lg font-medium text-gray-900 mb-4 sticky top-0 bg-white z-10 py-2 border-b">
-                        {{ $barang_id ? 'Edit Data Barang' : 'Tambah Barang Baru' }}
-                    </h3>
-
-                    <div class="space-y-4">
-                        {{-- kode barang --}}
+        {{-- ... (Gunakan kode modal tambah/edit yang sudah kita sempurnakan sebelumnya) ... --}}
+        {{-- (Saya singkat di sini agar tidak terlalu panjang, pastikan Anda menyalin kode modal Anda yang terakhir) --}}
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" x-transition>
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md flex flex-col max-h-[85vh]">
+                <form wire:submit.prevent="simpanBarang" class="flex flex-col flex-1 min-h-0">
+                    <div class="p-6 border-b flex-shrink-0">
+                        <h3 class="text-xl font-bold text-gray-900">
+                            {{ $barang_id ? 'Edit Data Barang' : 'Tambah Barang Baru' }}</h3>
+                    </div>
+                    <div class="space-y-4 overflow-y-auto p-6 flex-1">
+                        {{-- ... Form fields (kode, nama, kategori, dll) ... --}}
                         <div>
-                            <label for="kode_barang" class="block text-sm font-medium text-gray-700">Kode
+                            <label for="kode_barang" class="block text-sm font-medium text-gray-700 mb-1">Kode
                                 Barang</label>
-                            <input type="text" wire:model="kode_barang" id="kode_barang"
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                            <input type="text" wire:model="kode_barang"
+                                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 {{ $barang_id ? 'bg-gray-100 cursor-not-allowed text-gray-500' : '' }}"
+                                {{ $barang_id ? 'disabled' : '' }}>
                             @error('kode_barang')
                                 <span class="text-red-500 text-xs">{{ $message }}</span>
                             @enderror
+                            @if ($barang_id)
+                                <span class="text-xs text-gray-500">Kode barang tidak dapat diubah.</span>
+                            @endif
                         </div>
 
-                        {{-- nama barang --}}
                         <div>
-                            <label for="nama_barang" class="block text-sm font-medium text-gray-700">Nama
+                            <label for="nama_barang" class="block text-sm font-medium text-gray-700 mb-1">Nama
                                 Barang</label>
-                            <input type="text" wire:model="nama_barang" id="nama_barang"
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                            <input type="text" wire:model="nama_barang"
+                                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500">
                             @error('nama_barang')
                                 <span class="text-red-500 text-xs">{{ $message }}</span>
                             @enderror
                         </div>
-
-                        {{-- kategori --}}
                         <div>
-                            <label for="kategori_id" class="block text-sm font-medium text-gray-700">Kategori</label>
-                            <select wire:model="kategori_id" id="kategori_id"
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                            <label for="kategori_id"
+                                class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                            <select wire:model="kategori_id"
+                                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500">
                                 <option value="">Pilih Kategori</option>
                                 @foreach ($kategoris as $kategori)
                                     <option value="{{ $kategori->id }}">{{ $kategori->nama_kategori }}</option>
@@ -228,14 +268,12 @@
                                 <span class="text-red-500 text-xs">{{ $message }}</span>
                             @enderror
                         </div>
-
-                        {{-- ruangan --}}
                         @if (!$barang_id)
                             <div>
-                                <label for="ruangan_id" class="block text-sm font-medium text-gray-700">Lokasi /
-                                    Ruangan</label>
-                                <select wire:model="ruangan_id" id="ruangan_id"
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                                <label for="ruangan_id" class="block text-sm font-medium text-gray-700 mb-1">Lokasi
+                                    Awal</label>
+                                <select wire:model="ruangan_id"
+                                    class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500">
                                     <option value="">Pilih Ruangan</option>
                                     @foreach ($ruangans as $ruangan)
                                         <option value="{{ $ruangan->id }}">{{ $ruangan->nama_ruangan }}</option>
@@ -245,92 +283,77 @@
                                     <span class="text-red-500 text-xs">{{ $message }}</span>
                                 @enderror
                             </div>
-                        @endif
-
-                        @if (!$barang_id)
-                            <hr class="my-4 border-t-2 border-gray-200">
-                            <p class="text-sm font-semibold text-gray-700">Detail Pengadaan Awal</p>
-
                             <div>
-                                <label for="jumlah" class="block text-sm font-medium text-gray-700">Jumlah
-                                    Awal</label>
-                                <input type="number" wire:model="jumlah" id="jumlah"
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                                @error('jumlah')
+                                <label for="stok_minimum" class="block text-sm font-medium text-gray-700 mb-1">Stok
+                                    Minimum</label>
+                                <input type="number" wire:model="stok_minimum"
+                                    class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500">
+                                @error('stok_minimum')
                                     <span class="text-red-500 text-xs">{{ $message }}</span>
                                 @enderror
                             </div>
-
-                            <div>
-                                <label for="harga_satuan" class="block text-sm font-medium text-gray-700">Harga Satuan
-                                    (Rp)</label>
-                                <input type="number" step="0.01" wire:model="harga_satuan" id="harga_satuan"
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                                @error('harga_satuan')
-                                    <span class="text-red-500 text-xs">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div class="mt-4">
-                                <label class="block text-sm font-medium text-gray-700">Sumber Dana</label>
-
-                                @if ($isAddingSumberDana)
-                                    {{-- Input Text untuk Sumber Dana Baru --}}
-                                    <div class="flex gap-2 mt-1">
-                                        <input type="text" wire:model="sumberDanaBaru"
-                                            placeholder="Nama Sumber Dana Baru"
-                                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm">
-                                        <button type="button" wire:click="simpanSumberDanaBaru"
-                                            class="bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 text-xs font-bold">Simpan</button>
-                                        <button type="button" wire:click="toggleSumberDanaBaru"
-                                            class="bg-gray-300 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-400 text-xs font-bold">Batal</button>
-                                    </div>
-                                    @error('sumberDanaBaru')
+                            <hr class="my-2">
+                            <p class="text-sm font-bold text-gray-700 mb-2">Detail Pengadaan Awal</p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs text-gray-600 mb-1">Jumlah</label>
+                                    <input type="number" wire:model="jumlah"
+                                        class="w-full border-gray-300 rounded-md shadow-sm text-sm">
+                                    @error('jumlah')
                                         <span class="text-red-500 text-xs">{{ $message }}</span>
                                     @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-600 mb-1">Harga Satuan</label>
+                                    <input type="number" wire:model="harga_satuan"
+                                        class="w-full border-gray-300 rounded-md shadow-sm text-sm">
+                                    @error('harga_satuan')
+                                        <span class="text-red-500 text-xs">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <label class="block text-xs text-gray-600 mb-1">Sumber Dana</label>
+                                {{-- Dropdown Sumber Dana (Sama seperti sebelumnya) --}}
+                                @if ($isAddingSumberDana)
+                                    <div class="flex gap-2">
+                                        <input type="text" wire:model="sumberDanaBaru" placeholder="Nama Sumber"
+                                            class="w-full border-gray-300 rounded-md shadow-sm text-sm">
+                                        <button type="button" wire:click="simpanSumberDanaBaru"
+                                            class="bg-green-600 text-white px-2 rounded text-xs">Save</button>
+                                        <button type="button" wire:click="toggleSumberDanaBaru"
+                                            class="bg-gray-300 px-2 rounded text-xs">X</button>
+                                    </div>
                                 @else
-                                    {{-- Dropdown Sumber Dana --}}
                                     <select wire:model="sumber_dana_id"
-                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm">
-                                        <option value="">Pilih Sumber Dana</option>
+                                        class="w-full border-gray-300 rounded-md shadow-sm text-sm">
+                                        <option value="">Pilih Sumber</option>
                                         @foreach (\App\Models\SumberDana::all() as $sumber)
                                             <option value="{{ $sumber->id }}">{{ $sumber->nama_sumber }}</option>
                                         @endforeach
                                     </select>
-
-                                    {{-- Tombol Kecil "Tambah Baru" --}}
                                     <button type="button" wire:click="toggleSumberDanaBaru"
-                                        class="text-xs text-indigo-600 hover:text-indigo-800 mt-1 flex items-center font-semibold focus:outline-none">
-                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 4v16m8-8H4"></path>
-                                        </svg>
-                                        Tambah Sumber Dana Baru
-                                    </button>
+                                        class="text-xs text-indigo-600 mt-1 underline">Tambah Baru</button>
                                 @endif
                                 @error('sumber_dana_id')
                                     <span class="text-red-500 text-xs">{{ $message }}</span>
                                 @enderror
                             </div>
-
-                            <div>
-                                <label for="tanggal_pengadaan" class="block text-sm font-medium text-gray-700">Tanggal
-                                    Pengadaan</label>
-                                <input type="date" wire:model="tanggal_pengadaan" id="tanggal_pengadaan"
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                            <div class="mt-2">
+                                <label class="block text-xs text-gray-600 mb-1">Tanggal</label>
+                                <input type="date" wire:model="tanggal_pengadaan"
+                                    class="w-full border-gray-300 rounded-md shadow-sm text-sm">
                                 @error('tanggal_pengadaan')
                                     <span class="text-red-500 text-xs">{{ $message }}</span>
                                 @enderror
                             </div>
                         @endif
                     </div>
-
-                    {{-- Tombol aksi --}}
-                    <div class="mt-6 flex justify-end space-x-2 sticky bottom-0 bg-white py-3 border-t z-10">
-                        <button type="button" wire:click="closeModal()"
-                            class="px-4 py-2 bg-gray-200 rounded">Batal</button>
-                        <button type="submit" class="px-4 py-2 bg-primary text-white rounded">
+                    <div class="p-6 border-t flex justify-end space-x-3 bg-gray-50 flex-shrink-0 rounded-b-lg">
+                        <button type="button" wire:click="closeModal"
+                            class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md shadow-sm hover:bg-gray-50 font-medium">Batal</button>
+                        <button type="submit"
+                            class="px-4 py-2 bg-purple-700 text-white rounded-md shadow-sm hover:bg-purple-800 font-medium">
                             @if ($barang_id)
                                 Update
                             @else
@@ -342,6 +365,157 @@
             </div>
         </div>
     @endif
+
+    {{-- Modal Riwayat Pemindahan (Gunakan kode sebelumnya) --}}
+    @if ($showRiwayatPindahModal)
+        {{-- ... (Kode modal riwayat pemindahan yang sudah Anda miliki, hanya sesuaikan class styling jika perlu) ... --}}
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[85vh] flex flex-col">
+                <div class="flex justify-between items-center p-6 border-b flex-shrink-0">
+                    <h3 class="text-xl font-bold text-gray-900">Riwayat Pemindahan Barang</h3>
+                    <button wire:click="closeRiwayatPindahModal"
+                        class="text-gray-500 hover:text-gray-800 text-3xl leading-none">&times;</button>
+                </div>
+                <div class="overflow-auto p-0 flex-1">
+                    <table class="w-full table-auto text-sm text-left">
+                        <thead class="bg-gray-50 text-gray-600 font-medium border-b sticky top-0 z-10">
+                            <tr>
+                                <th class="py-3 px-4 bg-gray-50">Tanggal</th>
+                                <th class="py-3 px-4 bg-gray-50">Barang</th>
+                                <th class="py-3 px-4 bg-gray-50">Dari</th>
+                                <th class="py-3 px-4 bg-gray-50 text-center">Jml</th>
+                                <th class="py-3 px-4 bg-gray-50">Ke</th>
+                                <th class="py-3 px-4 bg-gray-50">Oleh</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @forelse($riwayatPemindahan as $log)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="py-3 px-4 whitespace-nowrap">{{ $log->created_at->format('d M Y') }}
+                                    </td>
+                                    <td class="py-3 px-4 font-medium text-gray-900">
+                                        {{ $log->barangAsal->nama_barang ?? '-' }}</td>
+                                    <td class="py-3 px-4 text-gray-500">
+                                        {{ $log->barangAsal->ruangan->nama_ruangan ?? '-' }}</td>
+                                    <td class="py-3 px-4 text-center font-bold text-blue-600">
+                                        {{ $log->jumlah_dipindahkan }}</td>
+                                    <td class="py-3 px-4 text-gray-900">
+                                        {{ $log->barangTujuan->ruangan->nama_ruangan ?? '-' }}</td>
+                                    <td class="py-3 px-4 text-xs text-gray-500">{{ $log->user->name }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center py-8 text-gray-400">Belum ada riwayat.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                @if (count($riwayatPemindahan))
+                    <div class="p-4 border-t bg-gray-50 flex-shrink-0">{{ $riwayatPemindahan->links() }}</div>
+                @endif
+                <div class="p-4 border-t flex justify-end flex-shrink-0">
+                    <button wire:click="closeRiwayatPindahModal"
+                        class="px-4 py-2 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Tutup</button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- Modal Riwayat Pengadaan (BARU) --}}
+    @if ($showRiwayatPengadaanModal)
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col">
+                <div class="flex justify-between items-center p-6 border-b flex-shrink-0 bg-gray-50 rounded-t-lg">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">Riwayat Pengadaan Barang</h3>
+                        <p class="text-sm text-gray-500">Daftar barang masuk (baru & tambah stok)</p>
+                    </div>
+                    <button wire:click="closeRiwayatPengadaanModal"
+                        class="text-gray-400 hover:text-gray-600 transition">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- Filter Toolbar --}}
+                <div class="p-4 border-b bg-white flex justify-end flex-shrink-0">
+                    <div class="w-64">
+                        <select wire:model.live="filterSumberDana"
+                            class="w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-purple-500 focus:border-purple-500">
+                            <option value="">Semua Sumber Dana</option>
+                            @foreach ($sumberDanas as $sumber)
+                                <option value="{{ $sumber->id }}">{{ $sumber->nama_sumber }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                {{-- Tabel Pengadaan --}}
+                <div class="overflow-auto p-0 flex-1">
+                    <table class="w-full table-auto text-sm text-left">
+                        <thead class="bg-gray-50 text-gray-600 font-medium border-b sticky top-0 z-10">
+                            <tr>
+                                <th class="py-3 px-4 bg-gray-50">Tgl. Masuk</th>
+                                <th class="py-3 px-4 bg-gray-50">Barang</th>
+                                <th class="py-3 px-4 bg-gray-50">Ruangan</th>
+                                <th class="py-3 px-4 bg-gray-50 text-center">Jumlah</th>
+                                <th class="py-3 px-4 bg-gray-50 text-right">Harga Satuan</th>
+                                <th class="py-3 px-4 bg-gray-50 text-right">Total</th>
+                                <th class="py-3 px-4 bg-gray-50">Sumber Dana</th>
+                                <th class="py-3 px-4 bg-gray-50">Admin</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @forelse($riwayatPengadaan as $log)
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="py-3 px-4 whitespace-nowrap text-gray-600">
+                                        {{ \Carbon\Carbon::parse($log->tanggal_pengadaan)->format('d M Y') }}</td>
+                                    <td class="py-3 px-4 font-medium text-gray-900">
+                                        {{ $log->barang->nama_barang ?? '-' }}</td>
+                                    <td class="py-3 px-4 text-gray-500">
+                                        {{ $log->barang->ruangan->nama_ruangan ?? '-' }}</td>
+                                    <td class="py-3 px-4 text-center font-bold text-green-600">+{{ $log->jumlah }}
+                                    </td>
+                                    <td class="py-3 px-4 text-right text-gray-600">Rp
+                                        {{ number_format($log->harga_satuan, 0, ',', '.') }}</td>
+                                    <td class="py-3 px-4 text-right font-medium text-gray-800">Rp
+                                        {{ number_format($log->total_harga, 0, ',', '.') }}</td>
+                                    <td class="py-3 px-4">
+                                        <span
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            {{ $log->sumberDana->nama_sumber ?? '-' }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-4 text-xs text-gray-400">{{ $log->user->name ?? ' ' }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="text-center py-12 text-gray-400">
+                                        <svg class="mx-auto h-12 w-12 text-gray-300 mb-3" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                        </svg>
+                                        Belum ada data pengadaan.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                @if (count($riwayatPengadaan))
+                    <div class="p-4 border-t bg-gray-50 flex-shrink-0">
+                        {{ $riwayatPengadaan->links() }}
+                    </div>
+                @endif
+            </div>
+        </div>
+    @endif
+
+
 
 
     {{-- tandai barang rusak --}}
@@ -411,48 +585,37 @@
         </div>
     @endif
 
-    {{-- Modal Detail Distribusi Barang --}}
     @if ($detailBarangId && $detailBarang)
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30 p-4">
-            <div x-data="{ activeTab: 'ringkasan' }"
-                class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[85vh] flex flex-col">
+        {{-- ... (Kode modal detail barang dengan 3 tab yang sudah ada) ... --}}
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            {{-- ... Isi modal detail ... --}}
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[85vh] flex flex-col"
+                x-data="{ activeTab: 'ringkasan' }">
                 <div class="flex justify-between items-center p-6 border-b flex-shrink-0">
-                    <h3 class="text-xl font-bold text-gray-900">Detail Barang:
-                        {{ $detailBarang['barang']->nama_barang }}</h3>
-                    <button wire:click="closeDetailModal"
-                        class="text-gray-500 hover:text-gray-800 text-3xl leading-none">&times;</button>
+                    <h3 class="text-xl font-bold text-gray-900">Detail: {{ $detailBarang['barang']->nama_barang }}
+                    </h3>
+                    <button wire:click="closeDetailModal" class="text-gray-500 text-3xl">&times;</button>
                 </div>
-
-                {{-- Navigasi Tab --}}
-                <div class="mb-4 border-b border-gray-200 px-6">
-                    <nav class="-mb-px flex space-x-6" aria-label="Tabs">
-                        <button @click="activeTab = 'ringkasan'"
-                            :class="{ 'border-primary text-primary': activeTab === 'ringkasan', 'border-transparent text-gray-500 hover:text-gray-700': activeTab !== 'ringkasan' }"
-                            class="py-3 px-1 border-b-2 font-medium text-sm">
-                            Ringkasan Stok
-                        </button>
-                        <button @click="activeTab = 'distribusi'"
-                            :class="{ 'border-primary text-primary': activeTab === 'distribusi', 'border-transparent text-gray-500 hover:text-gray-700': activeTab !== 'distribusi' }"
-                            class="py-3 px-1 border-b-2 font-medium text-sm">
-                            Distribusi Peminjaman
-                        </button>
-                        {{-- TAB BARU --}}
-                        <button @click="activeTab = 'pengadaan'"
-                            :class="{ 'border-primary text-primary': activeTab === 'pengadaan', 'border-transparent text-gray-500 hover:text-gray-700': activeTab !== 'pengadaan' }"
-                            class="py-3 px-1 border-b-2 font-medium text-sm">
-                            Riwayat Pengadaan
-                        </button>
-                        <button @click="activeTab = 'pemindahan'"
-                            :class="{ 'border-primary text-primary': activeTab === 'pemindahan', '...': activeTab !== 'pemindahan' }"
-                            class="py-3 px-1 border-b-2 font-medium text-sm">
-                            Riwayat Pemindahan
-                        </button>
-                    </nav>
+                <div class="px-6 border-b flex space-x-6">
+                    <button @click="activeTab = 'ringkasan'"
+                        :class="activeTab === 'ringkasan' ? 'border-purple-600 text-purple-600' :
+                            'border-transparent text-gray-500'"
+                        class="py-3 border-b-2 font-medium text-sm transition">Ringkasan</button>
+                    <button @click="activeTab = 'distribusi'"
+                        :class="activeTab === 'distribusi' ? 'border-purple-600 text-purple-600' :
+                            'border-transparent text-gray-500'"
+                        class="py-3 border-b-2 font-medium text-sm transition"> Distribusi Peminjaman</button>
+                    <button @click="activeTab = 'pengadaan'"
+                        :class="activeTab === 'pengadaan' ? 'border-purple-600 text-purple-600' :
+                            'border-transparent text-gray-500'"
+                        class="py-3 border-b-2 font-medium text-sm transition">Riwayat Pengadaan</button>
+                    <button @click="activeTab = 'pemindahan'"
+                        :class="activeTab === 'pemindahan' ? 'border-purple-600 text-purple-600' :
+                            'border-transparent text-gray-500'"
+                        class="py-3 border-b-2 font-medium text-sm transition">Riwayat Pemindahan</button>
                 </div>
-
-                {{-- Konten Tab --}}
-                <div class="overflow-y-auto p-6 pt-0 flex-1">
-                    {{-- Konten untuk Tab Ringkasan Stok --}}
+                <div class="p-6 overflow-auto flex-1">
+                    {{--/! Konten Ringkasan  --}}
                     <div x-show="activeTab === 'ringkasan'">
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
@@ -473,8 +636,8 @@
                             </div>
                         </div>
                     </div>
-
-                    {{-- Konten untuk Tab Distribusi Peminjaman --}}
+                    
+                    {{-- Konten Distribusi Peminjaman --}}
                     <div x-show="activeTab === 'distribusi'" style="display: none;">
                         <div class="overflow-x-auto">
                             <table class="w-full table-auto">
@@ -516,9 +679,9 @@
                             </table>
                         </div>
                     </div>
-
-                    {{-- KONTEN TAB BARU: RIWAYAT PENGADAAN --}}
+                    {{-- Koten Riwayat Pengadaan --}}
                     <div x-show="activeTab === 'pengadaan'" style="display: none;">
+                       <div x-show="activeTab === 'pengadaan'" style="display: none;">
                         <div class="overflow-x-auto">
                             <table class="w-full table-auto">
                                 <thead>
@@ -554,7 +717,7 @@
                             </table>
                         </div>
                     </div>
-                    {{-- KONTEN TAB BARU: RIWAYAT PEMINDAHAN --}}
+                    </div>
                     <div x-show="activeTab === 'pemindahan'" style="display: none;">
                         <h4 class="font-semibold text-md text-gray-800 mb-2">Riwayat Barang Keluar (Dipindahkan)</h4>
                         <div class="border rounded-md mb-4">
@@ -615,14 +778,10 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="p-6 border-t flex justify-center flex-shrink-0">
-                    <button type="button" wire:click="closeDetailModal"
-                        class="px-6 py-2 bg-gray-600 text-white rounded-md shadow-sm hover:bg-gray-700">Tutup</button>
-                </div>
             </div>
         </div>
     @endif
+
 
     {{-- Modal Tambah Stok --}}
     @if ($showTambahStokModal)
@@ -783,64 +942,6 @@
                             class="px-4 py-2 bg-blue-600 text-white rounded-md shadow-sm hover:bg-blue-700 font-bold">Pindahkan</button>
                     </div>
                 </form>
-            </div>
-        </div>
-    @endif
-    {{-- Modal Riwayat Pemindahan Barang --}}
-    @if ($showRiwayatPindahModal)
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30 p-4">
-            <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[85vh] flex flex-col">
-                <div class="flex justify-between items-center p-6 border-b flex-shrink-0">
-                    <h3 class="text-xl font-bold text-gray-900">Riwayat Pemindahan Barang</h3>
-                    <button wire:click="closeRiwayatPindahModal"
-                        class="text-gray-500 hover:text-gray-800 text-3xl leading-none">&times;</button>
-                </div>
-
-                <div class="overflow-auto p-6 flex-1">
-                    <table class="w-full table-auto text-sm text-left">
-                        <thead class="bg-gray-50 text-gray-600 font-medium border-b">
-                            <tr>
-                                <th class="py-3 px-4">Tanggal</th>
-                                <th class="py-3 px-4">Barang (Asal)</th>
-                                <th class="py-3 px-4">Dari Ruangan</th>
-                                <th class="py-3 px-4 text-center">Jumlah</th>
-                                <th class="py-3 px-4">Ke Ruangan</th>
-                                <th class="py-3 px-4">Barang (Baru)</th>
-                                <th class="py-3 px-4">Oleh</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            @forelse($riwayatPemindahan as $log)
-                                <tr class="hover:bg-gray-50">
-                                    <td class="py-3 px-4 whitespace-nowrap">
-                                        {{ $log->created_at->format('d M Y, H:i') }}</td>
-                                    <td class="py-3 px-4">{{ $log->barangAsal->nama_barang ?? '(Dihapus)' }}</td>
-                                    <td class="py-3 px-4">{{ $log->barangAsal->ruangan->nama_ruangan ?? '-' }}</td>
-                                    <td class="py-3 px-4 text-center font-bold">{{ $log->jumlah_dipindahkan }}</td>
-                                    <td class="py-3 px-4 text-blue-600">
-                                        {{ $log->barangTujuan->ruangan->nama_ruangan ?? '-' }}</td>
-                                    <td class="py-3 px-4">{{ $log->barangTujuan->nama_barang ?? '(Dihapus)' }}</td>
-                                    <td class="py-3 px-4 text-gray-500">{{ $log->user->name }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7" class="text-center py-8 text-gray-500">Belum ada riwayat
-                                        pemindahan barang.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-
-                    {{-- Pagination --}}
-                    <div class="mt-4">
-                        {{ $riwayatPemindahan->links() }}
-                    </div>
-                </div>
-
-                <div class="p-6 border-t flex justify-end flex-shrink-0">
-                    <button type="button" wire:click="closeRiwayatPindahModal"
-                        class="px-4 py-2 bg-gray-600 text-white rounded-md shadow-sm hover:bg-gray-700">Tutup</button>
-                </div>
             </div>
         </div>
     @endif
