@@ -64,6 +64,8 @@ class Index extends Component
     // Properti untuk Riwayat Pengadaan
     public $showRiwayatPengadaanModal = false;
     public $filterSumberDana = '';
+    public $filterTanggalMulai = '';
+    public $filterTanggalAkhir = '';
 
     // --- PROPERTI SUMBER DANA BARU ---
     public $sumberDanaBaru = '';
@@ -473,6 +475,17 @@ class Index extends Component
         $this->detailBarangId = null;
     }
 
+    // --- METHOD CETAK LAPORAN PENGADAAN ---
+    public function cetakLaporanPengadaan()
+{
+    // Kirim parameter filter ke route cetak
+    return redirect()->route('laporan.pengadaan.cetak', [
+        'sumber_dana' => $this->filterSumberDana,
+        'tgl_mulai' => $this->filterTanggalMulai,
+        'tgl_akhir' => $this->filterTanggalAkhir,
+    ]);
+}
+
     // --- RENDER ---
     public function render()
     {
@@ -488,7 +501,7 @@ class Index extends Component
             ])
                 ->findOrFail($this->detailBarangId);
 
-                $totalPengadaan = $barang->riwayatPengadaan->sum('jumlah');
+            $totalPengadaan = $barang->riwayatPengadaan->sum('jumlah');
 
             $distribusi = Transaksi::with('siswa')
                 ->whereHas('barangs', function ($query) {
@@ -516,12 +529,24 @@ class Index extends Component
                 ->paginate(10, ['*'], 'pindahPage');
         }
         $riwayatPengadaan = [];
+        $totalBiayaPengadaan = 0;
         if ($this->showRiwayatPengadaanModal) {
-            $riwayatPengadaan = PengadaanBarang::with(['barang', 'sumberDana', 'user'])
+            // 1. Buat query dasar
+            $queryPengadaan = PengadaanBarang::with(['barang', 'sumberDana', 'user'])
                 ->when($this->filterSumberDana, function ($query) {
                     $query->where('sumber_dana_id', $this->filterSumberDana);
+                })->when($this->filterTanggalMulai, function ($query) {
+                    $query->whereDate('tanggal_pengadaan', '>=', $this->filterTanggalMulai);
                 })
-                ->latest('tanggal_pengadaan')
+                ->when($this->filterTanggalAkhir, function ($query) {
+                    $query->whereDate('tanggal_pengadaan', '<=', $this->filterTanggalAkhir);
+                });
+
+            // 2. Hitung total biaya dari query tersebut
+            $totalBiayaPengadaan = $queryPengadaan->sum('total_harga');
+
+            // 3. Ambil data untuk tabel (dengan pagination)
+            $riwayatPengadaan = $queryPengadaan->latest('tanggal_pengadaan')
                 ->paginate(10, ['*'], 'pengadaanPage');
         }
 
@@ -548,6 +573,7 @@ class Index extends Component
             'detailBarang' => $detailData, // Mengirim variabel lokal $detailData sebagai 'detailBarang'
             'riwayatPemindahan' => $riwayatPemindahan,
             'riwayatPengadaan' => $riwayatPengadaan,
+            'totalBiayaPengadaan' => $totalBiayaPengadaan,
             'sumberDanas' => $sumberDanas,
         ]);
     }

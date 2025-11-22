@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\LaporanPengadaanController;
 use App\Http\Controllers\Siswa\LoginController;
 use App\Http\Controllers\Siswa\Auth\PasswordResetController;
 use App\Livewire\Barang\Index as BarangIndex;
@@ -29,6 +30,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 // rute cetak struk transaksi
     Route::get('/transaksi/{id}/cetak', [LaporanController::class, 'cetakStruk'])->name('transaksi.cetak');
+
+    Route::get('/laporan/pengadaan/cetak', [LaporanPengadaanController::class, 'cetak'])
+    ->name('laporan.pengadaan.cetak');
     
     // Rute untuk manajemen pengguna
     Route::get('/pengguna', UserIndex::class)->name('user.index')->middleware('can:kelola-pengguna');

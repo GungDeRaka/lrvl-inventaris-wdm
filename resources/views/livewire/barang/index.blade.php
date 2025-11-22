@@ -201,8 +201,8 @@
             </table>
         </div>
         @if ($barangs->hasPages())
-            <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
-                {{ $barangs->links() }}
+            <div class="bg-gray-50 px-6 py-4 border-t items-start border-gray-200">
+                <span class="items-start">{{ $barangs->links() }}</span>
             </div>
         @endif
     </div>
@@ -444,97 +444,128 @@
     @endif
 
     {{-- Modal Riwayat Pengadaan (BARU) --}}
-    @if ($showRiwayatPengadaanModal)
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col">
-                <div class="flex justify-between items-center p-6 border-b flex-shrink-0 bg-gray-50 rounded-t-lg">
-                    <div>
-                        <h3 class="text-xl font-bold text-gray-900">Riwayat Pengadaan Barang</h3>
-                        <p class="text-sm text-gray-500">Daftar barang masuk (baru & tambah stok)</p>
-                    </div>
-                    <button wire:click="closeRiwayatPengadaanModal"
-                        class="text-gray-400 hover:text-gray-600 transition">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
+    @if($showRiwayatPengadaanModal)
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" x-transition>
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden">
+        
+        {{-- Header Modal --}}
+        <div class="flex justify-between items-center p-6 border-b border-gray-200 bg-white flex-shrink-0">
+            <div>
+                <h3 class="text-2xl font-bold text-gray-900">Riwayat Pengadaan Barang</h3>
+                <p class="text-sm text-gray-500 mt-1">Laporan detail barang masuk dan sumber pendanaan.</p>
+            </div>
+            <button wire:click="closeRiwayatPengadaanModal" class="text-gray-400 hover:text-gray-600 transition p-2 rounded-full hover:bg-gray-100">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        {{-- Filter & Action Toolbar --}}
+        <div class="p-4 border-b border-gray-200 bg-gray-50 flex flex-col lg:flex-row justify-between items-center gap-4 flex-shrink-0">
+            
+            {{-- Tombol Cetak (Kiri) --}}
+            <div>
+                {{-- Gunakan target="_blank" pada tag <a> pembungkus atau gunakan Javascript untuk membuka di tab baru jika method di livewire melakukan redirect --}}
+                {{-- Di sini saya gunakan wire:click biasa, nanti di controller PDF Anda bisa mengatur headers untuk download/view --}}
+                <button wire:click="cetakLaporanPengadaan" wire:loading.attr="disabled" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-md shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m8-4V3a1 1 0 00-1-1H8a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1zM7 10a1 1 0 011-1h8a1 1 0 011 1v10H7V10z" />
+                    </svg>
+                    <span>Cetak Laporan</span>
+                    {{-- Loading Indicator kecil saat proses cetak --}}
+                    <svg wire:loading target="cetakLaporanPengadaan" class="animate-spin -ml-1 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Filter Inputs (Kanan) --}}
+            <div class="flex flex-col md:flex-row items-center gap-3 w-full lg:w-auto justify-end">
+                <div class="flex items-center gap-2 bg-white p-1 rounded-md border shadow-sm">
+                    <span class="text-sm text-gray-500 pl-2">Periode:</span>
+                    <input type="date" wire:model.live="filterTanggalMulai" class="border-0 text-sm focus:ring-0 p-1 text-gray-700">
+                    <span class="text-gray-400">-</span>
+                    <input type="date" wire:model.live="filterTanggalAkhir" class="border-0 text-sm focus:ring-0 p-1 text-gray-700">
                 </div>
 
-                {{-- Filter Toolbar --}}
-                <div class="p-4 border-b bg-white flex justify-end flex-shrink-0">
-                    <div class="w-64">
-                        <select wire:model.live="filterSumberDana"
-                            class="w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-purple-500 focus:border-purple-500">
-                            <option value="">Semua Sumber Dana</option>
-                            @foreach ($sumberDanas as $sumber)
-                                <option value="{{ $sumber->id }}">{{ $sumber->nama_sumber }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                <div class="w-full md:w-56">
+                    <select wire:model.live="filterSumberDana" class="w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-purple-500 focus:border-purple-500 py-2">
+                        <option value="">Semua Sumber Dana</option>
+                        @foreach($sumberDanas as $sumber)
+                            <option value="{{ $sumber->id }}">{{ $sumber->nama_sumber }}</option>
+                        @endforeach
+                    </select>
                 </div>
-
-                {{-- Tabel Pengadaan --}}
-                <div class="overflow-auto p-0 flex-1">
-                    <table class="w-full table-auto text-sm text-left">
-                        <thead class="bg-gray-50 text-gray-600 font-medium border-b sticky top-0 z-10">
-                            <tr>
-                                <th class="py-3 px-4 bg-gray-50">Tgl. Masuk</th>
-                                <th class="py-3 px-4 bg-gray-50">Barang</th>
-                                <th class="py-3 px-4 bg-gray-50">Ruangan</th>
-                                <th class="py-3 px-4 bg-gray-50 text-center">Jumlah</th>
-                                <th class="py-3 px-4 bg-gray-50 text-right">Harga Satuan</th>
-                                <th class="py-3 px-4 bg-gray-50 text-right">Total</th>
-                                <th class="py-3 px-4 bg-gray-50">Sumber Dana</th>
-                                <th class="py-3 px-4 bg-gray-50">Admin</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            @forelse($riwayatPengadaan as $log)
-                                <tr class="hover:bg-gray-50 transition">
-                                    <td class="py-3 px-4 whitespace-nowrap text-gray-600">
-                                        {{ \Carbon\Carbon::parse($log->tanggal_pengadaan)->format('d M Y') }}</td>
-                                    <td class="py-3 px-4 font-medium text-gray-900">
-                                        {{ $log->barang->nama_barang ?? '-' }}</td>
-                                    <td class="py-3 px-4 text-gray-500">
-                                        {{ $log->barang->ruangan->nama_ruangan ?? '-' }}</td>
-                                    <td class="py-3 px-4 text-center font-bold text-green-600">+{{ $log->jumlah }}
-                                    </td>
-                                    <td class="py-3 px-4 text-right text-gray-600">Rp
-                                        {{ number_format($log->harga_satuan, 0, ',', '.') }}</td>
-                                    <td class="py-3 px-4 text-right font-medium text-gray-800">Rp
-                                        {{ number_format($log->total_harga, 0, ',', '.') }}</td>
-                                    <td class="py-3 px-4">
-                                        <span
-                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                            {{ $log->sumberDana->nama_sumber ?? '-' }}
-                                        </span>
-                                    </td>
-                                    <td class="py-3 px-4 text-xs text-gray-400">{{ $log->user->name ?? ' ' }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="8" class="text-center py-12 text-gray-400">
-                                        <svg class="mx-auto h-12 w-12 text-gray-300 mb-3" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
-                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                                        </svg>
-                                        Belum ada data pengadaan.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-                @if (count($riwayatPengadaan))
-                    <div class="p-4 border-t bg-gray-50 flex-shrink-0">
-                        {{ $riwayatPengadaan->links() }}
-                    </div>
-                @endif
             </div>
         </div>
-    @endif
+
+        {{-- Tabel Pengadaan (UI UPGRADE) --}}
+        <div class="overflow-auto p-0 flex-1">
+            <table class="w-full table-auto text-sm text-left border-collapse">
+                {{-- Header dengan warna --}}
+                <thead class="bg-purple-100 text-purple-900 font-semibold border-b-2 border-purple-200 sticky top-0 z-10 shadow-sm">
+                    <tr>
+                        <th class="py-4 px-4 whitespace-nowrap">Tgl. Masuk</th>
+                        <th class="py-4 px-4">Barang</th>
+                        <th class="py-4 px-4">Ruangan Awal</th>
+                        <th class="py-4 px-4 text-center">Jumlah</th>
+                        <th class="py-4 px-4 text-right">Harga Satuan</th>
+                        <th class="py-4 px-4 text-right">Total Harga</th>
+                        <th class="py-4 px-4">Sumber Dana</th>
+                        <th class="py-4 px-4">Admin</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 bg-white">
+                    @forelse($riwayatPengadaan as $log)
+                    {{-- Zebra Striping (baris genap warna beda) & Hover Effect --}}
+                    <tr class="transition-colors duration-200 hover:bg-purple-50 @if($loop->even) bg-gray-50 @endif">
+                        <td class="py-3 px-4 whitespace-nowrap text-gray-600 font-medium">{{ \Carbon\Carbon::parse($log->tanggal_pengadaan)->format('d M Y') }}</td>
+                        <td class="py-3 px-4 font-bold text-gray-800">{{ $log->barang->nama_barang ?? '-' }}</td>
+                        <td class="py-3 px-4 text-gray-600">{{ $log->barang->ruangan->nama_ruangan ?? '-' }}</td>
+                        <td class="py-3 px-4 text-center font-bold text-green-600 bg-green-50 rounded-md">+{{ $log->jumlah }}</td>
+                        <td class="py-3 px-4 text-right text-gray-600">Rp {{ number_format($log->harga_satuan, 0, ',', '.') }}</td>
+                        <td class="py-3 px-4 text-right font-bold text-gray-900">Rp {{ number_format($log->total_harga, 0, ',', '.') }}</td>
+                        <td class="py-3 px-4">
+                            {{-- Badge Sumber Dana yang lebih menarik --}}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200 shadow-sm">
+                                {{ $log->sumberDana->nama_sumber ?? '-' }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-xs text-gray-500">{{ $log->user->name ?? '-' }}</td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="8" class="text-center py-12 text-gray-400 bg-gray-50">
+                            <svg class="mx-auto h-12 w-12 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                            <span class="block font-medium">Belum ada data pengadaan yang sesuai filter.</span>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+                {{-- Footer dengan warna --}}
+                <tfoot class="bg-purple-50 font-bold text-purple-900 border-t-2 border-purple-200 sticky bottom-0 shadow-[0_-2px_4px_rgba(0,0,0,0.06)]">
+                    <tr>
+                        <td colspan="5" class="py-4 px-4 text-right uppercase text-xs tracking-wider">
+                            Total Biaya Keseluruhan (Sesuai Filter):
+                        </td>
+                        <td class="py-4 px-4 text-right text-lg">
+                            Rp {{ number_format($totalBiayaPengadaan, 0, ',', '.') }}
+                        </td>
+                        <td colspan="2" class="bg-purple-50"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        {{-- Pagination --}}
+        @if(count($riwayatPengadaan))
+        <div class="p-4 border-t border-gray-200 bg-white flex-shrink-0">
+            {{ $riwayatPengadaan->links() }}
+        </div>
+        @endif
+    </div>
+</div>
+@endif
 
 
 
@@ -750,7 +781,8 @@
                                                         {{ $pengadaan->sumberDana->nama_sumber ?? '-' }}
                                                     </span>
                                                 </td>
-                                                <td class="px-4 py-3 text-sm">{{ $pengadaan->barang->ruangan->nama_ruangan ?? 'Data Lama' }}</td>
+                                                <td class="px-4 py-3 text-sm">
+                                                    {{ $pengadaan->barang->ruangan->nama_ruangan ?? 'Data Lama' }}</td>
                                             </tr>
                                         @empty
                                             <tr>
