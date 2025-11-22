@@ -81,7 +81,7 @@ class Index extends Component
             'nama_barang'   => 'required|string|min:3',
             'kategori_id'   => 'required|exists:kategoris,id',
             'ruangan_id'    => 'required|exists:ruangans,id',
-            'stok_minimum'  => 'required|integer|min:0',
+            'stok_minimum'  => 'required|integer|min:2|lte:jumlah',
 
             // Aturan untuk pengadaan
             'jumlah'        => 'required|integer|min:1',
@@ -216,7 +216,9 @@ class Index extends Component
                     } else {
                         // Penjaga Gudang: Ajukan RAB
                         $rab = RabPengadaan::create([
+                            // TODO perbaiki error
                             'user_id' => $user->id,
+                            'judul' => 'Pengajuan barang baru: ' . $validatedData['nama_barang'],
                             'keterangan' => 'Pengajuan barang baru: ' . $validatedData['nama_barang'],
                             'tanggal_pengajuan' => $validatedData['tanggal_pengadaan'],
                             'status' => 'diajukan',
@@ -234,7 +236,7 @@ class Index extends Component
                             'jumlah' => $validatedData['jumlah'],
                             'harga_satuan' => $validatedData['harga_satuan'] ?? 0,
                             'harga_total' => ($validatedData['jumlah'] * ($validatedData['harga_satuan'] ?? 0)),
-                            'sumber_dana_id' => $validatedData['sumber_dana_id'], // Simpan info sumber dana di item RAB jika perlu (opsional)
+                            'sumber_dana_id' => $this->sumber_dana_id
                         ]);
                         session()->flash('message', 'Pengajuan barang baru telah dikirim ke Kepala Gudang.');
                     }
@@ -310,6 +312,7 @@ class Index extends Component
                     // Penjaga Gudang: RAB
                     $rab = RabPengadaan::create([
                         'user_id' => $user->id,
+                        'judul' => 'Pengajuan Tambah Stok: ' . $barang->nama_barang,
                         'keterangan' => 'Pengajuan tambah stok untuk: ' . $barang->nama_barang,
                         'tanggal_pengajuan' => $validated['tanggal_pengadaan'],
                         'status' => 'diajukan',
@@ -323,6 +326,7 @@ class Index extends Component
                         'jumlah' => $validated['jumlah'],
                         'harga_satuan' => $validated['harga_satuan'] ?? 0,
                         'harga_total' => ($validated['jumlah'] * ($validated['harga_satuan'] ?? 0)),
+                        'sumber_dana_id' => $this->sumber_dana_id,
                     ]);
                     session()->flash('message', 'Pengajuan tambah stok dikirim ke Kepala Gudang.');
                 }

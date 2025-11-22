@@ -222,6 +222,17 @@
     @if ($showModal)
         {{-- ... (Gunakan kode modal tambah/edit yang sudah kita sempurnakan sebelumnya) ... --}}
         {{-- (Saya singkat di sini agar tidak terlalu panjang, pastikan Anda menyalin kode modal Anda yang terakhir) --}}
+         @if (session()->has('error'))
+        <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm flex items-center"
+            role="alert">
+            <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                    clip-rule="evenodd" />
+            </svg>
+            <p>{{ session('error') }}</p>
+        </div>
+    @endif
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" x-transition>
             <div class="bg-white rounded-lg shadow-xl w-full max-w-md flex flex-col max-h-[85vh]">
                 <form wire:submit.prevent="simpanBarang" class="flex flex-col flex-1 min-h-0">
@@ -284,8 +295,9 @@
                                 @enderror
                             </div>
                             <div>
-                                <label for="stok_minimum" class="block text-sm font-medium text-gray-700 mb-1">Stok
+                                <label for="stok_minimum" class="block text-sm font-medium text-gray-700">Stok
                                     Minimum</label>
+                                    <small class="text-xxs text-amber-300 mb-1">Tentukan stok minimum untuk memberi peringatan ketika stok barang hampir habis</small>
                                 <input type="number" wire:model="stok_minimum"
                                     class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500">
                                 @error('stok_minimum')
@@ -332,8 +344,16 @@
                                             <option value="{{ $sumber->id }}">{{ $sumber->nama_sumber }}</option>
                                         @endforeach
                                     </select>
-                                    <button type="button" wire:click="toggleSumberDanaBaru"
-                                        class="text-xs text-indigo-600 mt-1 underline">Tambah Baru</button>
+                                     {{-- Tombol Kecil "Tambah Baru" --}}
+                                <button type="button" wire:click="toggleSumberDanaBaru"
+                                    class="text-xs text-indigo-600 hover:text-indigo-800 mt-1 flex items-center font-semibold focus:outline-none">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    Tambah Sumber Dana Baru
+                                </button>
                                 @endif
                                 @error('sumber_dana_id')
                                     <span class="text-red-500 text-xs">{{ $message }}</span>
@@ -835,6 +855,7 @@
                                     @foreach (\App\Models\SumberDana::all() as $sumber)
                                         <option value="{{ $sumber->id }}">{{ $sumber->nama_sumber }}</option>
                                     @endforeach
+                                    
                                 </select>
 
                                 {{-- Tombol Kecil "Tambah Baru" --}}

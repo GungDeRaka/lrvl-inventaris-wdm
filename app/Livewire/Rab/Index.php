@@ -78,7 +78,7 @@ class Index extends Component
         if (Auth::user()->peran !== 'penjaga_gudang') return;
 
         $this->validate([
-            'judul' => 'required|string|min:5|max:30', // Validasi judul (5-30 karakter)
+            'judul' => 'required|string|min:5|max:100', // Validasi judul (5-30 karakter)
             'keterangan' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.nama' => 'required|string',
@@ -185,11 +185,14 @@ class Index extends Component
                         // 3. Catat di riwayat pengadaan (SETELAH BARANG DIBUAT/DITEMUKAN)
                         if ($barangIdToUse) {
                             PengadaanBarang::create([
-                                'barang_id' => $barangIdToUse, // <-- Sekarang ID-nya dijamin ada
+                                'barang_id' => $barangIdToUse,
                                 'jumlah' => $item->jumlah,
                                 'harga_satuan' => $item->harga_satuan,
-                                'sumber_dana' => 'Disetujui dari RAB #' . $this->selectedRab->id,
+                                'total_harga' => $item->harga_total,
+                                // PERBAIKAN DI SINI: Ambil sumber_dana_id dari item RAB
+                                'sumber_dana_id' => $item->sumber_dana_id,
                                 'tanggal_pengadaan' => $this->selectedRab->tanggal_keputusan,
+                                'user_id' => Auth::id(),
                             ]);
                         }
                     }
