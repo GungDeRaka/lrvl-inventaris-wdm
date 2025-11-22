@@ -482,10 +482,13 @@ class Index extends Component
         if ($this->detailBarangId) {
             $barang = Barang::with([
                 'riwayatPengadaan.sumberDana',
+                'riwayatPengadaan.barang.ruangan',
                 'pemindahanKeluar.barangTujuan.ruangan',
                 'pemindahanMasuk.barangAsal.ruangan'
             ])
                 ->findOrFail($this->detailBarangId);
+
+                $totalPengadaan = $barang->riwayatPengadaan->sum('jumlah');
 
             $distribusi = Transaksi::with('siswa')
                 ->whereHas('barangs', function ($query) {
@@ -498,6 +501,7 @@ class Index extends Component
             $detailData = [
                 'barang' => $barang,
                 'distribusi' => $distribusi,
+                'totalPengadaan' => $totalPengadaan,
                 'riwayatPengadaan' => $barang->riwayatPengadaan,
                 'riwayatPemindahanKeluar' => $barang->pemindahanKeluar,
                 'riwayatPemindahanMasuk' => $barang->pemindahanMasuk,

@@ -210,29 +210,29 @@
     {{-- FAB: Tambah Barang --}}
     <button wire:click="openModal"
         class="fixed bottom-8 right-8 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-purple-800 transition transform hover:scale-110 focus:outline-none z-50 flex items-center justify-center"
-            title="Buat Pengajuan RAB Baru">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            <span class="mx-2 text-sm font-semibold">Tambah Barang</span>
+        title="Buat Pengajuan RAB Baru">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        <span class="mx-2 text-sm font-semibold">Tambah Barang</span>
     </button>
 
     {{-- Modal Tambah/Edit Barang --}}
     @if ($showModal)
         {{-- ... (Gunakan kode modal tambah/edit yang sudah kita sempurnakan sebelumnya) ... --}}
         {{-- (Saya singkat di sini agar tidak terlalu panjang, pastikan Anda menyalin kode modal Anda yang terakhir) --}}
-         @if (session()->has('error'))
-        <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm flex items-center"
-            role="alert">
-            <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                    clip-rule="evenodd" />
-            </svg>
-            <p>{{ session('error') }}</p>
-        </div>
-    @endif
+        @if (session()->has('error'))
+            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm flex items-center"
+                role="alert">
+                <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                        clip-rule="evenodd" />
+                </svg>
+                <p>{{ session('error') }}</p>
+            </div>
+        @endif
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" x-transition>
             <div class="bg-white rounded-lg shadow-xl w-full max-w-md flex flex-col max-h-[85vh]">
                 <form wire:submit.prevent="simpanBarang" class="flex flex-col flex-1 min-h-0">
@@ -297,7 +297,8 @@
                             <div>
                                 <label for="stok_minimum" class="block text-sm font-medium text-gray-700">Stok
                                     Minimum</label>
-                                    <small class="text-xxs text-amber-300 mb-1">Tentukan stok minimum untuk memberi peringatan ketika stok barang hampir habis</small>
+                                <small class="text-xxs text-amber-300 mb-1">Tentukan stok minimum untuk memberi
+                                    peringatan ketika stok barang hampir habis</small>
                                 <input type="number" wire:model="stok_minimum"
                                     class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500">
                                 @error('stok_minimum')
@@ -344,16 +345,16 @@
                                             <option value="{{ $sumber->id }}">{{ $sumber->nama_sumber }}</option>
                                         @endforeach
                                     </select>
-                                     {{-- Tombol Kecil "Tambah Baru" --}}
-                                <button type="button" wire:click="toggleSumberDanaBaru"
-                                    class="text-xs text-indigo-600 hover:text-indigo-800 mt-1 flex items-center font-semibold focus:outline-none">
-                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 4v16m8-8H4"></path>
-                                    </svg>
-                                    Tambah Sumber Dana Baru
-                                </button>
+                                    {{-- Tombol Kecil "Tambah Baru" --}}
+                                    <button type="button" wire:click="toggleSumberDanaBaru"
+                                        class="text-xs text-indigo-600 hover:text-indigo-800 mt-1 flex items-center font-semibold focus:outline-none">
+                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                        Tambah Sumber Dana Baru
+                                    </button>
                                 @endif
                                 @error('sumber_dana_id')
                                     <span class="text-red-500 text-xs">{{ $message }}</span>
@@ -635,14 +636,25 @@
                         class="py-3 border-b-2 font-medium text-sm transition">Riwayat Pemindahan</button>
                 </div>
                 <div class="p-6 overflow-auto flex-1">
-                    {{--/! Konten Ringkasan  --}}
+                    {{-- /! Konten Ringkasan  --}}
                     <div x-show="activeTab === 'ringkasan'">
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                <p class="text-sm font-medium text-purple-800">Total Pengadaan</p>
+                                <p class="text-2xl font-bold text-purple-900">{{ $detailBarang['totalPengadaan'] }}
+                                </p>
+                                <p class="text-xs text-purple-600 mt-1">Jumlah asli dari pembelian</p>
+                            </div>
+
+                            {{-- Kartu Total Unit (Stok Saat Ini di Ruangan Ini) --}}
                             <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                                <p class="text-sm font-medium text-blue-800">Total Unit</p>
+                                <p class="text-sm font-medium text-blue-800">Stok Saat Ini</p>
                                 <p class="text-2xl font-bold text-blue-900">
                                     {{ $detailBarang['barang']->jumlah_total }}</p>
+                                <p class="text-xs text-blue-600 mt-1">Di
+                                    {{ $detailBarang['barang']->ruangan->nama_ruangan }}</p>
                             </div>
+
                             <div class="bg-green-50 p-4 rounded-lg border border-green-200">
                                 <p class="text-sm font-medium text-green-800">Stok Tersedia</p>
                                 <p class="text-2xl font-bold text-green-900">
@@ -656,7 +668,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     {{-- Konten Distribusi Peminjaman --}}
                     <div x-show="activeTab === 'distribusi'" style="display: none;">
                         <div class="overflow-x-auto">
@@ -701,42 +713,55 @@
                     </div>
                     {{-- Koten Riwayat Pengadaan --}}
                     <div x-show="activeTab === 'pengadaan'" style="display: none;">
-                       <div x-show="activeTab === 'pengadaan'" style="display: none;">
-                        <div class="overflow-x-auto">
-                            <table class="w-full table-auto">
-                                <thead>
-                                    <tr class="bg-gray-100">
-                                        <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
-                                            Tgl. Pengadaan</th>
-                                        <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
-                                            Jumlah</th>
-                                        <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
-                                            Harga Satuan</th>
-                                        <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
-                                            Sumber Dana</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200">
-                                    @forelse($detailBarang['riwayatPengadaan'] as $pengadaan)
-                                        <tr>
-                                            <td class="px-4 py-3 text-sm">
-                                                {{ \Carbon\Carbon::parse($pengadaan->tanggal_pengadaan)->format('d M Y') }}
-                                            </td>
-                                            <td class="px-4 py-3 text-sm">{{ $pengadaan->jumlah }} unit</td>
-                                            <td class="px-4 py-3 text-sm">Rp
-                                                {{ number_format($pengadaan->harga_satuan, 0, ',', '.') }}</td>
-                                            <td class="px-4 py-3 text-sm">{{ $pengadaan->sumber_dana }}</td>
+                        <div x-show="activeTab === 'pengadaan'" style="display: none;">
+                            <div class="overflow-x-auto">
+                                <table class="w-full table-auto">
+                                    <thead>
+                                        <tr class="bg-gray-100">
+                                            <th
+                                                class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
+                                                Tgl. Pengadaan</th>
+                                            <th
+                                                class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
+                                                Jumlah</th>
+                                            <th
+                                                class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
+                                                Harga Satuan</th>
+                                            <th
+                                                class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
+                                                Sumber Dana</th>
+                                            <th
+                                                class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">
+                                                Lokasi Saat Diadakan</th>
                                         </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="4" class="text-center py-4 text-gray-500">Belum ada
-                                                riwayat pengadaan untuk barang ini.</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        @forelse($detailBarang['riwayatPengadaan'] as $pengadaan)
+                                            <tr>
+                                                <td class="px-4 py-3 text-sm">
+                                                    {{ \Carbon\Carbon::parse($pengadaan->tanggal_pengadaan)->format('d M Y') }}
+                                                </td>
+                                                <td class="px-4 py-3 text-sm">{{ $pengadaan->jumlah }} unit</td>
+                                                <td class="px-4 py-3 text-sm">Rp
+                                                    {{ number_format($pengadaan->harga_satuan, 0, ',', '.') }}</td>
+                                                <td class="px-4 py-3 text-sm">
+                                                    <span
+                                                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                        {{ $pengadaan->sumberDana->nama_sumber ?? '-' }}
+                                                    </span>
+                                                </td>
+                                                <td class="px-4 py-3 text-sm">{{ $pengadaan->barang->ruangan->nama_ruangan ?? 'Data Lama' }}</td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="4" class="text-center py-4 text-gray-500">Belum ada
+                                                    riwayat pengadaan untuk barang ini.</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
                     </div>
                     <div x-show="activeTab === 'pemindahan'" style="display: none;">
                         <h4 class="font-semibold text-md text-gray-800 mb-2">Riwayat Barang Keluar (Dipindahkan)</h4>
@@ -855,7 +880,7 @@
                                     @foreach (\App\Models\SumberDana::all() as $sumber)
                                         <option value="{{ $sumber->id }}">{{ $sumber->nama_sumber }}</option>
                                     @endforeach
-                                    
+
                                 </select>
 
                                 {{-- Tombol Kecil "Tambah Baru" --}}
