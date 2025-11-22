@@ -21,10 +21,10 @@
         <h1 class="text-3xl font-bold text-gray-800 mb-6">Riwayat Pengajuan RAB Anda</h1>
 
         {{-- Form Pengajuan RAB --}}
-    
+
         {{-- Riwayat Pengajuan RAB Saya --}}
         <hr class="my-5 border-t-2">
-        
+
         <div class="bg-white shadow-md rounded-lg overflow-x-auto">
             <table class="w-full table-auto">
                 <thead class="bg-gray-50">
@@ -198,101 +198,189 @@
     {{-- Modal Detail & Proses RAB (Untuk Kepala Gudang) --}}
     @if ($showDetailModal && $selectedRab)
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30 p-4">
-            <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[85vh] flex flex-col">
-                <div class="flex justify-between items-center p-6 border-b flex-shrink-0">
-                    <h3 class="text-xl font-bold text-gray-900">Detail Pengajuan RAB: {{ $selectedRab->judul }}</h3>
-                    @if (session()->has('message'))
-                        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md shadow-sm"
-                            role="alert">
-                            {{ session('message') }}
-                        </div>
-                    @endif
-                    @if (session()->has('error'))
-                        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md shadow-sm"
-                            role="alert">
-                            {{ session('error') }}
-                        </div>
-                    @endif
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+
+                {{-- HEADER MODAL --}}
+                <div class="flex justify-between items-center p-5 border-b flex-shrink-0 bg-gray-50">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800">Detail Pengajuan RAB</h3>
+                        <p class="text-sm text-gray-500">ID Pengajuan: #{{ $selectedRab->id }}</p>
+                    </div>
                     <button wire:click="closeModal"
-                        class="text-gray-500 hover:text-gray-800 text-3xl leading-none">&times;</button>
+                        class="text-gray-400 hover:text-gray-600 transition text-2xl leading-none">&times;</button>
                 </div>
 
-                <div class="overflow-y-auto p-6 flex-1">
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <p class="text-sm"><strong>Tgl.
-                                Pengajuan:</strong><br>{{ \Carbon\Carbon::parse($selectedRab->tanggal_pengajuan)->format('d M Y') }}
-                        </p>
-                        <p class="text-sm"><strong>Diajukan Oleh:</strong><br>{{ $selectedRab->pengaju->name }}</p>
-                    </div>
-                    <p class="text-sm mb-4"><strong>Keterangan:</strong><br>{{ $selectedRab->keterangan ?: '-' }}</p>
+                <div class="overflow-y-auto flex-1 p-6">
 
-                    <h4 class="font-semibold text-md mb-2">Item Barang Diajukan:</h4>
-                    <div class="border rounded-md overflow-hidden">
+                    {{-- 1. STATUS BANNER --}}
+                    @if ($selectedRab->status == 'disetujui')
+                        <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-6 rounded-r-md">
+                            <div class="flex items-center">
+                                <svg class="h-6 w-6 text-green-500 mr-3" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div>
+                                    <p class="text-green-800 font-bold">DISETUJUI</p>
+                                    <p class="text-sm text-green-700">
+                                        Pada tanggal:
+                                        <strong>{{ \Carbon\Carbon::parse($selectedRab->tanggal_keputusan)->format('d M Y') }}</strong>
+                                        <br>Oleh: <strong>{{ $selectedRab->peninjau->name ?? '-' }}</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    @elseif($selectedRab->status == 'ditolak')
+                        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r-md">
+                            <div class="flex items-center">
+                                <svg class="h-6 w-6 text-red-500 mr-3" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div>
+                                    <p class="text-red-800 font-bold">DITOLAK</p>
+                                    <p class="text-sm text-red-700">
+                                        Pada tanggal:
+                                        <strong>{{ \Carbon\Carbon::parse($selectedRab->tanggal_keputusan)->format('d M Y') }}</strong>
+                                        <br>Oleh: <strong>{{ $selectedRab->peninjau->name ?? '-' }}</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-r-md">
+                            <div class="flex items-center">
+                                <svg class="h-6 w-6 text-yellow-500 mr-3" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p class="text-yellow-800 font-bold">MENUNGGU PERSETUJUAN</p>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- 2. INFORMASI UMUM --}}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-semibold">Tanggal Pengajuan</p>
+                            <p class="text-sm font-medium text-gray-900">
+                                {{ \Carbon\Carbon::parse($selectedRab->tanggal_pengajuan)->format('d F Y') }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-semibold">Diajukan Oleh</p>
+                            <p class="text-sm font-medium text-gray-900">{{ $selectedRab->pengaju->name }}</p>
+                        </div>
+                        <div class="md:col-span-2">
+                            <p class="text-xs text-gray-500 uppercase font-semibold">Keterangan/Alasan</p>
+                            <p class="text-sm text-gray-900 bg-gray-50 p-3 rounded border mt-1">
+                                {{ $selectedRab->keterangan ?: '-' }}</p>
+                        </div>
+                        {{-- Judul RAB --}}
+                        <div class="md:col-span-2">
+                            <p class="text-xs text-gray-500 uppercase font-semibold">Judul Pengajuan</p>
+                            <p class="text-sm font-bold text-gray-900">{{ $selectedRab->judul ?? '-' }}</p>
+                        </div>
+                    </div>
+
+                    {{-- 3. TABEL ITEM BARANG --}}
+                    <h4 class="font-bold text-gray-800 mb-3 flex items-center">
+                        <svg class="h-5 w-5 mr-2 text-primary" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                        Rincian Item Barang
+                    </h4>
+                    <div class="border rounded-lg overflow-hidden shadow-sm mb-6">
                         <table class="w-full table-auto text-sm">
-                            <thead class="bg-gray-50">
+                            <thead class="bg-gray-100 text-gray-600 font-semibold">
                                 <tr>
-                                    <th class="px-3 py-2 text-left">Nama Barang</th>
-                                    <th class="px-3 py-2 text-left">Spesifikasi</th>
-                                    <th class="px-3 py-2 text-center">Jumlah</th>
-                                    <th class="px-3 py-2 text-right">Harga Satuan</th>
-                                    <th class="px-3 py-2 text-right">Harga Total</th>
+                                    <th class="px-4 py-3 text-left">Nama Barang</th>
+                                    <th class="px-4 py-3 text-left">Spesifikasi</th>
+                                    {{-- Kolom Sumber Dana (Jika sudah ada di database) --}}
+                                    <th class="px-4 py-3 text-left">Sumber Dana</th>
+                                    <th class="px-4 py-3 text-center">Jml</th>
+                                    <th class="px-4 py-3 text-right">Harga Satuan</th>
+                                    <th class="px-4 py-3 text-right">Total</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y">
+                            <tbody class="divide-y divide-gray-200">
                                 @php $grandTotal = 0; @endphp
                                 @foreach ($selectedRab->items as $item)
                                     @php $grandTotal += $item->harga_total; @endphp
-                                    <tr>
-                                        <td class="px-3 py-2">{{ $item->nama_barang_baru }}</td>
-                                        <td class="px-3 py-2">{{ $item->spesifikasi ?: '-' }}</td>
-                                        <td class="px-3 py-2 text-center">{{ $item->jumlah }}</td>
-                                        <td class="px-3 py-2 text-right">Rp
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-3 font-medium text-gray-900">{{ $item->nama_barang_baru }}
+                                        </td>
+                                        <td class="px-4 py-3 text-gray-500">{{ $item->spesifikasi ?: '-' }}</td>
+                                        {{-- Menampilkan Sumber Dana (Asumsi relasi sudah ada di model RabItem) --}}
+                                        <td class="px-4 py-3 text-gray-500">
+                                            @if ($item->sumber_dana_id)
+                                                <span
+                                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                    {{ \App\Models\SumberDana::find($item->sumber_dana_id)->nama_sumber ?? '-' }}
+                                                </span>
+                                            @else
+                                                -
+                                            @endif
+                                        </td>
+                                        <td class="px-4 py-3 text-center">{{ $item->jumlah }}</td>
+                                        <td class="px-4 py-3 text-right">Rp
                                             {{ number_format($item->harga_satuan, 0, ',', '.') }}</td>
-                                        <td class="px-3 py-2 text-right">Rp
+                                        <td class="px-4 py-3 text-right font-semibold">Rp
                                             {{ number_format($item->harga_total, 0, ',', '.') }}</td>
                                     </tr>
                                 @endforeach
-                                <tr class="bg-gray-100 font-bold">
-                                    <td colspan="4" class="px-3 py-2 text-right text-base">Grand Total:</td>
-                                    <td class="px-3 py-2 text-right text-base">Rp
+                                <tr class="bg-gray-50 font-bold text-gray-900">
+                                    <td colspan="5" class="px-4 py-3 text-right">GRAND TOTAL:</td>
+                                    <td class="px-4 py-3 text-right text-lg text-primary">Rp
                                         {{ number_format($grandTotal, 0, ',', '.') }}</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <div class="mt-6">
-                        <label for="catatan_kepala" class="block text-sm font-medium text-gray-700">
+                    {{-- 4. CATATAN KEPALA GUDANG --}}
+                    <div>
+                        <label for="catatan_kepala" class="block text-sm font-semibold text-gray-700 mb-1">
                             @if ($selectedRab->status == 'diajukan' && auth()->user()->peran === 'kepala_gudang')
-                                Catatan (Opsional)
+                                Berikan Catatan (Opsional)
                             @else
                                 Catatan Kepala Gudang
                             @endif
                         </label>
-                        <textarea wire:model="catatan_kepala" id="catatan_kepala" rows="2"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary
-                           {{-- Tambahkan class ini untuk menonaktifkan tampilan --}}
-                           @if ($selectedRab->status != 'diajukan' || auth()->user()->peran === 'penjaga_gudang') bg-gray-100 cursor-not-allowed @endif
-                    "
-                            {{-- Tambahkan atribut disabled --}} @if ($selectedRab->status != 'diajukan' || auth()->user()->peran === 'penjaga_gudang') disabled @endif></textarea>
-                        @error('catatan_kepala')
-                            <span class="text-red-500 text-xs">{{ $message }}</span>
-                        @enderror
+                        <textarea wire:model="catatan_kepala" rows="3"
+                            class="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary bg-white disabled:bg-gray-100 disabled:text-gray-500"
+                            @if ($selectedRab->status != 'diajukan' || auth()->user()->peran === 'penjaga_gudang') disabled @endif></textarea>
+                        @if ($selectedRab->catatan_kepala && $selectedRab->status != 'diajukan')
+                            <p class="mt-1 text-xs text-gray-500">Catatan ini diberikan saat proses
+                                persetujuan/penolakan.</p>
+                        @endif
                     </div>
-
                 </div>
 
-                <div
-                    class="p-6 border-t flex {{ $selectedRab->status == 'diajukan' && auth()->user()->peran === 'kepala_gudang' ? 'justify-end' : 'justify-center' }} space-x-3 flex-shrink-0">
+                {{-- FOOTER TOMBOL --}}
+                <div class="p-5 border-t bg-gray-50 flex justify-end space-x-3 flex-shrink-0">
                     <button type="button" wire:click="closeModal"
-                        class="px-4 py-2 bg-gray-600 text-white rounded-md shadow-sm hover:bg-gray-700">Tutup</button>
+                        class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md shadow-sm hover:bg-gray-50 font-medium transition">Tutup</button>
 
-                    {{-- Tombol aksi hanya muncul jika status 'diajukan' dan user adalah Kepala Gudang --}}
                     @if ($selectedRab->status == 'diajukan' && auth()->user()->peran === 'kepala_gudang')
                         <button type="button" wire:click="prosesKeputusan('ditolak')"
-                            class="px-4 py-2 bg-red-600 text-white rounded-md shadow-sm hover:bg-red-700">Tolak</button>
+                            class="px-4 py-2 bg-red-600 text-white rounded-md shadow-sm hover:bg-red-700 font-medium transition flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg> Tolak
+                        </button>
                         <button type="button" wire:click="prosesKeputusan('disetujui')"
-                            class="px-4 py-2 bg-primary text-white rounded-md shadow-sm hover:bg-purple-800">Setujui</button>
+                            class="px-4 py-2 bg-primary text-white rounded-md shadow-sm hover:bg-purple-800 font-medium transition flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7" />
+                            </svg> Setujui
+                        </button>
                     @endif
                 </div>
             </div>

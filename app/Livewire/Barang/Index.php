@@ -218,7 +218,7 @@ class Index extends Component
                         $rab = RabPengadaan::create([
                             // TODO perbaiki error
                             'user_id' => $user->id,
-                            'judul' => 'Pengajuan barang baru: ' . $validatedData['nama_barang'],
+                            'judul' => 'Pengajuan barang baru (' . $validatedData['nama_barang'] . ' )',
                             'keterangan' => 'Pengajuan barang baru: ' . $validatedData['nama_barang'],
                             'tanggal_pengajuan' => $validatedData['tanggal_pengadaan'],
                             'status' => 'diajukan',
