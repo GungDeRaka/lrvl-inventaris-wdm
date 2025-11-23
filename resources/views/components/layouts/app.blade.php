@@ -42,13 +42,13 @@
                 {{-- Link Dashboard --}}
                 <a href="{{ route('dashboard') }}" title="Dashboard Transaksi Peminjaman"
                     class="flex items-center space-x-3 p-3 rounded-md hover:bg-white/20 {{ request()->routeIs('dashboard') ? 'bg-white/20' : '' }}">
-                    <svg class="h-6 w-6 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6-4h.01M12 17h.01">
-                        </path>
-                    </svg>
-                    <span :class="!isSidebarOpen && 'hidden'" class="overflow-hidden whitespace-nowrap">Dashboard</span>
+                <svg class="h-6 w-6 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+        </path>
+    </svg>
+                    <span :class="!isSidebarOpen && 'hidden'" class="overflow-hidden whitespace-nowrap">Dashboard
+                        Transaksi</span>
                 </a>
 
                 {{-- Link Manajemen Barang --}}
@@ -90,7 +90,7 @@
                         <svg class="h-6 w-6 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
                             </path>
                         </svg>
                         <span :class="!isSidebarOpen && 'hidden'" class="overflow-hidden whitespace-nowrap">Manajemen
