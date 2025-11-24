@@ -90,7 +90,9 @@ class Index extends Component
         $ruangan = Ruangan::findOrFail($id);
 
         // 1. Ambil barang yang berasal dari ruangan ini
-        $barangAsal = Barang::where('ruangan_id', $id)->get();
+        $barangAsal = Barang::where('ruangan_id', $id)
+            ->where('jumlah_total', '>', 0)
+            ->get();
 
         // 2. Ambil barang yang sedang dipinjam & digunakan di ruangan ini
         $barangPinjamanMasuk = Transaksi::with('barangs.ruangan')

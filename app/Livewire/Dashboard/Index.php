@@ -92,6 +92,7 @@ class Index extends Component
                     $query->where('nama_barang', 'like', '%' . $value . '%')
                         ->orWhere('kode_barang', 'like', '%' . $value . '%');
                 })
+                ->where('jumlah_saat_ini', '>', 0)
                 ->limit(5)->get();
         } else {
             $this->barangDitemukan = [];

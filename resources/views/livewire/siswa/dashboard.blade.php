@@ -1,378 +1,553 @@
-<div>
+<div class="min-h-screen bg-gray-50 pb-20 md:pb-8">
+    {{-- 1. Header Section dengan Gradient & Sapaan Personal --}}
+    <div class="relative bg-gradient-to-br from-primary to-purple-800 pb-24 pt-8 rounded-b-[2rem] shadow-lg">
+        <div class="px-6 md:px-10">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-purple-200 text-sm font-medium mb-1">Selamat Datang,</p>
+                    <h1 class="text-2xl md:text-3xl font-bold text-white leading-tight">
+                        {{ auth()->guard('siswa')->user()->nama }} 👋
+                    </h1>
+                </div>
 
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">
-        Hai {{ auth()->guard('siswa')->user()->nama }}, ada barang yang mau dipinjam?
-    </h1>
-
-    {{-- Notifikasi --}}
-    @if (session()->has('message'))
-        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
-            {{ session('message') }}</div>
-    @endif
-    @if (session()->has('error'))
-        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">{{ session('error') }}
+                {{-- Status Akun Badge --}}
+                @if (auth()->guard('siswa')->user()->is_ditangguhkan)
+                    <span
+                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-500 text-white shadow-sm border border-red-400">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Akun Ditangguhkan
+                    </span>
+                @else
+                    <span
+                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-100 border border-green-400/30 backdrop-blur-sm">
+                        <span class="w-2 h-2 rounded-full bg-green-400 mr-2 animate-pulse"></span>
+                        Akun Aktif
+                    </span>
+                @endif
+            </div>
         </div>
-    @endif
+    </div>
 
-    {{-- Tombol Aksi Utama --}}
-    <div class="mb-6">
+    {{-- Container Utama (Offset ke atas untuk efek menumpuk) --}}
+    <div class="px-4 md:px-8 -mt-16 relative z-10">
+
+        {{-- 2. Notifikasi Alert (Jika ada) --}}
+        @if (session()->has('message'))
+            <div
+                class="mb-6 bg-white border-l-4 border-green-500 p-4 rounded-r-xl shadow-md flex items-start animate-fade-in-up">
+                <div class="text-green-500 mr-3"><svg class="w-6 h-6" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg></div>
+                <p class="text-sm text-gray-700">{{ session('message') }}</p>
+            </div>
+        @endif
+        @if (session()->has('error'))
+            <div
+                class="mb-6 bg-white border-l-4 border-red-500 p-4 rounded-r-xl shadow-md flex items-start animate-fade-in-up">
+                <div class="text-red-500 mr-3"><svg class="w-6 h-6" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg></div>
+                <p class="text-sm text-gray-700">{{ session('error') }}</p>
+            </div>
+        @endif
+
+        {{-- 3. Tombol Aksi Utama (Card Besar) --}}
         <button wire:click="$set('showRequestModal', true)"
             {{ auth()->guard('siswa')->user()->is_ditangguhkan ? 'disabled' : '' }}
-            class="w-full bg-primary text-white font-bold py-3 px-6 rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
-            Buat Permintaan Peminjaman
-        </button>
-    </div>
+            class="w-full group relative overflow-hidden bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-left disabled:opacity-70 disabled:cursor-not-allowed mb-8 border border-gray-100">
 
-    {{-- Navigasi Tab --}}
-    <div class="mb-4 border-b border-gray-200">
-        <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+            <div
+                class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-primary/10 rounded-full group-hover:scale-150 transition-transform duration-500">
+            </div>
+
+            <div class="relative flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 group-hover:text-primary transition-colors">Pinjam Barang
+                        Baru</h3>
+                    <p class="text-sm text-gray-500 mt-1">Klik di sini untuk membuat pengajuan peminjaman alat atau
+                        barang.</p>
+                </div>
+                <div
+                    class="h-12 w-12 bg-primary text-white rounded-full flex items-center justify-center shadow-md group-hover:bg-purple-700 transition-colors transform group-hover:rotate-90 duration-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                </div>
+            </div>
+        </button>
+
+        {{-- 4. Navigasi Tab Modern --}}
+        <div class="flex space-x-1 bg-gray-200/80 p-1 rounded-xl mb-6 backdrop-blur-sm overflow-x-auto">
             <button wire:click="setActiveTab('riwayat')"
-                class="py-3 px-1 border-b-2 font-medium text-sm {{ $activeTab == 'riwayat' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
-                Riwayat Permintaan Anda
+                class="flex-1 flex items-center justify-center py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-200 whitespace-nowrap
+                {{ $activeTab == 'riwayat' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700' }}">
+                <svg class="w-4 h-4 mr-2 {{ $activeTab == 'riwayat' ? 'text-primary' : 'text-gray-400' }}"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Riwayat Peminjaman
             </button>
             <button wire:click="setActiveTab('ketersediaan')"
-                class="py-3 px-1 border-b-2 font-medium text-sm {{ $activeTab == 'ketersediaan' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
-                Ketersediaan Barang
+                class="flex-1 flex items-center justify-center py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-200 whitespace-nowrap
+                {{ $activeTab == 'ketersediaan' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700' }}">
+                <svg class="w-4 h-4 mr-2 {{ $activeTab == 'ketersediaan' ? 'text-primary' : 'text-gray-400' }}"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+                    </path>
+                </svg>
+                Cek Stok Barang
             </button>
-        </nav>
-    </div>
+        </div>
 
-    <hr class="mb-2 border-t-4 border-primary">
+        {{-- 5. Konten Utama --}}
+        <div class="min-h-[300px]">
+            {{-- TAB RIWAYAT --}}
+            @if ($activeTab == 'riwayat')
+                <div class="space-y-4">
+                    @forelse($riwayat as $item)
+                        @php
+                            $statusColors = match ($item->status) {
+                                'disetujui' => [
+                                    'bg' => 'bg-cyan-50',
+                                    'text' => 'text-cyan-700',
+                                    'border' => 'border-cyan-200',
+                                    'icon' => 'text-cyan-500',
+                                ],
+                                'dipinjam' => [
+                                    'bg' => 'bg-blue-50',
+                                    'text' => 'text-blue-700',
+                                    'border' => 'border-blue-200',
+                                    'icon' => 'text-blue-500',
+                                ],
+                                'dikembalikan' => [
+                                    'bg' => 'bg-green-50',
+                                    'text' => 'text-green-700',
+                                    'border' => 'border-green-200',
+                                    'icon' => 'text-green-500',
+                                ],
+                                'ditolak' => [
+                                    'bg' => 'bg-red-50',
+                                    'text' => 'text-red-700',
+                                    'border' => 'border-red-200',
+                                    'icon' => 'text-red-500',
+                                ],
+                                'menunggu-konfirmasi' => [
+                                    'bg' => 'bg-yellow-50',
+                                    'text' => 'text-yellow-700',
+                                    'border' => 'border-yellow-200',
+                                    'icon' => 'text-yellow-500',
+                                ],
+                                'perpanjangan-diajukan' => [
+                                    'bg' => 'bg-purple-50',
+                                    'text' => 'text-purple-700',
+                                    'border' => 'border-purple-200',
+                                    'icon' => 'text-purple-500',
+                                ],
+                                default => [
+                                    'bg' => 'bg-gray-50',
+                                    'text' => 'text-gray-700',
+                                    'border' => 'border-gray-200',
+                                    'icon' => 'text-gray-500',
+                                ],
+                            };
 
-    {{-- Konten Tab --}}
-    <div>
-        {{-- Konten untuk Tab Riwayat --}}
-        @if ($activeTab == 'riwayat')
-            <div class="bg-white shadow-md rounded-lg overflow-x-auto">
-                <table class="w-full table-auto">
-                    <thead class="bg-primary">
-                        <tr>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Barang yang
-                                Dipinjam</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Jadwal Booking
-                            </th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Status</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        @forelse($riwayat as $item)
-                            @php
-                                // Tentukan class untuk badge status
-                                $statusBadgeClass = match ($item->status) {
-                                    'disetujui' => 'bg-cyan-100 text-cyan-800',
-                                    'dipinjam' => 'bg-blue-100 text-blue-800',
-                                    'dikembalikan' => 'bg-green-100 text-green-800',
-                                    'ditolak' => 'bg-red-100 text-red-800',
-                                    'menunggu-konfirmasi' => 'bg-yellow-100 text-yellow-800',
-                                    default => 'bg-gray-100 text-gray-800', // Untuk 'diajukan'
-                                };
-                            @endphp
-                            <tr>
-                                <td class="px-4 py-3 text-sm">
-                                    @foreach ($item->barangs as $barang)
-                                        <span class="block">{{ $barang->nama_barang }} ({{ $barang->pivot->kuantitas }}
-                                            unit)</span>
-                                    @endforeach
-                                </td>
-                                <td class="px-4 py-3 text-sm text-gray-600">
-    @php
-        // Tampilkan waktu aktual jika ada, jika tidak, tampilkan waktu jatuh tempo
-        $waktuSelesai = $item->waktu_pengembalian_aktual ?? $item->waktu_kembali;
-    @endphp
-    {{ \Carbon\Carbon::parse($item->waktu_pinjam)->format('d M, H:i') }} - {{ \Carbon\Carbon::parse($waktuSelesai)->format('d M, H:i') }}
-</td>
-                                <td class="px-4 py-3">
-                                    <span
-                                        class="text-xs font-semibold px-2.5 py-1 rounded-full {{ $statusBadgeClass }}">
-                                        {{ $item->status == 'menunggu-konfirmasi' ? 'Menunggu Konfirmasi' : ucfirst($item->status) }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 text-sm">
+                            // Logika waktu
+                            $waktuSelesai = $item->waktu_pengembalian_aktual ?? $item->waktu_kembali;
+                            $waktuKembaliCarbon = \Carbon\Carbon::parse($item->waktu_kembali);
+                            $isMendekatiBatas =
+                                $item->status == 'dipinjam' &&
+                                $waktuKembaliCarbon->between(now(), now()->addMinutes(30));
+                        @endphp
+
+                        {{-- Card Riwayat --}}
+                        <div
+                            class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                            {{-- Header Card --}}
+                            <div
+                                class="px-5 py-3 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+                                <span
+                                    class="text-xs text-gray-500 font-medium">{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y, H:i') }}</span>
+                                <span
+                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase {{ $statusColors['bg'] }} {{ $statusColors['text'] }}">
+                                    {{ $item->status == 'menunggu-konfirmasi' ? 'Menunggu Konfirmasi' : ucfirst(str_replace('-', ' ', $item->status)) }}
+                                </span>
+                            </div>
+
+                            {{-- Body Card --}}
+                            <div class="p-5">
+                                <div class="mb-4">
+                                    <p class="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">Barang
+                                        Dipinjam</p>
+                                    <ul class="space-y-2">
+                                        @foreach ($item->barangs as $barang)
+                                            <li class="flex items-center text-gray-800">
+                                                <span class="w-2 h-2 rounded-full bg-primary mr-2"></span>
+                                                <span class="font-semibold">{{ $barang->nama_barang }}</span>
+                                                <span
+                                                    class="ml-auto text-sm bg-gray-100 px-2 py-0.5 rounded text-gray-600">x{{ $barang->pivot->kuantitas }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+
+                                <div
+                                    class="flex flex-col sm:flex-row sm:items-center text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
+                                    <div class="flex items-center mb-2 sm:mb-0 sm:mr-4">
+                                        <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                            </path>
+                                        </svg>
+                                        <span>{{ \Carbon\Carbon::parse($item->waktu_pinjam)->format('d M, H:i') }}</span>
+                                    </div>
+                                    <div class="hidden sm:block text-gray-300 mx-2">➝</div>
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span
+                                            class="{{ $isMendekatiBatas ? 'text-orange-600 font-bold animate-pulse' : '' }}">
+                                            {{ \Carbon\Carbon::parse($waktuSelesai)->format('d M, H:i') }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                @if ($item->status == 'ditolak' && $item->alasan_penolakan)
+                                    <div
+                                        class="mt-3 p-3 bg-red-50 rounded-lg border border-red-100 text-sm text-red-800">
+                                        <span class="font-bold block mb-1">⚠️ Alasan Penolakan:</span>
+                                        {{ $item->alasan_penolakan }}
+                                    </div>
+                                @endif
+                            </div>
+
+                            {{-- Footer Card (Aksi) --}}
+                            @if (!in_array($item->status, ['dikembalikan', 'ditolak']) || !in_array($item->status, ['diajukan', 'ditolak']))
+                                <div
+                                    class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex flex-wrap gap-2 justify-end">
+                                    {{-- Tombol Cetak Struk --}}
+                                    @if (!in_array($item->status, ['diajukan', 'ditolak']))
+                                        <a href="{{ route('transaksi.cetak', $item->id) }}" target="_blank"
+                                            class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                            <svg class="w-4 h-4 mr-1 text-gray-500" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m8-4V3a1 1 0 00-1-1H8a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1zM7 10a1 1 0 011-1h8a1 1 0 011 1v10H7V10z">
+                                                </path>
+                                            </svg>
+                                            Struk
+                                        </a>
+                                    @endif
+
                                     @if ($item->status == 'diajukan' || $item->status == 'disetujui')
                                         <button wire:click="batalkanPermintaan({{ $item->id }})"
                                             wire:confirm="Anda yakin?"
-                                            class="font-semibold text-red-600 hover:underline">Batalkan</button>
-                                    @endif
-
-                                    @php
-                                        $waktuKembali = \Carbon\Carbon::parse($item->waktu_kembali);
-                                        $isMendekatiBatas =
-                                            $item->status == 'dipinjam' &&
-                                            $waktuKembali->isFuture() &&
-                                            $waktuKembali->diffInMinutes(now()) <= 30;
-                                    @endphp
-                                    @if ($isMendekatiBatas)
-                                        <button wire:click="mintaPerpanjangan({{ $item->id }})"
-                                            wire:confirm="Anda yakin ingin mengajukan perpanjangan untuk peminjaman ini?"
-                                            class="font-semibold text-orange-600 hover:underline">
-                                            Minta Perpanjangan
+                                            class="inline-flex items-center px-3 py-1.5 border border-red-300 shadow-sm text-xs font-medium rounded text-red-700 bg-white hover:bg-red-50 focus:outline-none">
+                                            Batalkan
                                         </button>
                                     @endif
 
                                     @if ($item->status == 'dipinjam')
                                         <button wire:click="bukaModalPengembalian({{ $item->id }})"
-                                            class="font-semibold text-indigo-600 hover:underline">Ajukan
-                                            Pengembalian</button>
+                                            class="inline-flex items-center px-3 py-1.5 border border-transparent shadow-sm text-xs font-medium rounded text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none">
+                                            Kembalikan
+                                        </button>
                                     @endif
-                                    <a href="{{ route('transaksi.cetak', $item->id) }}" target="_blank"
-                                        class="font-semibold text-gray-600 hover:underline">
-                                        Cetak
-                                    </a>
-                                </td>
-                            </tr>
-                            @if ($item->status == 'ditolak' && $item->alasan_penolakan)
-                                <tr>
-                                    <td colspan="4" class="px-4 pb-3 -pt-2 bg-red-50">
-                                        <p class="text-xs text-red-700"><strong class="font-semibold">Alasan:</strong>
-                                            {{ $item->alasan_penolakan }}</p>
-                                    </td>
-                                </tr>
+
+                                    @if ($isMendekatiBatas)
+                                        <button wire:click="mintaPerpanjangan({{ $item->id }})"
+                                            wire:confirm="Ajukan perpanjangan?"
+                                            class="inline-flex items-center px-3 py-1.5 border border-transparent shadow-sm text-xs font-medium rounded text-white bg-orange-500 hover:bg-orange-600 focus:outline-none animate-bounce">
+                                            Minta Perpanjangan
+                                        </button>
+                                    @endif
+                                </div>
                             @endif
-                        @empty
-                            <tr>
-                                <td colspan="4" class="text-center py-6 text-gray-500">Anda belum memiliki riwayat
-                                    permintaan.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        @endif
-
-        {{-- Konten untuk Tab Ketersediaan Barang --}}
-        @if ($activeTab == 'ketersediaan')
-            {{-- Header dengan Filter Dropdown --}}
-            <div class="flex items-center gap-1 mb-4">
-                <h2 class="text-lg font-semibold text-gray-700 whitespace-nowrap">Daftar barang tersedia di:</h2>
-
-                <div class="relative">
-                    <select wire:model.live="filterRuangan"
-                        class="block appearance-none w-full bg-transparent border-none text-primary font-semibold pr-8 rounded leading-tight focus:outline-none focus:bg-transparent focus:border-none">
-                        <option value="">Semua Ruangan</option>
-                        @foreach ($semuaRuangan as $ruangan)
-                            <option value="{{ $ruangan->id }}">{{ $ruangan->nama_ruangan }}</option>
-                        @endforeach
-                    </select>
-                    {{-- <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                        </svg>
-                    </div> --}}
+                        </div>
+                    @empty
+                        <div class="text-center py-12 bg-white rounded-xl border border-gray-200 shadow-sm">
+                            <div
+                                class="mx-auto h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                                <svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+                                    </path>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900">Belum ada riwayat</h3>
+                            <p class="mt-1 text-sm text-gray-500">Mulai pinjam barang untuk melihat riwayat di sini.
+                            </p>
+                        </div>
+                    @endforelse
                 </div>
-            </div>
+            @endif
 
-            {{-- Tabel Ketersediaan Barang Terpadu --}}
-            <div class="bg-white shadow-md rounded-lg overflow-x-auto">
-                <table class="w-full table-auto">
-                    <thead>
-                        <tr class="bg-primary">
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Nama Barang
-                            </th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Kategori</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Stok Tersedia
-                            </th>
-                            {{-- Tampilkan kolom Ruangan hanya jika tidak difilter --}}
-                            @if (!$filterRuangan)
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-white uppercase">Ruangan
-                                </th>
-                            @endif
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        @forelse($semuaBarangTersedia as $barang)
-                            <tr class="block sm:table-row">
-                                <td class="px-4 py-3 text-sm font-semibold sm:font-normal" data-label="Nama Barang">
-                                    {{ $barang->nama_barang }}</td>
-                                <td class="px-4 py-3 text-sm text-gray-600" data-label="Kategori">
-                                    {{ $barang->kategori->nama_kategori }}</td>
-                                <td class="px-4 py-3 text-sm text-gray-600" data-label="Stok Tersedia">
-                                    {{ $barang->jumlah_saat_ini }}</td>
-                                @if (!$filterRuangan)
-                                    <td class="px-4 py-3 text-sm text-gray-600" data-label="Ruangan">
-                                        {{ $barang->ruangan->nama_ruangan }}</td>
-                                @endif
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="text-center py-6 text-gray-500">Tidak ada barang tersedia.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        @endif
+            {{-- TAB KETERSEDIAAN --}}
+            @if ($activeTab == 'ketersediaan')
+                <div class="space-y-6">
+                    {{-- Filter Header --}}
+                    <div
+                        class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <h2 class="text-gray-800 font-bold text-sm md:text-base">Filter Ruangan:</h2>
+                        <div class="relative w-48 md:w-64">
+                            {{-- Pastikan wire:model.live ada di sini --}}
+                            <select wire:model.live="filterRuangan"
+                                class="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-lg bg-gray-50">
+                                <option value="">Semua Ruangan</option>
+                                {{-- Gunakan $semuaRuangan untuk isi dropdown --}}
+                                @foreach ($semuaRuangan as $ruangan)
+                                    <option value="{{ $ruangan->id }}">{{ $ruangan->nama_ruangan }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
 
+                    {{-- Loop Barang (Gunakan variabel $ruangansDenganBarang) --}}
+                    @forelse($ruangansDenganBarang as $ruangan)
+                        @if ($ruangan->barangs->isNotEmpty())
+                            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                                <div class="px-6 py-4 border-b border-gray-50 bg-gray-50/50">
+                                    <h3 class="font-bold text-gray-800 flex items-center">
+                                        <span class="w-1.5 h-6 bg-primary rounded-full mr-3"></span>
+                                        {{ $ruangan->nama_ruangan }}
+                                    </h3>
+                                </div>
+                                <div class="divide-y divide-gray-100">
+                                    @foreach ($ruangan->barangs as $barang)
+                                        <div
+                                            class="p-4 flex justify-between items-center hover:bg-gray-50 transition-colors">
+                                            <div>
+                                                <p class="font-semibold text-gray-800">{{ $barang->nama_barang }}</p>
+                                                <p class="text-xs text-gray-500 mt-0.5">
+                                                    {{ $barang->kategori->nama_kategori }}</p>
+                                            </div>
+                                            <span
+                                                class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-bold bg-green-100 text-green-800">
+                                                {{ $barang->jumlah_saat_ini }} Tersedia
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    @empty
+                        <div class="text-center py-12">
+                            <p class="text-gray-500">Tidak ada barang tersedia di ruangan yang dipilih.</p>
+                        </div>
+                    @endforelse
+                </div>
+            @endif
+        </div>
     </div>
-    {{-- Modal Form Permintaan --}}
-    @if ($showRequestModal)
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
-            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
-                <form wire:submit.prevent="ajukanPeminjaman">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Buat Permintaan Peminjaman</h3>
 
-                    <div class="space-y-4">
-                        {{-- Pencarian Barang --}}
-                        <div class="relative">
-                            <label for="searchBarangSiswa" class="block text-sm font-medium text-gray-700">Cari & Tambah
-                                Barang</label>
-                            <input type="text" id="searchBarangSiswa" wire:model.live.debounce.300ms="searchBarang"
-                                placeholder="Ketik nama barang..." autocomplete="off"
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+    {{-- 6. Modal Form Permintaan (Desain Ulang) --}}
+    @if ($showRequestModal)
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-end md:items-center justify-center z-50 p-0 md:p-4"
+            x-transition.opacity>
+            <div class="bg-white w-full md:max-w-lg h-[90vh] md:h-auto md:max-h-[85vh] rounded-t-2xl md:rounded-2xl shadow-2xl flex flex-col"
+                @click.away="$set('showRequestModal', false)">
+
+                {{-- Header Modal --}}
+                <div
+                    class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
+                    <h3 class="text-lg font-bold text-gray-800">Form Peminjaman</h3>
+                    <button wire:click="$set('showRequestModal', false)"
+                        class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-200 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- Body Modal (Scrollable) --}}
+                <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                    <form wire:submit.prevent="ajukanPeminjaman">
+
+                        {{-- Search Barang --}}
+                        <div class="relative z-20">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Cari & Tambah Barang</label>
+                            <input type="text" wire:model.live.debounce.300ms="searchBarang"
+                                class="w-full border-gray-300 rounded-lg focus:ring-primary focus:border-primary text-sm py-2.5 pl-4"
+                                placeholder="Ketik nama barang..." autocomplete="off">
 
                             @if (!empty($barangDitemukan))
-                                <div class="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg border">
-                                    <ul class="max-h-60 overflow-auto">
+                                <div
+                                    class="absolute top-full left-0 w-full mt-1 bg-white rounded-lg shadow-xl border border-gray-100 max-h-60 overflow-y-auto z-30">
+                                    <ul class="py-1 text-sm">
                                         @forelse($barangDitemukan as $barang)
                                             @if ($barang->jumlah_saat_ini > 0)
-                                                {{-- BARANG TERSEDIA (Bisa Diklik) --}}
                                                 <li wire:click="tambahKeKeranjang({{ $barang->id }}, '{{ addslashes($barang->nama_barang) }}', '{{ $barang->ruangan->nama_ruangan }}')"
-                                                    class="px-4 py-2 cursor-pointer hover:bg-gray-100">
-                                                    {{ $barang->nama_barang }} (Stok: {{ $barang->jumlah_saat_ini }})
-                                                    <small class="block text-xs text-gray-500">Asal:
-                                                        {{ $barang->ruangan->nama_ruangan }}</small>
+                                                    class="px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-50 last:border-0 flex justify-between items-center group transition-colors">
+                                                    <div>
+                                                        <span
+                                                            class="font-semibold text-gray-800 block group-hover:text-primary">{{ $barang->nama_barang }}</span>
+                                                        <span class="text-xs text-gray-500">Lokasi:
+                                                            {{ $barang->ruangan->nama_ruangan }}</span>
+                                                    </div>
+                                                    <span
+                                                        class="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded font-bold">{{ $barang->jumlah_saat_ini }}
+                                                        Stok</span>
                                                 </li>
                                             @else
-                                                {{-- BARANG HABIS (Tidak Bisa Diklik) --}}
-                                                <li class="px-4 py-2 text-gray-400 cursor-not-allowed">
-                                                    {{ $barang->nama_barang }} (Stok habis)
+                                                <li
+                                                    class="px-4 py-3 text-gray-400 bg-gray-50 flex justify-between cursor-not-allowed">
+                                                    <span>{{ $barang->nama_barang }}</span>
+                                                    <span class="text-xs font-bold text-red-400">Habis</span>
                                                 </li>
                                             @endif
                                         @empty
-                                            <li class="px-4 py-2 text-gray-500">Barang tidak ditemukan.</li>
+                                            <li class="px-4 py-3 text-gray-500 text-center">Barang tidak ditemukan.
+                                            </li>
                                         @endforelse
                                     </ul>
                                 </div>
                             @endif
                         </div>
 
-                        {{-- KERANJANG PEMINJAMAN --}}
+                        {{-- Keranjang --}}
                         @if (!empty($keranjang))
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Barang yang Akan
-                                    Dipinjam:</label>
-                                <div class="mt-2 space-y-2 border rounded-md p-2 max-h-40 overflow-auto">
+                            <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Barang Dipilih
+                                    ({{ count($keranjang) }})</p>
+                                <div class="space-y-3 max-h-40 overflow-y-auto pr-1">
                                     @foreach ($keranjang as $index => $item)
-                                        <div class="flex justify-between items-center bg-gray-50 p-2 rounded">
-                                            <div>
-                                                <span class="text-sm font-semibold">{{ $item['nama'] }}</span>
-                                                <small class="block text-xs text-gray-500">Asal:
-                                                    {{ $item['asal'] }}</small>
+                                        <div
+                                            class="flex items-center justify-between bg-white p-3 rounded-lg shadow-sm border border-gray-100">
+                                            <div class="flex-1 min-w-0 mr-2">
+                                                <p class="text-sm font-bold text-gray-800 truncate">
+                                                    {{ $item['nama'] }}</p>
+                                                <p class="text-xs text-gray-500 truncate">{{ $item['asal'] }}</p>
                                             </div>
-                                            <div class="flex items-center space-x-2">
-                                                {{-- Tombol Kuantitas --}}
+                                            <div class="flex items-center bg-gray-100 rounded-lg p-1">
                                                 <button type="button"
                                                     wire:click="decrementKuantitas({{ $index }})"
-                                                    class="font-bold">-</button>
+                                                    class="w-6 h-6 flex items-center justify-center rounded bg-white text-gray-600 shadow-sm hover:text-primary font-bold">-</button>
                                                 <span
-                                                    class="text-sm w-8 text-center border rounded">{{ $item['kuantitas'] }}</span>
+                                                    class="w-8 text-center text-xs font-bold text-gray-800">{{ $item['kuantitas'] }}</span>
                                                 <button type="button"
                                                     wire:click="incrementKuantitas({{ $index }})"
-                                                    class="font-bold">+</button>
-                                                {{-- Tombol Hapus --}}
-                                                <button type="button"
-                                                    wire:click="hapusDariKeranjang({{ $index }})"
-                                                    class="text-red-500 hover:text-red-700 text-xs font-bold ml-2">HAPUS</button>
+                                                    class="w-6 h-6 flex items-center justify-center rounded bg-white text-gray-600 shadow-sm hover:text-primary font-bold">+</button>
                                             </div>
+                                            <button type="button"
+                                                wire:click="hapusDariKeranjang({{ $index }})"
+                                                class="ml-3 text-red-400 hover:text-red-600">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                                    </path>
+                                                </svg>
+                                            </button>
                                         </div>
                                     @endforeach
                                 </div>
                             </div>
                         @endif
                         @error('keranjang')
-                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
 
-                        {{-- Input lainnya --}}
-                        <div>
-                            <label for="ruang_pemakaian_siswa" class="block text-sm font-medium text-gray-700">Rencana
-                                Ruang Penggunaan</label>
-                            <select wire:model="ruang_pemakaian" id="ruang_pemakaian_siswa"
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                                <option value="">Pilih Ruangan</option>
-                                @foreach ($ruangans as $ruangan)
-                                    @php
-                                        $isAsalRuangan = isset($this->asalRuangan[$ruangan->nama_ruangan]);
-                                    @endphp
-                                    <option value="{{ $ruangan->nama_ruangan }}"
-                                        {{ $isAsalRuangan ? 'disabled' : '' }}
-                                        class="{{ $isAsalRuangan ? 'text-gray-400 cursor-not-allowed' : '' }}">
-                                        {{ $ruangan->nama_ruangan }}
-                                        @if ($isAsalRuangan)
-                                            (Ruangan Asal:
-                                            {{ $this->asalRuangan[$ruangan->nama_ruangan]->pluck('nama_barang')->join(', ') }})
-                                        @endif
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('ruang_pemakaian')
-                                <span class="text-red-500 text-xs">{{ $message }}</span>
-                            @enderror
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {{-- Ruang & Waktu --}}
+                        <div class="mt-4 space-y-4">
                             <div>
-                                <label for="waktu_pinjam" class="block text-sm font-medium text-gray-700">Waktu
-                                    Pinjam</label>
-                                <input type="datetime-local" wire:model="waktu_pinjam" id="waktu_pinjam"
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                                @error('waktu_pinjam')
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Lokasi Penggunaan</label>
+                                <select wire:model="ruang_pemakaian"
+                                    class="w-full border-gray-300 rounded-lg text-sm focus:ring-primary focus:border-primary">
+                                    <option value="">Pilih Ruangan...</option>
+                                    @foreach ($ruangans as $ruangan)
+                                        @php $isAsal = isset($this->asalRuangan[$ruangan->nama_ruangan]); @endphp
+                                        <option value="{{ $ruangan->nama_ruangan }}" {{ $isAsal ? 'disabled' : '' }}
+                                            class="{{ $isAsal ? 'text-gray-300' : '' }}">
+                                            {{ $ruangan->nama_ruangan }} {{ $isAsal ? '(Asal Barang)' : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('ruang_pemakaian')
                                     <span class="text-red-500 text-xs">{{ $message }}</span>
                                 @enderror
                             </div>
-                            <div>
-                                <label for="waktu_kembali" class="block text-sm font-medium text-gray-700">Waktu
-                                    Kembali</label>
-                                <input type="datetime-local" wire:model="waktu_kembali" id="waktu_kembali"
-                                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                                @error('waktu_kembali')
-                                    <span class="text-red-500 text-xs">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="mt-6 flex justify-end space-x-2">
-                        <button type="button" wire:click="$set('showRequestModal', false)"
-                            class="px-4 py-2 bg-gray-200 rounded">Batal</button>
-                        <button type="submit" class="px-4 py-2 bg-primary text-white rounded">Ajukan
-                            Permintaan</button>
-                    </div>
-                </form>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Pinjam</label>
+                                    <input type="datetime-local" wire:model="waktu_pinjam"
+                                        class="w-full border-gray-300 rounded-lg text-xs md:text-sm focus:ring-primary focus:border-primary">
+                                    @error('waktu_pinjam')
+                                        <span class="text-red-500 text-xs block">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Kembali</label>
+                                    <input type="datetime-local" wire:model="waktu_kembali"
+                                        class="w-full border-gray-300 rounded-lg text-xs md:text-sm focus:ring-primary focus:border-primary">
+                                    @error('waktu_kembali')
+                                        <span class="text-red-500 text-xs block">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Footer Modal (Tombol) --}}
+                        <div class="mt-8 pt-4 border-t border-gray-100 flex gap-3">
+                            <button type="button" wire:click="$set('showRequestModal', false)"
+                                class="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition">
+                                Batal
+                            </button>
+                            <button type="submit"
+                                class="flex-1 py-2.5 bg-primary text-white rounded-lg font-semibold shadow-md hover:bg-purple-800 transition transform active:scale-95">
+                                Ajukan Sekarang
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     @endif
 
-    {{-- Modal Pengembalian Mandiri --}}
+    {{-- Modal Pengembalian & Modal Lain (Gunakan struktur serupa jika ada) --}}
     @if ($showReturnModal && $returnTransaksi)
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
-            <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Form Pengembalian Barang</h3>
-                <p class="text-sm text-gray-600 mb-4">Laporkan jika ada barang yang rusak saat dikembalikan. Harap isi
-                    dengan jujur.</p>
+        {{-- ... (Kode modal pengembalian dengan style serupa modal di atas) ... --}}
+        <div class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-2">Pengembalian Barang</h3>
+                <p class="text-sm text-gray-500 mb-4">Cek kondisi barang sebelum dikembalikan.</p>
 
-                <div class="space-y-4 max-h-60 overflow-auto">
+                <div class="space-y-3 mb-6 max-h-60 overflow-y-auto">
                     @foreach ($returnTransaksi->barangs as $barang)
-                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-md">
-                            <span class="text-sm">{{ $barang->nama_barang }} (Dipinjam:
-                                {{ $barang->pivot->kuantitas }})</span>
-                            <div>
-                                <label for="rusak_{{ $barang->id }}" class="text-sm mr-2">Jumlah Rusak:</label>
-                                <input type="number" id="rusak_{{ $barang->id }}"
-                                    wire:model="kerusakanDilaporkan.{{ $barang->id }}"
-                                    class="w-20 text-sm border-gray-300 rounded-md" min="0"
+                        <div
+                            class="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-100">
+                            <span class="text-sm font-medium text-gray-800">{{ $barang->nama_barang }}</span>
+                            <div class="flex items-center">
+                                <label class="text-xs text-gray-500 mr-2">Rusak:</label>
+                                <input type="number" wire:model="kerusakanDilaporkan.{{ $barang->id }}"
+                                    class="w-16 border-gray-300 rounded text-center text-sm p-1" min="0"
                                     max="{{ $barang->pivot->kuantitas }}">
                             </div>
                         </div>
                     @endforeach
                 </div>
 
-                <div class="mt-6 flex justify-end space-x-2">
-                    <button type="button" wire:click="$set('showReturnModal', false)"
-                        class="px-4 py-2 bg-gray-200 rounded">Batal</button>
+                <div class="flex gap-3">
+                    <button wire:click="$set('showReturnModal', false)"
+                        class="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200">Batal</button>
                     <button wire:click="ajukanPengembalian"
-                        wire:confirm="Anda yakin data kerusakan yang diisi sudah benar?"
-                        class="px-4 py-2 bg-primary text-white rounded">Ajukan Pengembalian</button>
+                        class="flex-1 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 shadow">Kirim
+                        Laporan</button>
                 </div>
             </div>
         </div>

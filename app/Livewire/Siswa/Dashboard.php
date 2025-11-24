@@ -35,6 +35,7 @@ class Dashboard extends Component
             // Tambahkan with('ruangan')
             $this->barangDitemukan = Barang::with('ruangan')
                 ->where('nama_barang', 'like', '%' . $value . '%')
+                ->where('jumlah_saat_ini', '>', 0)
                 ->limit(5)->get();
         } else {
             $this->barangDitemukan = [];
@@ -215,7 +216,7 @@ class Dashboard extends Component
         $this->showReturnModal = false;
         session()->flash('message', 'Laporan pengembalian berhasil diajukan dan menunggu konfirmasi admin.');
     }
-// permomohonan perpanjangan peminjaman
+    // permomohonan perpanjangan peminjaman
     public function mintaPerpanjangan($id)
     {
         $transaksi = Transaksi::where('id', $id)
@@ -228,27 +229,43 @@ class Dashboard extends Component
             session()->flash('message', 'Permohonan perpanjangan berhasil diajukan, menunggu persetujuan admin.');
         }
     }
+    // app/Livewire/Siswa/Dashboard.php
+
     public function render()
     {
         $riwayat = Transaksi::with('barangs')
             ->where('siswa_id', auth()->guard('siswa')->id())
             ->latest()->get();
 
-        // Logika baru untuk mengambil data barang
-        $query = Barang::with('ruangan', 'kategori')->where('jumlah_saat_ini', '>', 0);
-        $ruangans = Ruangan::all();
+        // Query untuk mengambil barang yang tersedia
+        $query = Barang::with('ruangan', 'kategori')
+            ->where('jumlah_saat_ini', '>', 0); // FIX 2: Filter stok > 0
 
-        if ($this->filterRuangan) {
+        // FIX 1: Terapkan filter ruangan jika dipilih
+        if (!empty($this->filterRuangan)) {
             $query->where('ruangan_id', $this->filterRuangan);
         }
-
         $semuaBarangTersedia = $query->get();
+
+        $ruangansDenganBarang = $semuaBarangTersedia->groupBy('ruangan_id')->map(function ($items) {
+            // Kita butuh objek Ruangan sebagai key, atau setidaknya bisa diakses
+            // Karena groupBy menggunakan ID, kita ambil data ruangan dari item pertama
+            $ruangan = $items->first()->ruangan;
+            $ruangan->setRelation('barangs', $items); // Pasang kembali barang-barang ke objek ruangan
+            return $ruangan;
+        });
+
+        // Ambil daftar semua ruangan untuk dropdown (hanya yang punya barang stok > 0 agar relevan)
+        $semuaRuangan = Ruangan::whereHas('barangs', function ($q) {
+            $q->where('jumlah_saat_ini', '>', 0);
+        })->get();
 
         return view('livewire.siswa.dashboard', [
             'riwayat' => $riwayat,
-            'semuaBarangTersedia' => $semuaBarangTersedia, // Kirim data barang yang sudah difilter
-            'semuaRuangan' => Ruangan::all(),
-            'ruangans' => $ruangans,
+            // Kirim variabel yang sudah dikelompokkan
+            'ruangansDenganBarang' => $ruangansDenganBarang,
+            'semuaRuangan' => $semuaRuangan,
+            'ruangans' => $semuaRuangan, // Kirim juga sebagai $ruangans untuk jaga-jaga
         ]);
     }
 }

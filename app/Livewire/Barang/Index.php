@@ -218,7 +218,6 @@ class Index extends Component
                     } else {
                         // Penjaga Gudang: Ajukan RAB
                         $rab = RabPengadaan::create([
-                            // TODO perbaiki error
                             'user_id' => $user->id,
                             'judul' => 'Pengajuan barang baru (' . $validatedData['nama_barang'] . ' )',
                             'keterangan' => 'Pengajuan barang baru: ' . $validatedData['nama_barang'],
