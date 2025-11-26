@@ -486,13 +486,14 @@
             </table>
         </div>
 
-        {{-- Pagination --}}
-        @if ($transaksis->hasPages())
-            <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
-                {{ $transaksis->links() }}
-            </div>
-        @endif
     </div>
+    {{-- Pagination --}}
+    @if ($transaksis->hasPages())
+        <div class="bg-gray-50 px-6 py-4 border items-start border-gray-300 shadow-lg w-1/3 z-50 rounded-md">
+            {{ $transaksis->links() }}
+        </div>
+    @endif
+
 
     {{-- FAB: Tambah Peminjaman --}}
     <button wire:click="openTransactionModal"

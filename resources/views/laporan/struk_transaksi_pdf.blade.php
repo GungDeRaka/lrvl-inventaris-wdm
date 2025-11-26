@@ -121,6 +121,7 @@
             Harap kembalikan barang tepat waktu.
         </p>
     </div>
+    {{-- //TODO tambhin verifikasi untuk tandatangan pada bukti Peminjaman --}}
 </body>
 
 </html>

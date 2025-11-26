@@ -144,7 +144,7 @@
                                                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                         </svg> Stok
                                     </button>
-                                    @can('kelola-pengguna')
+                                    {{-- @can('kelola-pengguna') --}}
                                         <button wire:click="openPindahModal({{ $barang->id }})"
                                             class="text-blue-600 hover:text-blue-900 border border-blue-200 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded flex items-center gap-1 transition">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor"
@@ -176,7 +176,7 @@
                                                 <span>Perbaiki</span>
                                             </button>
                                         @endif
-                                    @endcan
+                                    {{-- @endcan --}}
                                 </div>
                             </td>
                         </tr>

@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\PrediksiController;
 use App\Http\Controllers\LaporanPengadaanController;
 use App\Http\Controllers\Siswa\LoginController;
 use App\Http\Controllers\Siswa\Auth\PasswordResetController;
@@ -25,15 +26,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Rute untuk Manajemen Barang
     Route::get('/barang', BarangIndex::class)->name('barang.index');
-// rute laporan transaksi berdasarkan periode tertentu
+    // rute laporan transaksi berdasarkan periode tertentu
     Route::get('/laporan/transaksi', [LaporanController::class, 'cetakTransaksi'])->name('laporan.transaksi');
 
-// rute cetak struk transaksi
+    // rute cetak struk transaksi
     Route::get('/transaksi/{id}/cetak', [LaporanController::class, 'cetakStruk'])->name('transaksi.cetak');
 
     Route::get('/laporan/pengadaan/cetak', [LaporanPengadaanController::class, 'cetak'])
-    ->name('laporan.pengadaan.cetak');
-    
+        ->name('laporan.pengadaan.cetak');
+
     // Rute untuk manajemen pengguna
     Route::get('/pengguna', UserIndex::class)->name('user.index')->middleware('can:kelola-pengguna');
     // Rute untuk manajemen kategori
@@ -42,11 +43,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/ruangan', RuanganIndex::class)->name('ruangan.index')->middleware('can:kelola-pengguna');
     // Rute untuk manajemen siswa
     Route::get('/siswa', SiswaIndex::class)->name('siswa.index')->middleware('can:kelola-pengguna');
-// rute pengajuan RAB
+    // rute pengajuan RAB
     // Route::get('/rab/create', RabCreate::class)->name('rab.create');
 
     // Rute baru untuk daftar & persetujuan RAB
     Route::get('/rab', RabIndex::class)->name('rab.index');
+
+    // Rute untuk prediksi
+    Route::get('/prediksi', [PrediksiController::class, 'index'])->name('prediksi.index');
+    Route::get('/prediksi/check', [PrediksiController::class, 'getPrediction'])->name('prediksi.check');
 });
 
 Route::middleware('auth')->group(function () {
