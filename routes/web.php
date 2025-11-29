@@ -52,6 +52,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Rute untuk prediksi
     Route::get('/prediksi', [PrediksiController::class, 'index'])->name('prediksi.index');
     Route::get('/prediksi/check', [PrediksiController::class, 'getPrediction'])->name('prediksi.check');
+    Route::get('/prediksi/item', [PrediksiController::class, 'predictItem'])->name('prediksi.item');
 });
 
 Route::middleware('auth')->group(function () {

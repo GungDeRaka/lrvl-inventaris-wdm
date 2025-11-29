@@ -145,37 +145,37 @@
                                         </svg> Stok
                                     </button>
                                     {{-- @can('kelola-pengguna') --}}
-                                        <button wire:click="openPindahModal({{ $barang->id }})"
-                                            class="text-blue-600 hover:text-blue-900 border border-blue-200 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded flex items-center gap-1 transition">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-                                            </svg> Pindah
+                                    <button wire:click="openPindahModal({{ $barang->id }})"
+                                        class="text-blue-600 hover:text-blue-900 border border-blue-200 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded flex items-center gap-1 transition">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                        </svg> Pindah
+                                    </button>
+                                    <button wire:click="konfirmasiStatusRusak({{ $barang->id }})"
+                                        class="text-red-600 hover:text-red-900 border border-red-200 bg-red-50 hover:bg-red-100 px-2 py-1 rounded flex items-center gap-1 transition">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                                            </path>
+                                        </svg> Rusak
+                                    </button>
+                                    {{-- Tombol Perbaiki (jika ada barang rusak) --}}
+                                    @if ($barang->jumlah_rusak > 0)
+                                        <button wire:click="konfirmasiPerbaikan({{ $barang->id }})"
+                                            class="inline-flex items-center gap-1 border border-emerald-400 text-emerald-600 hover:bg-emerald-50 text-sm font-medium px-3 py-1.5 rounded-md transition duration-150 ease-in-out"
+                                            title="Perbaiki Barang Rusak">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"
+                                                class="w-4 h-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M4 16l5 5L20 7M17 7l3 3-9 9-3-3 9-9z" />
+                                            </svg>
+                                            <span>Perbaiki</span>
                                         </button>
-                                        <button wire:click="konfirmasiStatusRusak({{ $barang->id }})"
-                                            class="text-red-600 hover:text-red-900 border border-red-200 bg-red-50 hover:bg-red-100 px-2 py-1 rounded flex items-center gap-1 transition">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
-                                                </path>
-                                            </svg> Rusak
-                                        </button>
-                                        {{-- Tombol Perbaiki (jika ada barang rusak) --}}
-                                        @if ($barang->jumlah_rusak > 0)
-                                            <button wire:click="konfirmasiPerbaikan({{ $barang->id }})"
-                                                class="inline-flex items-center gap-1 border border-emerald-400 text-emerald-600 hover:bg-emerald-50 text-sm font-medium px-3 py-1.5 rounded-md transition duration-150 ease-in-out"
-                                                title="Perbaiki Barang Rusak">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                    viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"
-                                                    class="w-4 h-4">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        d="M4 16l5 5L20 7M17 7l3 3-9 9-3-3 9-9z" />
-                                                </svg>
-                                                <span>Perbaiki</span>
-                                            </button>
-                                        @endif
+                                    @endif
                                     {{-- @endcan --}}
                                 </div>
                             </td>
@@ -727,6 +727,73 @@
                                 <p class="text-2xl font-bold text-yellow-900">
                                     {{ $detailBarang['barang']->jumlah_total - $detailBarang['barang']->jumlah_saat_ini }}
                                 </p>
+                            </div>
+                        </div>
+                        {{-- AREA PREDIKSI AI (Di dalam Tab Ringkasan) --}}
+                        <div class="mt-6 bg-gradient-to-r from-indigo-50 to-blue-50 p-5 rounded-xl border border-indigo-100"
+                            x-data="{ prediction: null, loading: false, error: null }">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-bold text-indigo-900 flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                        </svg>
+                                        Prediksi Kebutuhan Stok (AI)
+                                    </h4>
+                                    <p class="text-xs text-indigo-600 mt-1">Gunakan AI untuk memprediksi kebutuhan stok
+                                        barang ini.</p>
+                                </div>
+
+                                <button
+                                    @click="
+                loading = true; 
+                error = null; 
+                prediction = null;
+                fetch('{{ route('prediksi.item') }}?barang_id={{ $detailBarang['barang']->id }}')
+                    .then(res => res.json())
+                    .then(data => {
+                        loading = false;
+                        if(data.status === 'success' || data.status === 'warning') {
+                            prediction = data.message;
+                        } else {
+                            error = data.message;
+                        }
+                    })
+                    .catch(err => {
+                        loading = false;
+                        error = 'Gagal menghubungi server AI.';
+                    })
+            "
+                                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg shadow-sm transition flex items-center gap-2 disabled:opacity-50"
+                                    :disabled="loading">
+
+                                    <span x-show="loading" class="animate-spin">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                            </path>
+                                        </svg>
+                                    </span>
+                                    <span x-text="loading ? 'Menganalisa...' : 'Cek Prediksi'"></span>
+                                </button>
+                            </div>
+
+                            {{-- Hasil Prediksi --}}
+                            <div x-show="prediction"
+                                class="mt-4 p-3 bg-white rounded-lg border border-indigo-100 text-indigo-800 text-sm font-medium shadow-sm"
+                                style="display: none;">
+                                <span x-text="prediction"></span>
+                            </div>
+
+                            {{-- Error --}}
+                            <div x-show="error"
+                                class="mt-4 p-3 bg-red-50 rounded-lg border border-red-100 text-red-600 text-sm shadow-sm"
+                                style="display: none;">
+                                <span x-text="error"></span>
                             </div>
                         </div>
                     </div>

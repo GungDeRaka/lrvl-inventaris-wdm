@@ -36,4 +36,32 @@ class PrediksiController extends Controller
             ], 500);
         }
     }
+    public function predictItem(Request $request)
+    {
+        $barangId = $request->input('barang_id');
+        
+        try {
+            // URL untuk Docker/Sail: http://host.docker.internal:5001/predict-item
+            // Sesuaikan jika Anda deploy nanti
+            $url = 'http://host.docker.internal:5001/predict-item';
+            
+            $response = Http::post($url, [
+                'barang_id' => $barangId
+            ]);
+
+            if ($response->successful()) {
+                return response()->json($response->json());
+            } else {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Gagal: ' . ($response->json()['message'] ?? 'Respon API tidak valid')
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Koneksi error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
