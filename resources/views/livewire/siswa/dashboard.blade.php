@@ -169,8 +169,13 @@
                         @endphp
 
                         {{-- Card Riwayat --}}
-                        <div
-                            class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200">
+                        <div wire:click="showDetail({{ $item->id }})"
+                            class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md hover:transition-shadow duration-200 cursor-pointer relative group active:scale-98 active:transition-transform">
+
+                            {{-- Indikator klik (opsional, untuk UX desktop) --}}
+                            <div
+                                class="absolute inset-0 bg-purple-50 opacity-0 group-hover:opacity-10 transition-opacity">
+                            </div>
                             {{-- Header Card --}}
                             <div
                                 class="px-5 py-3 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
@@ -178,24 +183,26 @@
                                     class="text-xs text-gray-500 font-medium">{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y, H:i') }}</span>
                                 <span
                                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase {{ $statusColors['bg'] }} {{ $statusColors['text'] }}">
-                                    {{ $item->status == 'menunggu-konfirmasi' ? 'Menunggu Konfirmasi' : ucfirst(str_replace('-', ' ', $item->status)) }}
+                                    {{ $item->status == 'menunggu-konfirmasi' ? 'Menunggu' : ucfirst($item->status) }}
                                 </span>
                             </div>
 
                             {{-- Body Card --}}
                             <div class="p-5">
-                                <div class="mb-4">
+                                <div class="mb-3">
                                     <p class="text-xs text-gray-400 uppercase tracking-wider font-bold mb-2">Barang
                                         Dipinjam</p>
-                                    <ul class="space-y-2">
-                                        @foreach ($item->barangs as $barang)
-                                            <li class="flex items-center text-gray-800">
-                                                <span class="w-2 h-2 rounded-full bg-primary mr-2"></span>
-                                                <span class="font-semibold">{{ $barang->nama_barang }}</span>
-                                                <span
-                                                    class="ml-auto text-sm bg-gray-100 px-2 py-0.5 rounded text-gray-600">x{{ $barang->pivot->kuantitas }}</span>
+                                    <ul class="space-y-1">
+                                        @foreach ($item->barangs->take(2) as $barang)
+                                            <li class="flex items-center text-gray-800 text-sm">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-primary mr-2"></span>
+                                                <span class="font-semibold truncate">{{ $barang->nama_barang }}</span>
                                             </li>
                                         @endforeach
+                                        @if ($item->barangs->count() > 2)
+                                            <li class="text-xs text-gray-500 pl-3.5">+{{ $item->barangs->count() - 2 }}
+                                                barang lainnya...</li>
+                                        @endif
                                     </ul>
                                 </div>
 
@@ -231,7 +238,17 @@
                                         {{ $item->alasan_penolakan }}
                                     </div>
                                 @endif
+                                <div
+                                    class="mt-3 pt-3 border-t border-dashed border-gray-100 flex justify-between items-center">
+                                    <span class="text-xs text-gray-400">Tap untuk detail lengkap</span>
+                                    <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </div>
                             </div>
+
 
                             {{-- Footer Card (Aksi) --}}
                             @if (!in_array($item->status, ['dikembalikan', 'ditolak']) || !in_array($item->status, ['diajukan', 'ditolak']))
@@ -239,8 +256,13 @@
                                     class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex flex-wrap gap-2 justify-end">
                                     {{-- Tombol Cetak Struk --}}
                                     @if (!in_array($item->status, ['diajukan', 'ditolak']))
+                                        <div
+                                            class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex flex-wrap gap-2 justify-end">
+                                        </div>
+                                        {{-- TOMBOL STRUK (DIPERBAIKI) --}}
                                         <a href="{{ route('transaksi.cetak', $item->id) }}" target="_blank"
-                                            class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                            onclick="event.stopPropagation()" {{-- PENTING: Mencegah modal terbuka --}}
+                                            class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition">
                                             <svg class="w-4 h-4 mr-1 text-gray-500" fill="none"
                                                 stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -548,6 +570,244 @@
                     <button wire:click="ajukanPengembalian"
                         class="flex-1 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 shadow">Kirim
                         Laporan</button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- MODAL DETAIL TRANSAKSI (BOTTOM SHEET UI) --}}
+    @if ($showDetailModal && $detailTransaksi)
+        <div class="fixed inset-0 mb-3 z-[60] flex items-end md:items-center justify-center" role="dialog">
+
+            {{-- Backdrop Gelap (Klik tutup) --}}
+            <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" wire:click="closeDetail"
+                x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+            </div>
+
+            {{-- Kontainer Modal --}}
+            <div class="bg-white w-full md:max-w-lg rounded-t-[2rem] md:rounded-2xl shadow-2xl overflow-hidden transform transition-all max-h-[90vh] flex flex-col relative z-10"
+                x-transition:enter="transform transition ease-out duration-300"
+                x-transition:enter-start="translate-y-full md:translate-y-10 md:opacity-0"
+                x-transition:enter-end="translate-y-0 md:translate-y-0 md:opacity-100"
+                x-transition:leave="transform transition ease-in duration-200"
+                x-transition:leave-start="translate-y-0 md:translate-y-0 md:opacity-100"
+                x-transition:leave-end="translate-y-full md:translate-y-10 md:opacity-0">
+
+                {{-- Handle Bar (Hanya Mobile) --}}
+                <div class="md:hidden pt-3 pb-1 flex justify-center w-full bg-white" wire:click="closeDetail">
+                    <div class="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+                </div>
+
+                {{-- Header Modal --}}
+                <div
+                    class="px-6 py-4 border-b border-gray-100 flex justify-between items-start bg-white sticky top-0 z-20">
+                    <div>
+                        <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Detail Transaksi</p>
+                        <h3 class="text-xl font-bold text-gray-800">#TRX-{{ $detailTransaksi->id }}</h3>
+                    </div>
+                    <button wire:click="closeDetail"
+                        class="p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- Body Modal (Scrollable) --}}
+                <div class="p-6 overflow-y-auto flex-1 space-y-6 bg-gray-50/50">
+
+                    {{-- 1. Status Banner --}}
+                    @php
+                        $statusDetail = match ($detailTransaksi->status) {
+                            'disetujui' => [
+                                'color' => 'bg-cyan-100 text-cyan-800 border-cyan-200',
+                                'icon' => 'check-circle',
+                            ],
+                            'dipinjam' => ['color' => 'bg-blue-100 text-blue-800 border-blue-200', 'icon' => 'clock'],
+                            'dikembalikan' => [
+                                'color' => 'bg-green-100 text-green-800 border-green-200',
+                                'icon' => 'badge-check',
+                            ],
+                            'ditolak' => ['color' => 'bg-red-100 text-red-800 border-red-200', 'icon' => 'x-circle'],
+                            default => [
+                                'color' => 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                                'icon' => 'exclamation-circle',
+                            ],
+                        };
+                    @endphp
+                    <div class="flex items-center p-4 rounded-xl border {{ $statusDetail['color'] }}">
+                        {{-- Ikon dinamis berdasarkan status bisa ditambahkan di sini --}}
+                        <div class="flex-1">
+                            <p class="text-xs opacity-70 font-bold uppercase">Status Saat Ini</p>
+                            <p class="text-lg font-bold">
+                                {{ ucfirst(str_replace('-', ' ', $detailTransaksi->status)) }}</p>
+                        </div>
+                    </div>
+
+                    {{-- 2. Informasi Utama (Grid) --}}
+                    <div class="grid grid-cols-2 gap-4">
+                        {{-- Lokasi Pemakaian --}}
+                        <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                            <div class="flex items-center gap-2 mb-2 text-purple-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                    </path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <span class="text-xs font-bold uppercase">Dipakai Di</span>
+                            </div>
+                            <p class="font-semibold text-gray-800">{{ $detailTransaksi->ruang_pemakaian }}</p>
+                        </div>
+
+                        {{-- Admin Penanggung Jawab --}}
+                        <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                            <div class="flex items-center gap-2 mb-2 text-purple-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                <span class="text-xs font-bold uppercase">Admin</span>
+                            </div>
+                            <p class="font-semibold text-gray-800">{{ $detailTransaksi->user->name ?? 'Menunggu...' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    {{-- 3. Timeline Waktu --}}
+                    <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative overflow-hidden">
+                        <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-100 my-4"></div>
+
+                        <div class="relative flex items-start mb-4">
+                            <div class="w-2 h-2 bg-blue-500 rounded-full mt-1.5 mr-3 relative z-10 ring-4 ring-white">
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 uppercase font-bold">Waktu Pinjam</p>
+                                <p class="text-sm font-semibold text-gray-800">
+                                    {{ \Carbon\Carbon::parse($detailTransaksi->waktu_pinjam)->format('d F Y, H:i') }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="relative flex items-start">
+                            @php
+                                $isLate =
+                                    $detailTransaksi->status == 'dipinjam' &&
+                                    \Carbon\Carbon::parse($detailTransaksi->waktu_kembali)->isPast();
+                                $dotColor = $isLate
+                                    ? 'bg-red-500'
+                                    : ($detailTransaksi->waktu_pengembalian_aktual
+                                        ? 'bg-green-500'
+                                        : 'bg-gray-300');
+                            @endphp
+                            <div
+                                class="w-2 h-2 {{ $dotColor }} rounded-full mt-1.5 mr-3 relative z-10 ring-4 ring-white">
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 uppercase font-bold">Waktu Kembali</p>
+                                @if ($detailTransaksi->waktu_pengembalian_aktual)
+                                    <p class="text-sm font-semibold text-green-700">
+                                        {{ \Carbon\Carbon::parse($detailTransaksi->waktu_pengembalian_aktual)->format('d F Y, H:i') }}
+                                        (Aktual)
+                                    </p>
+                                @else
+                                    <p class="text-sm font-semibold text-gray-800">
+                                        {{ \Carbon\Carbon::parse($detailTransaksi->waktu_kembali)->format('d F Y, H:i') }}
+                                        (Rencana)
+                                    </p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 4. Daftar Barang (Detail Asal) --}}
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-700 mb-3 flex items-center">
+                            <svg class="w-4 h-4 mr-2 text-primary" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                            </svg>
+                            Detail Barang
+                        </h4>
+                        <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                            <div class="divide-y divide-gray-50">
+                                @foreach ($detailTransaksi->barangs as $barang)
+                                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <p class="font-bold text-gray-800 text-sm">{{ $barang->nama_barang }}
+                                                </p>
+                                                <p class="text-xs text-gray-500 mt-0.5 flex items-center">
+                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                                                        </path>
+                                                    </svg>
+                                                    Asal: {{ $barang->ruangan->nama_ruangan ?? 'Gudang' }}
+                                                    </span>
+                                            </div>
+                                            <span
+                                                class="bg-primary/10 text-primary text-xs font-bold px-2 py-1 rounded-lg">
+                                                {{ $barang->pivot->kuantitas }} Unit
+                                            </span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 5. Alasan Penolakan (Jika Ada) --}}
+                    @if ($detailTransaksi->status == 'ditolak' && $detailTransaksi->alasan_penolakan)
+                        <div class="bg-red-50 p-4 rounded-xl border border-red-100">
+                            <p class="text-xs font-bold text-red-500 uppercase mb-1">Catatan Penolakan</p>
+                            <p class="text-sm text-red-700">{{ $detailTransaksi->alasan_penolakan }}</p>
+                        </div>
+                    @endif
+
+                </div>
+
+
+                {{-- Footer Modal (Tombol Aksi) --}}
+                <div class="p-4 bg-white border-t border-gray-100 sticky bottom-0 z-20 flex flex-col gap-3">
+
+                    {{-- 1. Tombol Cetak Struk (Selalu muncul jika status valid) --}}
+                    @if (!in_array($detailTransaksi->status, ['diajukan', 'ditolak', 'menunggu-konfirmasi']))
+                        <a href="{{ route('siswa.transaksi.cetak', $detailTransaksi->id) }}" target="_blank"
+                            class="w-full flex items-center justify-center py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-200 transition border border-gray-200">
+                            <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m8-4V3a1 1 0 00-1-1H8a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1zM7 10a1 1 0 011-1h8a1 1 0 011 1v10H7V10z">
+                                </path>
+                            </svg>
+                            Cetak / Download Struk PDF
+                        </a>
+                    @endif
+
+                    {{-- 2. Tombol Aksi Lainnya (Horizontal) --}}
+                    <div class="flex gap-3">
+                        {{-- Tombol Tutup Modal --}}
+                        <button wire:click="closeDetail"
+                            class="flex-1 py-3 bg-white border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition">
+                            Tutup
+                        </button>
+
+                        {{-- Aksi Khusus --}}
+                        @if ($detailTransaksi->status == 'dipinjam')
+                            <button wire:click="bukaModalPengembalian({{ $detailTransaksi->id }})"
+                                class="flex-1 py-3 bg-primary text-white rounded-xl font-bold hover:bg-purple-800 transition shadow-lg shadow-purple-200">
+                                Ajukan Kembali
+                            </button>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

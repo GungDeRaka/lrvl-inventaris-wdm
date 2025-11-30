@@ -76,8 +76,9 @@ Route::prefix('siswa')->name('siswa.')->group(function () {
 
     // Halaman yang terproteksi (hanya bisa diakses setelah login sebagai siswa)
     Route::middleware('auth:siswa')->group(function () {
-        Route::get('/dashboard', \App\Livewire\Siswa\Dashboard::class)->name('dashboard');
+        Route::get('/dashboard', \App\Livewire\Siswa\Dashboard::class)->name('siswa.dashboard');
         Route::get('/profil', SiswaProfil::class)->name('profil');
+        Route::get('/transaksi/{id}/cetak', [LaporanController::class, 'cetakStruk'])->name('transaksi.cetak');
     });
 });
 

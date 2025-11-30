@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Transaksi;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon; // Import Carbon
 
 class LaporanController extends Controller
@@ -41,25 +42,30 @@ class LaporanController extends Controller
     }
 
     public function cetakStruk($id)
-    {
-        // Ambil data transaksi spesifik beserta relasinya
-        $transaksi = Transaksi::with(['siswa', 'barangs.ruangan', 'user'])
-            ->findOrFail($id);
+{
+    $transaksi = Transaksi::with(['siswa', 'barangs', 'user'])->findOrFail($id);
 
-        // Pastikan user (admin) atau siswa (pemilik) yang boleh mengakses
-        // (Tambahkan logika keamanan jika diperlukan nanti)
+    // KEAMANAN: Cek siapa yang login
+    $isAdmin = Auth::guard('web')->check();
+    
+    // Cek apakah yang login adalah siswa DAN pemilik transaksi tersebut
+    $isSiswaPemilik = Auth::guard('siswa')->check() && Auth::guard('siswa')->id() == $transaksi->siswa_id;
 
-        $data = [
-            'transaksi' => $transaksi,
-            'tanggal_cetak' => now()->format('d M Y, H:i')
-        ];
-
-        $pdf = Pdf::loadView('laporan.struk_transaksi_pdf', $data);
-
-        // Kita buat ukuran kertasnya kecil, seperti struk (misal A6)
-        $pdf->setPaper('a4', 'portrait');
-
-        // Tampilkan di browser (stream) alih-alih download
-        return $pdf->stream('struk-peminjaman-' . $transaksi->id . '.pdf');
+    // Jika bukan Admin DAN bukan Siswa Pemilik, tolak akses
+    if (!$isAdmin && !$isSiswaPemilik) {
+        abort(403, 'ANDA TIDAK BERHAK MENGAKSES STRUK INI.');
     }
+
+    // ... (sisa kode PDF sama seperti sebelumnya)
+    $data = [
+        'transaksi' => $transaksi,
+        'tanggal_cetak' => now()->format('d M Y, H:i')
+    ];
+    
+    $pdf = Pdf::loadView('laporan.struk_transaksi_pdf', $data);
+    $customPaper = [0, 0, 220, 350];
+    $pdf->setPaper($customPaper, 'portrait');
+
+    return $pdf->stream('struk-peminjaman-'.$transaksi->id.'.pdf');
+}
 }

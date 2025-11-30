@@ -29,6 +29,26 @@ class Dashboard extends Component
     public $returnTransaksi;
     public $kerusakanDilaporkan = [];
 
+    public $detailTransaksi; // Menyimpan objek transaksi yang dipilih
+    public $showDetailModal = false; // Mengontrol visibilitas modal
+
+
+    public function showDetail($id)
+    {
+        // Eager load relasi yang dibutuhkan: barang (dan ruangannya), user (admin), siswa
+        $this->detailTransaksi = Transaksi::with(['barangs.ruangan', 'user', 'siswa'])
+            ->find($id);
+
+        $this->showDetailModal = true;
+    }
+
+    // Method untuk menutup modal
+    public function closeDetail()
+    {
+        $this->showDetailModal = false;
+        $this->detailTransaksi = null;
+    }
+
     public function updatedSearchBarang($value)
     {
         if (strlen($this->searchBarang) >= 2) {

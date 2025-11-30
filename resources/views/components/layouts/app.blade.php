@@ -26,7 +26,7 @@
 
             {{-- Logo dan Nama Admin --}}
             <div class="flex items-center justify-center h-20 shadow-md">
-                <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 px-4">
+      w          <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 px-4">
                     <img class="h-12 w-12 rounded-sm flex-shrink-0" src="{{ asset('logo.jpg') }}"
                         alt="Logo SMK Widiatmika">
                     <div :class="!isSidebarOpen && 'hidden'" class="overflow-hidden transition-all duration-200">
@@ -217,7 +217,7 @@
         </div>
     </div>
 
-    @livewireScripts
+    {{-- @livewireScripts --}}
 </body>
 
 </html>
