@@ -64,4 +64,23 @@ class PrediksiController extends Controller
             ], 500);
         }
     }
+
+    public function getRanking()
+    {
+        try {
+            // Panggil endpoint /predict-ranking
+            $response = Http::get('http://host.docker.internal:5001/predict-ranking');
+
+            if ($response->successful()) {
+                return response()->json($response->json());
+            } else {
+                return response()->json([
+                    'status' => 'error', 
+                    'message' => 'Gagal: ' . ($response->json()['message'] ?? 'API Error')
+                ], 500);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
 }
