@@ -37,15 +37,41 @@
                         <td class="px-5 py-4 text-sm">
                             {{ $user->peran == 'kepala_gudang' ? 'Kepala Gudang' : 'Penjaga Gudang' }}</td>
                         <td class="px-5 py-4 text-sm whitespace-nowrap">
-                            <button wire:click="edit({{ $user->id }})"
-                                class="font-semibold text-yellow-600 hover:text-yellow-900">Edit</button>
-                            <button wire:click="openPasswordModal({{ $user->id }})"
-                                class="font-semibold text-indigo-600 hover:text-indigo-900 ml-4">Ganti Password</button>
-                            <button wire:click="konfirmasiHapus({{ $user->id }})"
-                                class="font-semibold text-red-600 hover:text-red-900 ml-4 disabled:opacity-50 disabled:cursor-not-allowed"
-                                {{-- Tombol akan nonaktif jika ID user sama dengan ID yang sedang login --}} {{ $user->id == auth()->id() ? 'disabled' : '' }}>
-                                Hapus
-                            </button>
+                            <div class="flex items-center space-x-2">
+                                {{-- Tombol Edit --}}
+                                <button wire:click="edit({{ $user->id }})"
+                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                                    <svg class="w-4 h-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                    </svg>
+                                    Edit
+                                </button>
+
+                                {{-- Tombol Ganti Password --}}
+                                <button wire:click="openPasswordModal({{ $user->id }})"
+                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <svg class="w-4 h-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+                                    </svg>
+                                    Ganti Password
+                                </button>
+
+                                {{-- Tombol Hapus --}}
+                                <button wire:click="konfirmasiHapus({{ $user->id }})"
+                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    {{ $user->id == auth()->id() ? 'disabled' : '' }}>
+                                    <svg class="w-4 h-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.033-2.134H8.033c-1.12 0-2.033.954-2.033 2.134v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                    </svg>
+                                    Hapus
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 @endforeach
