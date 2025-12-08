@@ -122,7 +122,7 @@
 
                 @can('kelola-pengguna')
                     <div x-show="sidebarOpen" class="pt-4 pb-1">
-                        <p class="px-3 text-xs font-semibold text-purple-200 uppercase tracking-wider">Admin Area</p>
+                        <p class="px-3 text-xs font-semibold text-purple-200 uppercase tracking-wider">Fitur Khusus Kepala Gudang</p>
                     </div>
                     <hr x-show="!sidebarOpen" class="border-white/20 my-2">
 
@@ -190,17 +190,17 @@
             {{-- Note: karena sidebar position:relative di desktop, margin-left otomatis diurus flexbox --}}
 
             {{-- Header Atas --}}
-            <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 lg:px-6 z-10">
+            <header class="h-20 bg-primary shadow-sm flex items-center justify-between px-4 lg:px-6 z-10">
                 <div class="flex items-center">
                     {{-- Tombol Hamburger --}}
-                    <button @click="sidebarOpen = !sidebarOpen" class="text-gray-500 focus:outline-none lg:hidden">
+                    <button @click="sidebarOpen = !sidebarOpen" class="text-white focus:outline-none lg:hidden">
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                     </button>
                     <button @click="sidebarOpen = !sidebarOpen"
-                        class="hidden lg:block text-gray-500 focus:outline-none mr-4">
+                        class="hidden lg:block text-white focus:outline-none mr-4">
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path x-show="!sidebarOpen" stroke-linecap="round" stroke-linejoin="round"
                                 stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -209,7 +209,7 @@
                         </svg>
                     </button>
 
-                    <h1 class="text-lg font-semibold text-gray-800 ml-2 md:ml-0">{{ $title ?? 'Dashboard' }}</h1>
+                    <h1 class="text-lg font-semibold text-white ml-2 md:ml-0">{{ $title ?? 'Dashboard' }}</h1>
                 </div>
 
                 <div class="flex items-center space-x-4">
@@ -220,12 +220,12 @@
                         <button @click="dropdownOpen = !dropdownOpen"
                             class="flex items-center space-x-2 focus:outline-none">
                             <div
-                                class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                                class="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center">
                                 <span class="font-bold text-sm">{{ substr(Auth::user()->name, 0, 1) }}</span>
                             </div>
                             <span
-                                class="hidden md:block text-sm font-medium text-gray-700">{{ Auth::user()->name }}</span>
-                            <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24"
+                                class="hidden md:block text-sm font-medium text-white">{{ Auth::user()->name }}</span>
+                            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 9l-7 7-7-7" />

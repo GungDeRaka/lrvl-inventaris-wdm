@@ -105,7 +105,76 @@
                 <p class="text-3xl font-bold text-yellow-600">{{ $jatuhTempo }}</p>
             </div>
         </div>
+        
     </div>
+
+    <div class="mt-7 mb-5 bg-gradient-to-r from-indigo-600 to-primary rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+    {{-- Hiasan Background --}}
+    <div class="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
+    
+    <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div>
+            <h2 class="text-2xl font-bold flex items-center gap-2">
+                <svg class="w-8 h-8 text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                AI Assistant: Prediksi Peminjaman
+            </h2>
+            <p class="text-indigo-100 mt-2 max-w-xl">
+                Gunakan kecerdasan buatan untuk memperkirakan total peminjaman barang untuk <strong>besok hari</strong> berdasarkan pola data historis.
+            </p>
+        </div>
+
+        <div class="flex flex-col items-end gap-3">
+            {{-- Area Hasil --}}
+            <div id="dashboard-prediction-result" class="hidden text-right">
+                <span class="block text-xs text-indigo-200 uppercase tracking-wider font-bold">Hasil Prediksi</span>
+                <span id="dashboard-prediction-text" class="text-3xl font-bold text-white tracking-tight">0 Unit</span>
+            </div>
+
+            {{-- Tombol --}}
+            <button onclick="fetchDashboardPrediction()" id="btn-dashboard-predict" 
+                class="px-6 py-3 bg-white text-indigo-700 font-bold rounded-xl shadow-md hover:bg-indigo-50 hover:scale-105 transition-all flex items-center gap-2">
+                <span>Mulai Analisa</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+{{-- SCRIPT KHUSUS DASHBOARD --}}
+<script>
+    async function fetchDashboardPrediction() {
+        const btn = document.getElementById('btn-dashboard-predict');
+        const resultArea = document.getElementById('dashboard-prediction-result');
+        const resultText = document.getElementById('dashboard-prediction-text');
+        const originalBtnText = btn.innerHTML;
+
+        // Loading State
+        btn.disabled = true;
+        btn.innerHTML = '<svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Menganalisa...';
+        
+        try {
+            // Panggil route global
+            const response = await fetch("{{ route('prediksi.check') }}");
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                resultArea.classList.remove('hidden');
+                resultText.innerText = data.prediction + " Transaksi";
+                // Ubah tombol jadi "Cek Lagi"
+                btn.innerHTML = '<span>Cek Lagi</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>';
+            } else {
+                alert('Gagal: ' + data.message);
+                btn.innerHTML = originalBtnText;
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Gagal menghubungi server AI.');
+            btn.innerHTML = originalBtnText;
+        } finally {
+            btn.disabled = false;
+        }
+    }
+</script>
 
     {{-- Tabel Permintaan Masuk --}}
     @if ($permintaanMasuk->isNotEmpty())
@@ -273,7 +342,7 @@
     @endif
 
     {{-- Grup Tombol Aksi & Pencarian --}}
-    <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 sticky top-0 z-20 bg-gray-100 py-2">
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 top-0 z-20 bg-gray-100 py-2">
         <h2 class="text-2xl font-bold text-gray-800">Riwayat Peminjaman</h2>
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             {{-- Search --}}
@@ -489,19 +558,29 @@
     </div>
     {{-- Pagination --}}
     @if ($transaksis->hasPages())
-        <div class="bg-gray-50 px-6 py-4 border items-start border-gray-300 shadow-lg w-1/3 z-50 rounded-md">
+        <div class="bg-gray-50 px-6 py-4 border items-start border-gray-300 shadow-lg w-2/3 z-50 rounded-md">
             {{ $transaksis->links() }}
         </div>
     @endif
 
 
     {{-- FAB: Tambah Peminjaman --}}
-    <button wire:click="openTransactionModal"
+    {{-- <button wire:click="openTransactionModal"
         class="fixed bottom-8 right-8 w-14 h-14 bg-purple-700 text-white rounded-full shadow-lg hover:bg-purple-800 hover:shadow-xl transition transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-300 flex items-center justify-center z-40"
         title="Tambah Peminjaman Baru">
         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
         </svg>
+    </button> --}}
+
+    <button wire:click="openTransactionModal"
+        class="fixed bottom-8 right-8 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-purple-800 transition transform hover:scale-110 focus:outline-none z-50 flex items-center justify-center"
+        title="Buat Pengajuan RAB Baru">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        <span class="mx-2 text-sm font-semibold">Transaksi Peminjaman</span>
     </button>
 
     {{-- Modal Form Peminjaman --}}

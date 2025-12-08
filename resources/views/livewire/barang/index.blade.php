@@ -39,6 +39,7 @@
                     class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm transition duration-150 ease-in-out">
             </div>
 
+
             {{-- Filter Kategori --}}
             <div class="w-full md:w-48">
                 <select wire:model.live="filterKategori"
@@ -71,7 +72,17 @@
                     <span class="text-sm font-medium">Pengadaan</span>
                 </button>
             </div>
+            <button onclick="openRankingModal()"
+                class="inline-flex items-center px-4 py-2 bg-fuchsia-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-fuchsia-700 active:bg-fuchsia-900 focus:outline-none focus:border-fuchsia-900 focus:ring focus:ring-fuchsia-300 disabled:opacity-25 transition">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Analisa Tren (AI)
+            </button>
         </div>
+
+
     </div>
 
     {{-- Tabel Barang --}}
@@ -139,7 +150,8 @@
                                     </button>
                                     <button wire:click="openTambahStokModal({{ $barang->id }})"
                                         class="text-green-600 hover:text-green-900 border border-green-200 bg-green-50 hover:bg-green-100 px-2 py-1 rounded flex items-center gap-1 transition">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                         </svg> Stok
@@ -1121,5 +1133,119 @@
             </div>
         </div>
     @endif
+
+    {{-- MODAL PREDIKSI RANKING --}}
+<div id="rankingModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    {{-- Backdrop --}}
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeRankingModal()"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        {{-- Panel Modal --}}
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-fuchsia-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-fuchsia-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Prediksi Barang Terlaris (Besok)</h3>
+                        <p class="text-sm text-gray-500 mt-2">
+                            Sistem AI menganalisa 10 barang teraktif dalam 90 hari terakhir dan memprediksi potensinya.
+                        </p>
+
+                        {{-- Area Loading --}}
+                        <div id="ranking-loading" class="hidden py-8 text-center">
+                            <svg class="animate-spin h-8 w-8 text-fuchsia-600 mx-auto mb-2" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            <p class="text-sm text-gray-500">Sedang melatih model per-item (Mungkin butuh 10-20 detik)...</p>
+                        </div>
+
+                        {{-- Area Hasil --}}
+                        <div id="ranking-content" class="mt-4 hidden">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Barang</th>
+                                        <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">Prediksi</th>
+                                        <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ranking-table-body" class="bg-white divide-y divide-gray-200">
+                                    {{-- Data diisi via JS --}}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div id="ranking-empty" class="hidden py-4 text-center text-gray-500 italic text-sm">
+                            Tidak ada barang yang diprediksi memiliki lonjakan signifikan besok.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" onclick="closeRankingModal()" class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- SCRIPT KHUSUS RANKING --}}
+<script>
+    function openRankingModal() {
+        document.getElementById('rankingModal').classList.remove('hidden');
+        fetchRankingData(); // Auto fetch saat dibuka
+    }
+
+    function closeRankingModal() {
+        document.getElementById('rankingModal').classList.add('hidden');
+    }
+
+    async function fetchRankingData() {
+        const loading = document.getElementById('ranking-loading');
+        const content = document.getElementById('ranking-content');
+        const empty = document.getElementById('ranking-empty');
+        const tbody = document.getElementById('ranking-table-body');
+
+        // Reset UI
+        loading.classList.remove('hidden');
+        content.classList.add('hidden');
+        empty.classList.add('hidden');
+        tbody.innerHTML = '';
+
+        try {
+            // Panggil route ranking
+            const response = await fetch("{{ route('prediksi.ranking') }}");
+            const res = await response.json();
+
+            loading.classList.add('hidden');
+
+            if (res.status === 'success' && res.data.length > 0) {
+                content.classList.remove('hidden');
+                
+                res.data.forEach(item => {
+                    const row = `
+                        <tr>
+                            <td class="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900">${item.nama_barang}</td>
+                            <td class="px-3 py-3 whitespace-nowrap text-sm text-right font-bold text-fuchsia-600">${item.prediksi} Unit</td>
+                            <td class="px-3 py-3 whitespace-nowrap text-center">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">High Demand</span>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            } else {
+                empty.classList.remove('hidden');
+            }
+        } catch (error) {
+            console.error(error);
+            loading.classList.add('hidden');
+            empty.innerText = "Gagal memuat data prediksi. Silakan coba lagi.";
+            empty.classList.remove('hidden');
+        }
+    }
+</script>
 
 </div>

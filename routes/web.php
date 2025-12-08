@@ -8,6 +8,7 @@ use App\Http\Controllers\PrediksiController;
 use App\Http\Controllers\LaporanPengadaanController;
 use App\Http\Controllers\Siswa\LoginController;
 use App\Http\Controllers\Siswa\Auth\PasswordResetController;
+use App\Models\Barang;
 use App\Livewire\Barang\Index as BarangIndex;
 use App\Livewire\User\Index as UserIndex;
 use App\Livewire\Kategori\Index as KategoriIndex;
@@ -16,6 +17,7 @@ use App\Livewire\Siswa\Index as SiswaIndex;
 use App\Livewire\Siswa\Profil as SiswaProfil;
 use App\Livewire\Rab\Create as RabCreate;
 use App\Livewire\Rab\Index as RabIndex;
+use Illuminate\Support\Facades\DB;
 
 Route::get('/', function () {
     return view('welcome');
@@ -54,6 +56,31 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/prediksi/check', [PrediksiController::class, 'getPrediction'])->name('prediksi.check');
     Route::get('/prediksi/item', [PrediksiController::class, 'predictItem'])->name('prediksi.item');
     Route::get('/prediksi/ranking', [PrediksiController::class, 'getRanking'])->name('prediksi.ranking');
+
+    Route::get('/fix-stock', function () {
+    $barangs = Barang::all();
+    $fixedCount = 0;
+
+    foreach ($barangs as $barang) {
+        // Hitung berapa banyak unit barang ini yang SEDANG dipinjam/disetujui
+        $sedangDipinjam = DB::table('barang_transaksi')
+            ->join('transaksis', 'barang_transaksi.transaksi_id', '=', 'transaksis.id')
+            ->where('barang_transaksi.barang_id', $barang->id)
+            ->whereIn('transaksis.status', ['dipinjam', 'disetujui', 'menunggu-konfirmasi', 'perpanjangan-diajukan'])
+            ->sum('barang_transaksi.kuantitas');
+
+        // Reset jumlah saat ini
+        $stokSeharusnya = $barang->jumlah_total - $sedangDipinjam;
+
+        // Update jika ada perbedaan
+        if ($barang->jumlah_saat_ini != $stokSeharusnya) {
+            $barang->update(['jumlah_saat_ini' => $stokSeharusnya]);
+            $fixedCount++;
+        }
+    }
+
+    return "Selesai! $fixedCount barang telah dikalibrasi ulang stoknya.";
+});
 });
 
 Route::middleware('auth')->group(function () {
@@ -80,6 +107,8 @@ Route::prefix('siswa')->name('siswa.')->group(function () {
         Route::get('/profil', SiswaProfil::class)->name('profil');
         Route::get('/transaksi/{id}/cetak', [LaporanController::class, 'cetakStruk'])->name('transaksi.cetak');
     });
+
+    
 });
 
 

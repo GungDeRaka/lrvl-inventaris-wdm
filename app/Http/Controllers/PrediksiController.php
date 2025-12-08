@@ -64,12 +64,13 @@ class PrediksiController extends Controller
             ], 500);
         }
     }
-
-    public function getRanking()
+public function getRanking()
     {
         try {
-            // Panggil endpoint /predict-ranking
-            $response = Http::get('http://host.docker.internal:5001/predict-ranking');
+            // Tambahkan timeout(120) -> Tunggu maksimal 120 detik (2 menit)
+            $url = 'http://host.docker.internal:5001/predict-ranking';
+            
+            $response = Http::timeout(120)->get($url); // <--- PERBAIKAN DI SINI
 
             if ($response->successful()) {
                 return response()->json($response->json());
