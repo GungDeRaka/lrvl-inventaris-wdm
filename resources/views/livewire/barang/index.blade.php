@@ -86,7 +86,8 @@
     </div>
 
     {{-- Tabel Barang --}}
-    <div class="bg-white shadow-xl rounded-xl overflow-hidden border border-gray-100">
+    <div class="mb-16">
+    <div class="bg-white shadow-xl rounded-xl overflow-hidden border border-gray-100 ">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
@@ -218,6 +219,7 @@
             <span class="items-start">{{ $barangs->links() }}</span>
         </div>
     @endif
+    </div>
 
     {{-- FAB: Tambah Barang --}}
     <button wire:click="openModal"
