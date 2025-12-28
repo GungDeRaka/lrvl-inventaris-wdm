@@ -25,16 +25,15 @@
                   Jika layar besar (Desktop), cek localStorage. 
                   Jika layar kecil (Mobile), default tutup (false).
     --}}
-    {{-- Letakkan di file layout utama (app.blade.php) --}}
+    {{-- Toast Notification --}}
     <div x-data="{ show: false, message: '', type: 'success' }"
         x-on:notify.window="show = true; message = $event.detail.message; type = $event.detail.type || 'success'; setTimeout(() => show = false, 3000)"
-        class="fixed top-5 right-5 z-50 flex flex-col gap-2">
+        class="fixed top-2 right-20 z-50 flex w-72 flex-col gap-2">
 
         <div x-show="show" x-transition:enter="transform ease-out duration-300 transition"
-            x-transition:enter-start="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
-            x-transition:enter-end="translate-y-0 opacity-100 sm:translate-x-0"
-            x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0"
+            x-transition:enter-start="translate-y-10 opacity-0" {{-- Muncul dari bawah --}}
+            x-transition:enter-end="translate-y-0 opacity-100" x-transition:leave="transition ease-in duration-100"
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0 scale-90"
             class="max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden">
             <div class="p-4">
                 <div class="flex items-start">
@@ -248,7 +247,7 @@
 
                     <h1 class="text-lg font-semibold text-white ml-2 md:ml-0">{{ $title ?? 'Dashboard' }}</h1>
                 </div>
-                
+
 
                 <div class="flex items-center space-x-4">
                     <livewire:notifications.bell />
