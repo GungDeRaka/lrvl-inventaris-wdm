@@ -8,6 +8,6 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('app:cek-peminjaman-notifikasi')->hourly();
+Schedule::command('app:cek-peminjaman-notifikasi')->everyFifteenMinutes();
 Schedule::command('app:tolak-booking-otomatis')->everyMinute();
 Schedule::command('app:batalkan-peminjaman-otomatis')->everyMinute();

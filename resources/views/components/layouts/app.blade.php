@@ -25,6 +25,42 @@
                   Jika layar besar (Desktop), cek localStorage. 
                   Jika layar kecil (Mobile), default tutup (false).
     --}}
+    {{-- Letakkan di file layout utama (app.blade.php) --}}
+    <div x-data="{ show: false, message: '', type: 'success' }"
+        x-on:notify.window="show = true; message = $event.detail.message; type = $event.detail.type || 'success'; setTimeout(() => show = false, 3000)"
+        class="fixed top-5 right-5 z-50 flex flex-col gap-2">
+
+        <div x-show="show" x-transition:enter="transform ease-out duration-300 transition"
+            x-transition:enter-start="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+            x-transition:enter-end="translate-y-0 opacity-100 sm:translate-x-0"
+            x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden">
+            <div class="p-4">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        {{-- Ikon Ceklis Hijau --}}
+                        <svg x-show="type === 'success'" class="h-6 w-6 text-green-400" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {{-- Ikon Silang Merah --}}
+                        <svg x-show="type === 'error'" class="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="ml-3 w-0 flex-1 pt-0.5">
+                        <p class="text-sm font-medium text-gray-900"
+                            x-text="type === 'success' ? 'Berhasil!' : 'Terjadi Kesalahan'"></p>
+                        <p class="mt-1 text-sm text-gray-500" x-text="message"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div x-data="{
         sidebarOpen: false,
         init() {
@@ -70,8 +106,8 @@
             {{-- Header Sidebar (Logo) --}}
             <div class="flex items-center justify-center h-20 shadow-md bg-primary/90">
                 <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 px-4 overflow-hidden">
-                    <img class="h-10 w-10 flex-shrink-0 border-2 border-white/20"
-                        src="{{ asset('logo.jpg') }}" alt="Logo">
+                    <img class="h-10 w-10 flex-shrink-0 border-2 border-white/20" src="{{ asset('logo.jpg') }}"
+                        alt="Logo">
 
                     {{-- Teks hanya muncul jika sidebar terbuka --}}
                     <div x-show="sidebarOpen" class="transition-opacity duration-200">
@@ -122,7 +158,8 @@
 
                 @can('kelola-pengguna')
                     <div x-show="sidebarOpen" class="pt-4 pb-1">
-                        <p class="px-3 text-xs font-semibold text-purple-200 uppercase tracking-wider">Fitur Khusus Kepala Gudang</p>
+                        <p class="px-3 text-xs font-semibold text-purple-200 uppercase tracking-wider">Fitur Khusus Kepala
+                            Gudang</p>
                     </div>
                     <hr x-show="!sidebarOpen" class="border-white/20 my-2">
 
@@ -211,6 +248,7 @@
 
                     <h1 class="text-lg font-semibold text-white ml-2 md:ml-0">{{ $title ?? 'Dashboard' }}</h1>
                 </div>
+                
 
                 <div class="flex items-center space-x-4">
                     <livewire:notifications.bell />
@@ -219,8 +257,7 @@
                     <div x-data="{ dropdownOpen: false }" class="relative">
                         <button @click="dropdownOpen = !dropdownOpen"
                             class="flex items-center space-x-2 focus:outline-none">
-                            <div
-                                class="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center">
+                            <div class="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center">
                                 <span class="font-bold text-sm">{{ substr(Auth::user()->name, 0, 1) }}</span>
                             </div>
                             <span
