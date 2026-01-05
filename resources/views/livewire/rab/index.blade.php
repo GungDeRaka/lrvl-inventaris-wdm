@@ -452,6 +452,20 @@
                                     @enderror
                                 </div>
 
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700">Sumber Dana*</label>
+                                    <select wire:model="newItemSumberId"
+                                        class="mt-1 w-full rounded-lg border-gray-300 focus:border-indigo-600 focus:ring-indigo-600">
+                                        <option value="">-- Pilih --</option>
+                                        @foreach ($sumberDanas as $sumber)
+                                            <option value="{{ $sumber->id }}">{{ $sumber->nama_sumber }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('newItemSumberId')
+                                        <span class="text-red-500 text-xs">{{ $message }}</span>
+                                    @enderror
+                                </div>
+
                                 {{-- Jumlah --}}
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700">Jumlah*</label>
@@ -493,6 +507,7 @@
                                             <tr>
                                                 <th class="px-4 py-3 text-left">Nama</th>
                                                 <th class="px-4 py-3 text-left">Spesifikasi</th>
+                                                <th class="px-4 py-3 text-left">Sumber Dana</th>
                                                 <th class="px-4 py-3 text-center">Jumlah</th>
                                                 <th class="px-4 py-3 text-right">Harga Satuan</th>
                                                 <th class="px-4 py-3 text-right">Total</th>
@@ -504,7 +519,8 @@
                                             @foreach ($items as $index => $item)
                                                 <tr class="hover:bg-gray-50">
                                                     <td class="px-4 py-3">{{ $item['nama'] }}</td>
-                                                    <td class="px-4 py-3">{{ $item['spesifikasi'] ?: '-' }}</td>
+                                                    <td class="px-4 py-3">{{ $item['spesifikasi'] ?: 'Tidak ada spesifikasi khusus' }}</td>
+                                                    <td class="px-4 py-3 text-blue-600 font-medium">{{ $item['nama_sumber'] ?? 'Sumber dana belum diatur' }}</td>
                                                     <td class="px-4 py-3 text-center">{{ $item['jumlah'] }}</td>
                                                     <td class="px-4 py-3 text-right">
                                                         Rp {{ number_format($item['harga'], 0, ',', '.') }}

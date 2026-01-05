@@ -5,6 +5,7 @@ namespace App\Livewire\Rab;
 use App\Models\RabPengadaan;
 use App\Models\RabItem;
 use App\Models\Barang;
+use App\Models\SumberDana;
 use App\Models\PengadaanBarang;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth; // <-- Tambahkan Auth
@@ -33,6 +34,7 @@ class Index extends Component
     public $newItemSpec = '';
     public $newItemJumlah = 1;
     public $newItemHarga = 0;
+    public $newItemSumberId = ''; 
     public $showCreateModal = false;
 
     // --- LOGIKA UNTUK PENGAJUAN RAB (dari Rab/Create) ---
@@ -40,7 +42,8 @@ class Index extends Component
     // Method untuk membuka/menutup modal create
     public function openCreateModal()
     {
-        $this->reset(['judul', 'keterangan', 'items', 'newItemNama', 'newItemSpec', 'newItemJumlah', 'newItemHarga']);
+        // 3. Jangan lupa reset newItemSumberId juga
+        $this->reset(['judul', 'keterangan', 'items', 'newItemNama', 'newItemSpec', 'newItemJumlah', 'newItemHarga', 'newItemSumberId']);
         $this->showCreateModal = true;
     }
 
@@ -55,16 +58,20 @@ class Index extends Component
             'newItemJumlah' => 'required|integer|min:1',
             'newItemHarga' => 'required|numeric|min:0',
             'newItemSpec' => 'nullable|string',
+            'newItemSumberId' => 'required|exists:sumber_danas,id',
         ]);
 
+        $sumber = SumberDana::find($this->newItemSumberId);
         $this->items[] = [
             'nama' => $this->newItemNama,
             'spesifikasi' => $this->newItemSpec,
             'jumlah' => (int)$this->newItemJumlah,
             'harga' => (float)$this->newItemHarga,
             'total' => (int)$this->newItemJumlah * (float)$this->newItemHarga,
+            'sumber_dana_id' => $this->newItemSumberId, 
+            'nama_sumber' => $sumber ? $sumber->nama_sumber : '-',
         ];
-        $this->reset(['newItemNama', 'newItemSpec', 'newItemJumlah', 'newItemHarga']);
+        $this->reset(['newItemNama', 'newItemSpec', 'newItemJumlah', 'newItemHarga','newItemSumberId']);
     }
 
     public function removeItem($index)
@@ -103,6 +110,7 @@ class Index extends Component
                         'jumlah' => $item['jumlah'],
                         'harga_satuan' => $item['harga'],
                         'harga_total' => $item['total'],
+                        'sumber_dana_id' => $item['sumber_dana_id'],
                     ]);
                 }
             });
@@ -211,6 +219,7 @@ class Index extends Component
     {
         $user = Auth::user();
         $rabData = [];
+        $sumberDanas = SumberDana::all();
 
         if ($user->peran === 'kepala_gudang') {
             // Kepala Gudang: lihat RAB yang diajukan & riwayat persetujuan
@@ -228,6 +237,6 @@ class Index extends Component
                 ->latest('tanggal_pengajuan')->paginate(10);
         }
 
-        return view('livewire.rab.index', $rabData);
+        return view('livewire.rab.index', array_merge($rabData, ['sumberDanas' => $sumberDanas]));
     }
 }
