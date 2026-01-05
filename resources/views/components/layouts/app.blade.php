@@ -27,6 +27,7 @@
     --}}
     {{-- Toast Notification --}}
     <div x-data="{ show: false, message: '', type: 'success' }"
+    x-cloak
         x-on:notify.window="show = true; message = $event.detail.message; type = $event.detail.type || 'success'; setTimeout(() => show = false, 3000)"
         class="fixed top-2 right-20 z-50 flex w-72 flex-col gap-2">
 
@@ -281,8 +282,8 @@
                                 <p class="text-sm text-gray-700 font-medium">{{ Auth::user()->name }}</p>
                                 <p class="text-xs text-gray-500">{{ Auth::user()->email }}</p>
                             </div>
-                            <a href="{{ route('profile.edit') }}"
-                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit Profil</a>
+                            {{-- <a href="{{ route('profile.edit') }}"
+                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit Profil</a> --}}
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <a href="{{ route('logout') }}"

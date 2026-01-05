@@ -40,7 +40,7 @@
                         <td class="px-5 py-4 text-sm">
                             {{-- Buat nama ruangan menjadi tombol --}}
                             <button wire:click="showDetail({{ $ruangan->id }})"
-                                class="font-semibold text-indigo-600 hover:underline flex items-center"></button>
+                                class="font-semibold text-indigo-600 hover:underline flex items-center">
                                 {{ $ruangan->nama_ruangan }}
                             </button>
                         </td>
