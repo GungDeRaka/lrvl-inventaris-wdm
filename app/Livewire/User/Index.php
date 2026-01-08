@@ -31,7 +31,7 @@ class Index extends Component
         'name' => 'required|string|min:3',
         'email' => 'required|email|unique:users,email',
         'password' => 'required|string|min:8',
-        'peran' => 'required|in:kepala_gudang,penjaga_gudang',
+        'peran' => 'required|in:kepala_gudang,penjaga_gudang,bendahara',
     ];
 
     public function openModal()
@@ -56,7 +56,7 @@ class Index extends Component
         $rules = [
             'name' => 'required|string|min:3',
             'email' => ['required', 'email', Rule::unique('users')->ignore($this->user_id)],
-            'peran' => 'required|in:kepala_gudang,penjaga_gudang',
+            'peran' => 'required|in:kepala_gudang,penjaga_gudang,bendahara',
         ];
 
         if (!$this->user_id) {

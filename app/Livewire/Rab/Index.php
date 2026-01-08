@@ -5,10 +5,13 @@ namespace App\Livewire\Rab;
 use App\Models\RabPengadaan;
 use App\Models\RabItem;
 use App\Models\Barang;
-use App\Models\SumberDana;
 use App\Models\PengadaanBarang;
+use App\Models\SumberDana;
+use App\Models\Kategori; // Perlu Model Kategori
+use App\Models\Ruangan;  // Perlu Model Ruangan
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; // <-- Tambahkan Auth
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
@@ -20,13 +23,15 @@ class Index extends Component
 {
     use WithPagination;
 
-    // Properti untuk daftar RAB (Kepala Gudang)
+    // State UI
     public $showDetailModal = false;
+    public $showCreateModal = false;
+    public $showProcurementModal = false; // Modal Khusus Penjaga Gudang Input Data Teknis
+    
     public $selectedRab;
-    public $catatan_kepala = '';
-
-    // Properti untuk form pengajuan RAB (Penjaga Gudang)
-
+    public $catatan_kepala = ''; // Bisa diisi Kepala Gudang / Bendahara
+    
+    // Properti Pengajuan Baru (Penjaga Gudang)
     public $judul = '';
     public $keterangan = '';
     public $items = [];
@@ -34,33 +39,31 @@ class Index extends Component
     public $newItemSpec = '';
     public $newItemJumlah = 1;
     public $newItemHarga = 0;
-    public $newItemSumberId = ''; 
-    public $showCreateModal = false;
+    public $newItemSumberId = '';
 
-    // --- LOGIKA UNTUK PENGAJUAN RAB (dari Rab/Create) ---
+    // Properti Edit Item (Bendahara)
+    public $editingItemId = null;
+    public $editJumlah = 0;
+    
+    // Properti Input Teknis (Penjaga Gudang - Fase Pengadaan)
+    public $procurementItems = []; // Array untuk menampung input kode/kategori/ruang
 
-    // Method untuk membuka/menutup modal create
-    public function openCreateModal()
-    {
-        // 3. Jangan lupa reset newItemSumberId juga
+    // --- 1. FITUR PENGAJUAN (PENJAGA GUDANG) ---
+    public function openCreateModal() {
         $this->reset(['judul', 'keterangan', 'items', 'newItemNama', 'newItemSpec', 'newItemJumlah', 'newItemHarga', 'newItemSumberId']);
         $this->showCreateModal = true;
     }
 
-    public function closeCreateModal()
-    {
-        $this->showCreateModal = false;
-    }
-    public function addItem()
-    {
+    public function closeCreateModal() { $this->showCreateModal = false; }
+
+    public function addItem() {
         $this->validate([
             'newItemNama' => 'required|string',
             'newItemJumlah' => 'required|integer|min:1',
             'newItemHarga' => 'required|numeric|min:0',
-            'newItemSpec' => 'nullable|string',
             'newItemSumberId' => 'required|exists:sumber_danas,id',
         ]);
-
+        
         $sumber = SumberDana::find($this->newItemSumberId);
         $this->items[] = [
             'nama' => $this->newItemNama,
@@ -68,175 +71,227 @@ class Index extends Component
             'jumlah' => (int)$this->newItemJumlah,
             'harga' => (float)$this->newItemHarga,
             'total' => (int)$this->newItemJumlah * (float)$this->newItemHarga,
-            'sumber_dana_id' => $this->newItemSumberId, 
+            'sumber_dana_id' => $this->newItemSumberId,
             'nama_sumber' => $sumber ? $sumber->nama_sumber : '-',
         ];
-        $this->reset(['newItemNama', 'newItemSpec', 'newItemJumlah', 'newItemHarga','newItemSumberId']);
+        $this->reset(['newItemNama', 'newItemSpec', 'newItemJumlah', 'newItemHarga', 'newItemSumberId']);
     }
 
-    public function removeItem($index)
-    {
+    public function removeItem($index) {
         unset($this->items[$index]);
         $this->items = array_values($this->items);
     }
 
-    public function ajukanRab()
-    {
+    public function ajukanRab() {
         if (Auth::user()->peran !== 'penjaga_gudang') return;
+        
+        // Validasi utama...
+        $this->validate(['judul' => 'required|min:5', 'items' => 'required|array|min:1']);
 
-        $this->validate([
-            'judul' => 'required|string|min:5|max:100', // Validasi judul (5-30 karakter)
-            'keterangan' => 'nullable|string',
-            'items' => 'required|array|min:1',
-            'items.*.nama' => 'required|string',
-            'items.*.jumlah' => 'required|integer|min:1',
-            'items.*.harga' => 'required|numeric|min:0',
-        ], [ /* messages */]);
-
-        try {
-            DB::transaction(function () {
-                $rab = RabPengadaan::create([
-                    'user_id' => Auth::id(),
-                    'judul' => $this->judul, // Simpan judul
-                    'keterangan' => $this->keterangan,
-                    'tanggal_pengajuan' => now()->toDateString(),
-                    'status' => 'diajukan',
+        DB::transaction(function () {
+            $rab = RabPengadaan::create([
+                'user_id' => Auth::id(),
+                'judul' => $this->judul,
+                'keterangan' => $this->keterangan,
+                'tanggal_pengajuan' => now(),
+                'status' => 'diajukan', // Status Awal
+            ]);
+            foreach ($this->items as $item) {
+                RabItem::create([
+                    'rab_pengadaan_id' => $rab->id,
+                    'nama_barang_baru' => $item['nama'],
+                    'spesifikasi' => $item['spesifikasi'],
+                    'jumlah' => $item['jumlah'],
+                    'harga_satuan' => $item['harga'],
+                    'harga_total' => $item['total'],
+                    'sumber_dana_id' => $item['sumber_dana_id'],
                 ]);
-                foreach ($this->items as $item) {
-                    RabItem::create([
-                        'rab_pengadaan_id' => $rab->id,
-                        'nama_barang_baru' => $item['nama'],
-                        'spesifikasi' => $item['spesifikasi'],
-                        'jumlah' => $item['jumlah'],
-                        'harga_satuan' => $item['harga'],
-                        'harga_total' => $item['total'],
-                        'sumber_dana_id' => $item['sumber_dana_id'],
-                    ]);
-                }
-            });
-            session()->flash('message', 'Pengajuan RAB berhasil dikirim.');
-            $this->closeCreateModal(); // Tutup modal setelah sukses
-        } catch (\Exception $e) {
-            session()->flash('error', 'Gagal mengajukan RAB: ' . $e->getMessage());
-        }
+            }
+        });
+        session()->flash('message', 'RAB berhasil diajukan ke Kepala Gudang.');
+        $this->closeCreateModal();
     }
 
-
-    // --- AKHIR LOGIKA PENGAJUAN ---
-
-    // --- LOGIKA UNTUK PERSETUJUAN RAB (dari Rab/Index lama) ---
-    public function showDetail($id)
-    {
-        // Method ini sekarang bisa dipakai oleh kedua peran
-        $rab = RabPengadaan::with('pengaju', 'peninjau', 'items.barang')->findOrFail($id);
-
-
-        $this->catatan_kepala = $rab->catatan_kepala ?? '';
-
-
-        $this->selectedRab = $rab;
+    // --- 2. FITUR UTAMA: DETAIL & PROSES (SEMUA ROLE) ---
+    public function showDetail($id) {
+        $this->selectedRab = RabPengadaan::with(['items', 'pengaju', 'peninjau'])->findOrFail($id);
+        $this->catatan_kepala = $this->selectedRab->catatan_kepala;
+        
+        // Siapkan data untuk Modal Input Teknis (Jika Penjaga Gudang & Status Disetujui Bendahara)
+        if(Auth::user()->peran === 'penjaga_gudang' && $this->selectedRab->status === 'disetujui_bendahara') {
+            foreach($this->selectedRab->items as $item) {
+                $this->procurementItems[$item->id] = [
+                    'kode' => '',
+                    'kategori_id' => '',
+                    'ruangan_id' => '',
+                ];
+            }
+        }
+        
         $this->showDetailModal = true;
     }
 
-    public function closeModal()
-    {
-        $this->showDetailModal = false;
-        $this->selectedRab = null;
+    public function closeModal() { 
+        $this->showDetailModal = false; 
+        $this->selectedRab = null; 
     }
 
-    public function prosesKeputusan($status)
-    {
-        if (!$this->selectedRab || Auth::user()->peran !== 'kepala_gudang') return;
+    // --- LOGIKA KEPALA GUDANG: SETUJU (KE WA BENDAHARA) ---
+    public function teruskanKeBendahara() {
+        if (Auth::user()->peran !== 'kepala_gudang') return;
 
-        $this->validate(['catatan_kepala' => 'nullable|string']);
+        $this->selectedRab->update([
+            'status' => 'menunggu_bendahara',
+            'disetujui_oleh' => Auth::id(), // Kepala Gudang approve tahap 1
+            'catatan_kepala' => $this->catatan_kepala
+        ]);
 
-        try {
-            DB::transaction(function () use ($status) {
-                // 1. Update status RAB (Tidak berubah)
-                $this->selectedRab->update([
-                    'status' => $status,
-                    'disetujui_oleh' => Auth::id(),
-                    'tanggal_keputusan' => now()->toDateString(),
-                    'catatan_kepala' => $this->catatan_kepala,
-                ]);
+        // Cari Bendahara
+        $bendahara = User::where('peran', 'bendahara')->first();
+        $noHp = $bendahara ? $bendahara->no_hp : ''; // Pastikan format 628xxx
+        
+        // Pesan WA
+        $linkSistem = url('/rab'); // Link ke halaman RAB
+        $pesan = "Halo Bendahara, ada pengajuan RAB baru: *{$this->selectedRab->judul}*. Mohon dicek. Link: $linkSistem";
+        
+        session()->flash('message', 'RAB disetujui. Mengarahkan ke WhatsApp Bendahara...');
+        $this->closeModal();
 
-                // 2. JIKA DISETUJUI, proses ke inventaris (LOGIKA DIPERBAIKI)
-                if ($status == 'disetujui') {
-                    foreach ($this->selectedRab->items as $item) {
-
-                        $barangIdToUse = $item->barang_id; // Ambil ID barang yang sudah ada
-
-                        // Cek apakah ini BARANG BARU (barang_id di rab_items adalah null)
-                        if (is_null($item->barang_id)) {
-
-                            // KASUS 1: BUAT BARANG BARU TERLEBIH DAHULU
-                            $barangBaru = Barang::create([
-                                'kode_barang' => $item->kode_barang_baru,
-                                'nama_barang' => $item->nama_barang_baru,
-                                'kategori_id' => $item->kategori_id,
-                                'ruangan_id' => $item->ruangan_id,
-                                'stok_minimum' => $item->stok_minimum_baru,
-                                'jumlah_total' => $item->jumlah,
-                                'jumlah_saat_ini' => $item->jumlah,
-                            ]);
-                            $barangIdToUse = $barangBaru->id; // Ambil ID dari barang yang baru dibuat
-
-                        } else {
-                            // KASUS 2: TAMBAH STOK BARANG YANG ADA
-                            $barang = Barang::find($item->barang_id);
-                            if ($barang) {
-                                $barang->increment('jumlah_total', $item->jumlah);
-                                $barang->increment('jumlah_saat_ini', $item->jumlah);
-                            }
-                        }
-
-                        // 3. Catat di riwayat pengadaan (SETELAH BARANG DIBUAT/DITEMUKAN)
-                        if ($barangIdToUse) {
-                            PengadaanBarang::create([
-                                'barang_id' => $barangIdToUse,
-                                'jumlah' => $item->jumlah,
-                                'harga_satuan' => $item->harga_satuan,
-                                'total_harga' => $item->harga_total,
-                                // PERBAIKAN DI SINI: Ambil sumber_dana_id dari item RAB
-                                'sumber_dana_id' => $item->sumber_dana_id,
-                                'tanggal_pengadaan' => $this->selectedRab->tanggal_keputusan,
-                                'user_id' => Auth::id(),
-                            ]);
-                        }
-                    }
-                }
-            });
-
-            session()->flash('message', 'RAB telah berhasil di-' . ($status == 'disetujui' ? 'setujui dan stok diperbarui' : 'tolak') . '.');
-            $this->closeModal();
-        } catch (\Exception $e) {
-            session()->flash('error', 'Gagal memproses RAB: ' . $e->getMessage());
+        if($noHp) {
+            $this->redirect("https://api.whatsapp.com/send?phone={$noHp}&text=" . urlencode($pesan));
         }
     }
-    // --- AKHIR LOGIKA PERSETUJUAN ---
+
+    // --- LOGIKA BENDAHARA: EDIT & SETUJU ---
+    public function editItemBendahara($itemId) {
+        $this->editingItemId = $itemId;
+        $item = RabItem::find($itemId);
+        $this->editJumlah = $item->jumlah;
+    }
+
+    public function saveItemBendahara($itemId) {
+        $item = RabItem::find($itemId);
+        $item->jumlah = $this->editJumlah;
+        $item->harga_total = $item->jumlah * $item->harga_satuan; // Hitung ulang total
+        $item->save();
+        $this->editingItemId = null;
+        
+        // Refresh selectedRab
+        $this->selectedRab->refresh();
+    }
+    
+    public function hapusItemBendahara($itemId) {
+        RabItem::destroy($itemId);
+        $this->selectedRab->refresh();
+    }
+
+    public function setujuiOlehBendahara() {
+        if (Auth::user()->peran !== 'bendahara') return;
+
+        $this->selectedRab->update([
+            'status' => 'disetujui_bendahara',
+            'catatan_kepala' => $this->catatan_kepala // Bendahara bisa update catatan
+        ]);
+
+        session()->flash('message', 'RAB disetujui. Dikembalikan ke Penjaga Gudang untuk belanja.');
+        $this->closeModal();
+    }
+
+    // --- LOGIKA PENJAGA GUDANG: INPUT DATA TEKNIS (FASE PENGADAAN) ---
+    public function laporBarangDatang() {
+        if (Auth::user()->peran !== 'penjaga_gudang') return;
+        
+        $this->validate([
+            'procurementItems.*.kode' => 'required|string|unique:barangs,kode_barang',
+            'procurementItems.*.kategori_id' => 'required',
+            'procurementItems.*.ruangan_id' => 'required',
+        ]);
+
+        DB::transaction(function() {
+            foreach($this->procurementItems as $itemId => $data) {
+                RabItem::where('id', $itemId)->update([
+                    'kode_barang_fix' => $data['kode'],
+                    'kategori_id_fix' => $data['kategori_id'],
+                    'ruangan_id_fix' => $data['ruangan_id'],
+                ]);
+            }
+            
+            $this->selectedRab->update(['status' => 'menunggu_verifikasi']);
+        });
+
+        session()->flash('message', 'Data teknis disimpan. Menunggu verifikasi fisik Kepala Gudang.');
+        $this->closeModal();
+    }
+
+    // --- LOGIKA KEPALA GUDANG: VERIFIKASI AKHIR (INSERT KE BARANG) ---
+    public function verifikasiAkhir() {
+        if (Auth::user()->peran !== 'kepala_gudang') return;
+
+        DB::transaction(function() {
+            foreach($this->selectedRab->items as $item) {
+                // INSERT KE TABEL BARANG (Final)
+                $barang = Barang::create([
+                    'kode_barang' => $item->kode_barang_fix,
+                    'nama_barang' => $item->nama_barang_baru,
+                    'kategori_id' => $item->kategori_id_fix,
+                    'ruangan_id' => $item->ruangan_id_fix,
+                    'jumlah_total' => $item->jumlah,
+                    'jumlah_saat_ini' => $item->jumlah,
+                    // Foto dll bisa null dulu atau default
+                ]);
+
+                // INSERT KE RIWAYAT PENGADAAN
+                PengadaanBarang::create([
+                    'barang_id' => $barang->id,
+                    'jumlah' => $item->jumlah,
+                    'harga_satuan' => $item->harga_satuan,
+                    'total_harga' => $item->harga_total,
+                    'sumber_dana_id' => $item->sumber_dana_id,
+                    'tanggal_pengadaan' => now(),
+                    'user_id' => Auth::id(),
+                ]);
+            }
+
+            $this->selectedRab->update(['status' => 'selesai']);
+        });
+
+        session()->flash('message', 'RAB Selesai! Barang resmi masuk inventaris.');
+        $this->closeModal();
+    }
+    
+    public function tolakRab() {
+         $this->selectedRab->update(['status' => 'ditolak', 'catatan_kepala' => $this->catatan_kepala]);
+         $this->closeModal();
+    }
 
     public function render()
     {
         $user = Auth::user();
-        $rabData = [];
-        $sumberDanas = SumberDana::all();
-
-        if ($user->peran === 'kepala_gudang') {
-            // Kepala Gudang: lihat RAB yang diajukan & riwayat persetujuan
-            $rabData['rabDiajukan'] = RabPengadaan::with('pengaju')
-                ->where('status', 'diajukan')
-                ->latest('tanggal_pengajuan')->paginate(10, ['*'], 'diajukanPage');
-
-            $rabData['rabDiproses'] = RabPengadaan::with('pengaju', 'peninjau')
-                ->whereIn('status', ['disetujui', 'ditolak'])
-                ->latest('tanggal_keputusan')->paginate(10, ['*'], 'diprosesPage');
-        } elseif ($user->peran === 'penjaga_gudang') {
-            // Penjaga Gudang: lihat riwayat SEMUA RAB yang dia ajukan
-            $rabData['rabSaya'] = RabPengadaan::with('peninjau') // Muat relasi peninjau
-                ->where('user_id', $user->id)
-                ->latest('tanggal_pengajuan')->paginate(10);
+        $rabData = ['sumberDanas' => SumberDana::all()];
+        
+        // Data untuk Dropdown di Modal Pengadaan (Penjaga Gudang)
+        if($user->peran == 'penjaga_gudang') {
+            $rabData['kategoris'] = Kategori::all();
+            $rabData['ruangans'] = Ruangan::all();
         }
 
-        return view('livewire.rab.index', array_merge($rabData, ['sumberDanas' => $sumberDanas]));
+        // QUERY SESUAI ROLE
+        if ($user->peran === 'kepala_gudang') {
+            // Tab 1: Menunggu Persetujuan Awal OR Menunggu Verifikasi Akhir
+            $rabData['rabDiajukan'] = RabPengadaan::whereIn('status', ['diajukan', 'menunggu_verifikasi'])
+                ->latest()->paginate(10);
+            $rabData['rabDiproses'] = RabPengadaan::whereIn('status', ['menunggu_bendahara', 'disetujui_bendahara', 'selesai', 'ditolak'])
+                ->latest()->paginate(10, ['*'], 'historyPage');
+                
+        } elseif ($user->peran === 'bendahara') {
+            // Bendahara hanya fokus yang statusnya 'menunggu_bendahara'
+            $rabData['rabDiajukan'] = RabPengadaan::where('status', 'menunggu_bendahara')->latest()->paginate(10);
+            $rabData['rabDiproses'] = RabPengadaan::where('status', '!=', 'menunggu_bendahara')->latest()->paginate(10);
+
+        } else { // Penjaga Gudang
+            $rabData['rabSaya'] = RabPengadaan::where('user_id', $user->id)->latest()->paginate(10);
+        }
+
+        return view('livewire.rab.index', $rabData);
     }
 }

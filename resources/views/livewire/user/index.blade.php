@@ -34,8 +34,9 @@
                     <tr class="hover:bg-gray-50 border-b">
                         <td class="px-5 py-4 text-sm">{{ $user->name }}</td>
                         <td class="px-5 py-4 text-sm">{{ $user->email }}</td>
-                        <td class="px-5 py-4 text-sm">
-                            {{ $user->peran == 'kepala_gudang' ? 'Kepala Gudang' : 'Penjaga Gudang' }}</td>
+                        <td class="px-5 py-4 text-sm capitalize">
+                            {{ str_replace('_', ' ', $user->peran) }}
+                        </td>
                         <td class="px-5 py-4 text-sm whitespace-nowrap">
                             <div class="flex items-center space-x-2">
                                 {{-- Tombol Edit --}}
@@ -100,7 +101,7 @@
                             <label for="email" class="block text-sm font-medium">Email</label>
                             <input type="email" wire:model="email" id="email"
                                 class="mt-1 block w-full border-gray-300 rounded-md">
-                                 {{-- {{ $user_id ? 'readonly' : '' }}> --}}
+                            {{-- {{ $user_id ? 'readonly' : '' }}> --}}
                             @error('email')
                                 <span class="text-red-500 text-xs">{{ $message }}</span>
                             @enderror
@@ -122,6 +123,7 @@
                                 <option value="">Pilih Peran</option>
                                 <option value="kepala_gudang">Kepala Gudang</option>
                                 <option value="penjaga_gudang">Penjaga Gudang</option>
+                                <option value="bendahara">Bendahara</option>
                             </select>
                             @error('peran')
                                 <span class="text-red-500 text-xs">{{ $message }}</span>
@@ -159,7 +161,8 @@
                     <div class="mt-6 flex justify-end space-x-2">
                         <button type="button" wire:click="closeModal()"
                             class="px-4 py-2 bg-gray-200 rounded">Batal</button>
-                        <button type="submit" class="px-4 py-2 bg-primary text-white rounded">Update Password</button>
+                        <button type="submit" class="px-4 py-2 bg-primary text-white rounded">Update
+                            Password</button>
                     </div>
                 </form>
             </div>
