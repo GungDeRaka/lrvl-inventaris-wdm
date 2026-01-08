@@ -27,10 +27,10 @@ class Index extends Component
     public $showDetailModal = false;
     public $showCreateModal = false;
     public $showProcurementModal = false; // Modal Khusus Penjaga Gudang Input Data Teknis
-    
+
     public $selectedRab;
     public $catatan_kepala = ''; // Bisa diisi Kepala Gudang / Bendahara
-    
+
     // Properti Pengajuan Baru (Penjaga Gudang)
     public $judul = '';
     public $keterangan = '';
@@ -40,51 +40,87 @@ class Index extends Component
     public $newItemJumlah = 1;
     public $newItemHarga = 0;
     public $newItemSumberId = '';
+    public $modeInput = 'baru'; // Opsi: 'baru' atau 'restock'
+    public $existingBarangId = '';
 
     // Properti Edit Item (Bendahara)
     public $editingItemId = null;
     public $editJumlah = 0;
-    
+
     // Properti Input Teknis (Penjaga Gudang - Fase Pengadaan)
     public $procurementItems = []; // Array untuk menampung input kode/kategori/ruang
 
     // --- 1. FITUR PENGAJUAN (PENJAGA GUDANG) ---
-    public function openCreateModal() {
+    public function openCreateModal()
+    {
         $this->reset(['judul', 'keterangan', 'items', 'newItemNama', 'newItemSpec', 'newItemJumlah', 'newItemHarga', 'newItemSumberId']);
         $this->showCreateModal = true;
     }
 
-    public function closeCreateModal() { $this->showCreateModal = false; }
+    public function closeCreateModal()
+    {
+        $this->showCreateModal = false;
+    }
 
-    public function addItem() {
-        $this->validate([
-            'newItemNama' => 'required|string',
+    public function addItem()
+    {
+        // Validasi Dasar
+        $rules = [
             'newItemJumlah' => 'required|integer|min:1',
             'newItemHarga' => 'required|numeric|min:0',
             'newItemSumberId' => 'required|exists:sumber_danas,id',
-        ]);
-        
+        ];
+
+        // Validasi Berdasarkan Mode
+        if ($this->modeInput == 'baru') {
+            $rules['newItemNama'] = 'required|string';
+            $rules['newItemSpec'] = 'nullable|string';
+        } else {
+            $rules['existingBarangId'] = 'required|exists:barangs,id';
+        }
+
+        $this->validate($rules);
+
         $sumber = SumberDana::find($this->newItemSumberId);
+
+        // Logika Nama & Spec
+        if ($this->modeInput == 'restock') {
+            $barangExisting = Barang::find($this->existingBarangId);
+            $nama = $barangExisting->nama_barang;
+            $spec = "Penambahan Stok (Kode: {$barangExisting->kode_barang})";
+            $barangId = $barangExisting->id;
+        } else {
+            $nama = $this->newItemNama;
+            $spec = $this->newItemSpec;
+            $barangId = null; // Barang Baru
+        }
+
         $this->items[] = [
-            'nama' => $this->newItemNama,
-            'spesifikasi' => $this->newItemSpec,
+            'nama' => $nama,
+            'spesifikasi' => $spec,
             'jumlah' => (int)$this->newItemJumlah,
             'harga' => (float)$this->newItemHarga,
             'total' => (int)$this->newItemJumlah * (float)$this->newItemHarga,
             'sumber_dana_id' => $this->newItemSumberId,
             'nama_sumber' => $sumber ? $sumber->nama_sumber : '-',
+            'barang_id' => $barangId, // <--- SIMPAN ID BARANG DISINI
         ];
-        $this->reset(['newItemNama', 'newItemSpec', 'newItemJumlah', 'newItemHarga', 'newItemSumberId']);
+
+        // Reset Form
+        $this->reset(['newItemNama', 'newItemSpec', 'newItemJumlah', 'newItemHarga', 'newItemSumberId', 'existingBarangId', 'modeInput']);
+        $this->modeInput = 'baru'; // Kembalikan default ke baru
     }
 
-    public function removeItem($index) {
+    public function removeItem($index)
+    {
         unset($this->items[$index]);
         $this->items = array_values($this->items);
     }
 
-    public function ajukanRab() {
+    public function ajukanRab()
+    {
         if (Auth::user()->peran !== 'penjaga_gudang') return;
-        
+
         // Validasi utama...
         $this->validate(['judul' => 'required|min:5', 'items' => 'required|array|min:1']);
 
@@ -105,6 +141,7 @@ class Index extends Component
                     'harga_satuan' => $item['harga'],
                     'harga_total' => $item['total'],
                     'sumber_dana_id' => $item['sumber_dana_id'],
+                    'barang_id' => $item['barang_id'] ?? null,
                 ]);
             }
         });
@@ -113,13 +150,14 @@ class Index extends Component
     }
 
     // --- 2. FITUR UTAMA: DETAIL & PROSES (SEMUA ROLE) ---
-    public function showDetail($id) {
+    public function showDetail($id)
+    {
         $this->selectedRab = RabPengadaan::with(['items', 'pengaju', 'peninjau'])->findOrFail($id);
         $this->catatan_kepala = $this->selectedRab->catatan_kepala;
-        
+
         // Siapkan data untuk Modal Input Teknis (Jika Penjaga Gudang & Status Disetujui Bendahara)
-        if(Auth::user()->peran === 'penjaga_gudang' && $this->selectedRab->status === 'disetujui_bendahara') {
-            foreach($this->selectedRab->items as $item) {
+        if (Auth::user()->peran === 'penjaga_gudang' && $this->selectedRab->status === 'disetujui_bendahara') {
+            foreach ($this->selectedRab->items as $item) {
                 $this->procurementItems[$item->id] = [
                     'kode' => '',
                     'kategori_id' => '',
@@ -127,13 +165,14 @@ class Index extends Component
                 ];
             }
         }
-        
+
         $this->showDetailModal = true;
     }
 
-    public function closeModal() { 
-        $this->showDetailModal = false; 
-        $this->selectedRab = null; 
+    public function closeModal()
+    {
+        $this->showDetailModal = false;
+        $this->selectedRab = null;
     }
 
     // --- LOGIKA KEPALA GUDANG: SETUJU (KE WA BENDAHARA) ---
@@ -173,7 +212,7 @@ class Index extends Component
         $this->closeModal();
 
         // 4. Redirect ke API WhatsApp
-        if($noHp) {
+        if ($noHp) {
             $this->redirect("https://api.whatsapp.com/send?phone={$noHp}&text=" . urlencode($pesan));
         } else {
             // Fallback jika Bendahara belum input No HP
@@ -182,29 +221,33 @@ class Index extends Component
     }
 
     // --- LOGIKA BENDAHARA: EDIT & SETUJU ---
-    public function editItemBendahara($itemId) {
+    public function editItemBendahara($itemId)
+    {
         $this->editingItemId = $itemId;
         $item = RabItem::find($itemId);
         $this->editJumlah = $item->jumlah;
     }
 
-    public function saveItemBendahara($itemId) {
+    public function saveItemBendahara($itemId)
+    {
         $item = RabItem::find($itemId);
         $item->jumlah = $this->editJumlah;
         $item->harga_total = $item->jumlah * $item->harga_satuan; // Hitung ulang total
         $item->save();
         $this->editingItemId = null;
-        
+
         // Refresh selectedRab
         $this->selectedRab->refresh();
     }
-    
-    public function hapusItemBendahara($itemId) {
+
+    public function hapusItemBendahara($itemId)
+    {
         RabItem::destroy($itemId);
         $this->selectedRab->refresh();
     }
 
-    public function setujuiOlehBendahara() {
+    public function setujuiOlehBendahara()
+    {
         if (Auth::user()->peran !== 'bendahara') return;
 
         $this->selectedRab->update([
@@ -217,28 +260,39 @@ class Index extends Component
     }
 
     // --- LOGIKA PENJAGA GUDANG: INPUT DATA TEKNIS (FASE PENGADAAN) ---
-    public function laporBarangDatang() {
+   public function laporBarangDatang() {
         if (Auth::user()->peran !== 'penjaga_gudang') return;
+
+        // Ambil item yang HANYA barang baru (barang_id NULL) untuk divalidasi
+        $itemsBaru = $this->selectedRab->items->whereNull('barang_id');
         
-        $this->validate([
-            'procurementItems.*.kode' => 'required|string|unique:barangs,kode_barang',
-            'procurementItems.*.kategori_id' => 'required',
-            'procurementItems.*.ruangan_id' => 'required',
-        ]);
+        // Jika ada barang baru, validasi input teknisnya
+        if($itemsBaru->count() > 0) {
+            $this->validate([
+                'procurementItems.*.kode' => 'required|string|unique:barangs,kode_barang',
+                'procurementItems.*.kategori_id' => 'required',
+                'procurementItems.*.ruangan_id' => 'required',
+            ]);
+        }
 
         DB::transaction(function() {
+            // Update data teknis HANYA untuk barang baru
             foreach($this->procurementItems as $itemId => $data) {
-                RabItem::where('id', $itemId)->update([
-                    'kode_barang_fix' => $data['kode'],
-                    'kategori_id_fix' => $data['kategori_id'],
-                    'ruangan_id_fix' => $data['ruangan_id'],
-                ]);
+                // Cek apakah item ini butuh update (barang baru)
+                $item = RabItem::find($itemId);
+                if (!$item->barang_id) { 
+                    $item->update([
+                        'kode_barang_fix' => $data['kode'],
+                        'kategori_id_fix' => $data['kategori_id'],
+                        'ruangan_id_fix' => $data['ruangan_id'],
+                    ]);
+                }
             }
             
             $this->selectedRab->update(['status' => 'menunggu_verifikasi']);
         });
 
-        session()->flash('message', 'Data teknis disimpan. Menunggu verifikasi fisik Kepala Gudang.');
+        session()->flash('message', 'Laporan diterima. Stok akan bertambah otomatis setelah verifikasi Kepala Gudang.');
         $this->closeModal();
     }
 
@@ -248,20 +302,34 @@ class Index extends Component
 
         DB::transaction(function() {
             foreach($this->selectedRab->items as $item) {
-                // INSERT KE TABEL BARANG (Final)
-                $barang = Barang::create([
-                    'kode_barang' => $item->kode_barang_fix,
-                    'nama_barang' => $item->nama_barang_baru,
-                    'kategori_id' => $item->kategori_id_fix,
-                    'ruangan_id' => $item->ruangan_id_fix,
-                    'jumlah_total' => $item->jumlah,
-                    'jumlah_saat_ini' => $item->jumlah,
-                    // Foto dll bisa null dulu atau default
-                ]);
+                
+                // LOGIKA BARU: CEK APAKAH INI RESTOCK?
+                if ($item->barang_id) {
+                    // KASUS 1: RESTOCK (Update Barang Lama)
+                    $barang = Barang::find($item->barang_id);
+                    if ($barang) {
+                        $barang->jumlah_total += $item->jumlah;
+                        $barang->jumlah_saat_ini += $item->jumlah;
+                        $barang->save();
+                    }
+                    $finalBarangId = $item->barang_id; // Untuk riwayat pengadaan
 
-                // INSERT KE RIWAYAT PENGADAAN
+                } else {
+                    // KASUS 2: BARANG BARU (Create)
+                    $barang = Barang::create([
+                        'kode_barang' => $item->kode_barang_fix,
+                        'nama_barang' => $item->nama_barang_baru,
+                        'kategori_id' => $item->kategori_id_fix,
+                        'ruangan_id' => $item->ruangan_id_fix,
+                        'jumlah_total' => $item->jumlah,
+                        'jumlah_saat_ini' => $item->jumlah,
+                    ]);
+                    $finalBarangId = $barang->id;
+                }
+
+                // CATAT RIWAYAT PENGADAAN (Berlaku untuk keduanya)
                 PengadaanBarang::create([
-                    'barang_id' => $barang->id,
+                    'barang_id' => $finalBarangId,
                     'jumlah' => $item->jumlah,
                     'harga_satuan' => $item->harga_satuan,
                     'total_harga' => $item->harga_total,
@@ -274,22 +342,23 @@ class Index extends Component
             $this->selectedRab->update(['status' => 'selesai']);
         });
 
-        session()->flash('message', 'RAB Selesai! Barang resmi masuk inventaris.');
+        session()->flash('message', 'Verifikasi Berhasil! Stok inventaris telah diperbarui.');
         $this->closeModal();
     }
-    
-    public function tolakRab() {
-         $this->selectedRab->update(['status' => 'ditolak', 'catatan_kepala' => $this->catatan_kepala]);
-         $this->closeModal();
+
+    public function tolakRab()
+    {
+        $this->selectedRab->update(['status' => 'ditolak', 'catatan_kepala' => $this->catatan_kepala]);
+        $this->closeModal();
     }
 
     public function render()
     {
         $user = Auth::user();
         $rabData = ['sumberDanas' => SumberDana::all()];
-        
+
         // Data untuk Dropdown di Modal Pengadaan (Penjaga Gudang)
-        if($user->peran == 'penjaga_gudang') {
+        if ($user->peran == 'penjaga_gudang') {
             $rabData['kategoris'] = Kategori::all();
             $rabData['ruangans'] = Ruangan::all();
         }
@@ -301,15 +370,14 @@ class Index extends Component
                 ->latest()->paginate(10);
             $rabData['rabDiproses'] = RabPengadaan::whereIn('status', ['menunggu_bendahara', 'disetujui_bendahara', 'selesai', 'ditolak'])
                 ->latest()->paginate(10, ['*'], 'historyPage');
-                
         } elseif ($user->peran === 'bendahara') {
             // Bendahara hanya fokus yang statusnya 'menunggu_bendahara'
             $rabData['rabDiajukan'] = RabPengadaan::where('status', 'menunggu_bendahara')->latest()->paginate(10);
             $rabData['rabDiproses'] = RabPengadaan::where('status', '!=', 'menunggu_bendahara')->latest()->paginate(10);
-
         } else { // Penjaga Gudang
             $rabData['rabSaya'] = RabPengadaan::where('user_id', $user->id)->latest()->paginate(10);
         }
+        $rabData['barangs'] = Barang::all();
 
         return view('livewire.rab.index', $rabData);
     }
