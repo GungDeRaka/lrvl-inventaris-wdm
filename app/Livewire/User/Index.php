@@ -19,7 +19,9 @@ class Index extends Component
 
     public $showModal = false;
     public $user_id;
-    public $name, $email, $password, $peran;
+    // Tambahkan properti $no_hp
+    public $name, $email, $no_hp, $password, $peran; 
+    
     public $showPasswordModal = false;
     public $passwordUserId;
     public $passwordUserName;
@@ -27,16 +29,20 @@ class Index extends Component
     public $userIdToDelete;
     public $userNameToDelete;
     public $search = '';
+
+    // Rules global (opsional, karena kita override di simpanPengguna)
     protected $rules = [
         'name' => 'required|string|min:3',
         'email' => 'required|email|unique:users,email',
+        'no_hp' => 'nullable|string|max:15', // Validasi No HP
         'password' => 'required|string|min:8',
         'peran' => 'required|in:kepala_gudang,penjaga_gudang,bendahara',
     ];
 
     public function openModal()
     {
-        $this->reset(['name', 'email', 'password', 'peran', 'user_id']);
+        // Reset no_hp juga
+        $this->reset(['name', 'email', 'no_hp', 'password', 'peran', 'user_id']);
         $this->showModal = true;
     }
 
@@ -50,12 +56,14 @@ class Index extends Component
     {
         $this->resetPage();
     }
-    // fungsi simpan pengguna
+
     public function simpanPengguna()
     {
         $rules = [
             'name' => 'required|string|min:3',
             'email' => ['required', 'email', Rule::unique('users')->ignore($this->user_id)],
+            // Tambahkan validasi No HP
+            'no_hp' => 'nullable|string|max:15', 
             'peran' => 'required|in:kepala_gudang,penjaga_gudang,bendahara',
         ];
 
@@ -64,6 +72,11 @@ class Index extends Component
         }
 
         $validatedData = $this->validate($rules);
+
+        // Jika No HP kosong, set null agar rapi di DB
+        if(empty($validatedData['no_hp'])) {
+            $validatedData['no_hp'] = null;
+        }
 
         if ($this->user_id) {
             // Update User
@@ -80,19 +93,19 @@ class Index extends Component
         $this->closeModal();
     }
 
-
     public function edit($id)
     {
         $user = User::findOrFail($id);
         $this->user_id = $id;
         $this->name = $user->name;
         $this->email = $user->email;
+        $this->no_hp = $user->no_hp; // Ambil data No HP
         $this->peran = $user->peran;
-        $this->password = ''; // Kosongkan password saat edit
+        $this->password = ''; 
         $this->showModal = true;
     }
 
-    // Method untuk modal ganti password
+    // Method ganti password dll tetap sama...
     public function openPasswordModal($id)
     {
         $user = User::findOrFail($id);
@@ -117,18 +130,15 @@ class Index extends Component
 
     public function konfirmasiHapus($id)
     {
-        // Cek keamanan: jangan biarkan user menghapus akunnya sendiri
         if ($id == Auth::id()) {
             session()->flash('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
             return;
         }
-
         $user = User::find($id);
         $this->userIdToDelete = $id;
         $this->userNameToDelete = $user->name;
     }
 
-    // fungsi hapus pengguna
     public function hapusPengguna()
     {
         $user = User::find($this->userIdToDelete);
@@ -136,10 +146,9 @@ class Index extends Component
             $user->delete();
             session()->flash('message', 'Pengguna berhasil dihapus.');
         }
-
-        // Tutup modal
         $this->userIdToDelete = null;
     }
+
     public function render()
     {
         return view('livewire.user.index', [

@@ -25,6 +25,8 @@
                 <tr class="bg-gray-200">
                     <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Nama</th>
                     <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Email</th>
+                    {{-- Header Baru: No HP --}}
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase">No. HP</th> 
                     <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Peran</th>
                     <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Aksi</th>
                 </tr>
@@ -34,6 +36,10 @@
                     <tr class="hover:bg-gray-50 border-b">
                         <td class="px-5 py-4 text-sm">{{ $user->name }}</td>
                         <td class="px-5 py-4 text-sm">{{ $user->email }}</td>
+                        {{-- Data Baru: No HP --}}
+                        <td class="px-5 py-4 text-sm text-gray-500">
+                            {{ $user->no_hp ?? "Nomor hp belum diatur" }}
+                        </td>
                         <td class="px-5 py-4 text-sm capitalize">
                             {{ str_replace('_', ' ', $user->peran) }}
                         </td>
@@ -58,7 +64,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
                                     </svg>
-                                    Ganti Password
+                                    Password
                                 </button>
 
                                 {{-- Tombol Hapus --}}
@@ -101,11 +107,22 @@
                             <label for="email" class="block text-sm font-medium">Email</label>
                             <input type="email" wire:model="email" id="email"
                                 class="mt-1 block w-full border-gray-300 rounded-md">
-                            {{-- {{ $user_id ? 'readonly' : '' }}> --}}
                             @error('email')
                                 <span class="text-red-500 text-xs">{{ $message }}</span>
                             @enderror
                         </div>
+                        
+                        {{-- Input Baru: No HP --}}
+                        <div>
+                            <label for="no_hp" class="block text-sm font-medium">No. HP (WhatsApp)</label>
+                            <input type="text" wire:model="no_hp" id="no_hp"
+                                class="mt-1 block w-full border-gray-300 rounded-md" 
+                                placeholder="Contoh: 628123456789">
+                            @error('no_hp')
+                                <span class="text-red-500 text-xs">{{ $message }}</span>
+                            @enderror
+                        </div>
+
                         @if (!$user_id)
                             <div>
                                 <label for="password" class="block text-sm font-medium">Password</label>
@@ -141,7 +158,7 @@
         </div>
     @endif
 
-    {{-- Modal Ganti Password --}}
+    {{-- Modal Ganti Password & Hapus (Sama seperti sebelumnya) --}}
     @if ($showPasswordModal)
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
             <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
@@ -169,7 +186,6 @@
         </div>
     @endif
 
-    {{-- Modal konfirmasi hapus admin --}}
     @if ($userIdToDelete)
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
             <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
@@ -189,7 +205,6 @@
         </div>
     @endif
 
-    {{-- Notifikasi Error (Tambahkan ini jika belum ada) --}}
     @if (session()->has('error'))
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative my-4" role="alert">
             <span class="block sm:inline">{{ session('error') }}</span>

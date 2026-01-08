@@ -23,6 +23,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'no_hp',
         'password',
         'peran',
     ];
@@ -51,15 +52,15 @@ class User extends Authenticatable
     }
 
     /**
- * Send the password reset notification.
- *
- * @param  string  $token
- * @return void
- */
-public function sendPasswordResetNotification($token)
-{
-    $this->notify(new ResetPasswordNotification($token));
-}
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
 
     public function transaksis(): HasMany
     {

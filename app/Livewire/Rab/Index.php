@@ -137,28 +137,47 @@ class Index extends Component
     }
 
     // --- LOGIKA KEPALA GUDANG: SETUJU (KE WA BENDAHARA) ---
-    public function teruskanKeBendahara() {
+    public function teruskanKeBendahara()
+    {
         if (Auth::user()->peran !== 'kepala_gudang') return;
 
+        // 1. Update Status RAB
         $this->selectedRab->update([
             'status' => 'menunggu_bendahara',
-            'disetujui_oleh' => Auth::id(), // Kepala Gudang approve tahap 1
+            'disetujui_oleh' => Auth::id(),
             'catatan_kepala' => $this->catatan_kepala
         ]);
 
-        // Cari Bendahara
+        // 2. Ambil Data Bendahara
         $bendahara = User::where('peran', 'bendahara')->first();
-        $noHp = $bendahara ? $bendahara->no_hp : ''; // Pastikan format 628xxx
-        
-        // Pesan WA
-        $linkSistem = url('/rab'); // Link ke halaman RAB
-        $pesan = "Halo Bendahara, ada pengajuan RAB baru: *{$this->selectedRab->judul}*. Mohon dicek. Link: $linkSistem";
-        
+        $noHp = $bendahara ? $bendahara->no_hp : '';
+
+        // --- LOGIKA FORMATTING NOMOR HP (AUTO 62) ---
+        if ($noHp) {
+            // Bersihkan karakter aneh (spasi, strip, dll), hanya ambil angka
+            $noHp = preg_replace('/[^0-9]/', '', $noHp);
+
+            // Jika diawali angka 0, ganti dengan 62
+            if (substr($noHp, 0, 1) === '0') {
+                $noHp = '62' . substr($noHp, 1);
+            }
+        }
+        // ---------------------------------------------
+
+        // 3. Susun Pesan WhatsApp
+        $linkSistem = url('/rab');
+        $judulRab = $this->selectedRab->judul;
+        $pesan = "Halo Bendahara, ada pengajuan RAB baru: *{$judulRab}*.\n\nMohon segera dicek dan diverifikasi melalui sistem.\nLink: $linkSistem";
+
         session()->flash('message', 'RAB disetujui. Mengarahkan ke WhatsApp Bendahara...');
         $this->closeModal();
 
+        // 4. Redirect ke API WhatsApp
         if($noHp) {
             $this->redirect("https://api.whatsapp.com/send?phone={$noHp}&text=" . urlencode($pesan));
+        } else {
+            // Fallback jika Bendahara belum input No HP
+            session()->flash('error', 'Nomor HP Bendahara belum terdaftar di sistem.');
         }
     }
 
