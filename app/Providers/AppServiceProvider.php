@@ -22,8 +22,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
-         Gate::define('kelola-pengguna', function (User $user) {
+        Gate::define('kelola-pengguna', function (User $user) {
             return $user->peran === 'kepala_gudang';
+        });
+        Gate::define('akses-gudang', function (User $user) {
+            return in_array($user->peran, ['kepala_gudang', 'penjaga_gudang']);
         });
     }
 }

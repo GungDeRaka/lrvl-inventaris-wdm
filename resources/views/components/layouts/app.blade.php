@@ -18,13 +18,6 @@
 
 <body class="bg-gray-100 font-sans antialiased">
 
-    {{-- 
-        DATA ALPINE.JS:
-        - sidebarOpen: Status sidebar.
-        - init(): Mengecek ukuran layar saat pertama kali dibuka. 
-                  Jika layar besar (Desktop), cek localStorage. 
-                  Jika layar kecil (Mobile), default tutup (false).
-    --}}
     {{-- Toast Notification --}}
     <div x-data="{ show: false, message: '', type: 'success' }"
     x-cloak
@@ -32,20 +25,18 @@
         class="fixed top-2 right-20 z-50 flex w-72 flex-col gap-2">
 
         <div x-show="show" x-transition:enter="transform ease-out duration-300 transition"
-            x-transition:enter-start="translate-y-10 opacity-0" {{-- Muncul dari bawah --}}
+            x-transition:enter-start="translate-y-10 opacity-0"
             x-transition:enter-end="translate-y-0 opacity-100" x-transition:leave="transition ease-in duration-100"
             x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0 scale-90"
             class="max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden">
             <div class="p-4">
                 <div class="flex items-start">
                     <div class="flex-shrink-0">
-                        {{-- Ikon Ceklis Hijau --}}
                         <svg x-show="type === 'success'" class="h-6 w-6 text-green-400" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        {{-- Ikon Silang Merah --}}
                         <svg x-show="type === 'error'" class="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -61,6 +52,7 @@
             </div>
         </div>
     </div>
+    
     <div x-data="{
         sidebarOpen: false,
         init() {
@@ -75,9 +67,7 @@
         }
     }" class="flex h-screen overflow-hidden" x-cloak>
 
-        {{-- ============================================= --}}
-        {{-- BACKDROP MOBILE (Layar Gelap saat sidebar buka di HP) --}}
-        {{-- ============================================= --}}
+        {{-- BACKDROP MOBILE --}}
         <div x-show="sidebarOpen" @click="sidebarOpen = false"
             x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0"
             x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300"
@@ -85,17 +75,7 @@
             class="fixed inset-0 z-20 bg-black bg-opacity-50 md:hidden">
         </div>
 
-        {{-- ============================================= --}}
         {{-- SIDEBAR NAVIGASI --}}
-        {{-- ============================================= --}}
-        {{-- 
-            Penjelasan Class:
-            - fixed inset-y-0 left-0 z-30: Agar sidebar menempel di kiri dan di atas konten lain pada Mobile.
-            - md:relative: Pada Desktop, sidebar menjadi bagian dari layout (tidak menumpuk).
-            - transform transition-all: Animasi halus.
-            - md:translate-x-0: Pada desktop sidebar selalu terlihat (tapi lebarnya berubah).
-            - -translate-x-full: Pada mobile, defaultnya tersembunyi di kiri layar.
-        --}}
         <aside
             class="fixed inset-y-0 left-0 z-30 bg-primary text-white transition-all duration-300 ease-in-out transform md:translate-x-0 md:relative flex flex-col"
             :class="{
@@ -103,7 +83,7 @@
                 '-translate-x-full md:w-20 md:translate-x-0': !sidebarOpen
             }">
 
-            {{-- Header Sidebar (Logo) --}}
+            {{-- Header Sidebar (Logo & User Info) --}}
             <div class="flex items-center justify-center h-20 shadow-md bg-primary/90">
                 <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 px-4 overflow-hidden">
                     <img class="h-10 w-10 flex-shrink-0 border-2 border-white/20" src="{{ asset('logo.jpg') }}"
@@ -112,8 +92,9 @@
                     {{-- Teks hanya muncul jika sidebar terbuka --}}
                     <div x-show="sidebarOpen" class="transition-opacity duration-200">
                         <p class="font-bold text-sm whitespace-nowrap">{{ Auth::user()->name }}</p>
-                        <p class="text-[10px] text-purple-200 whitespace-nowrap uppercase tracking-wider">
-                            {{ Auth::user()->peran == 'kepala_gudang' ? 'Kepala Gudang' : 'Penjaga Gudang' }}
+                        {{-- PERBAIKAN: Role Dinamis (Mendukung Bendahara) --}}
+                        <p class="text-[10px] text-purple-200 whitespace-nowrap uppercase tracking-wider font-bold">
+                            {{ str_replace('_', ' ', Auth::user()->peran) }}
                         </p>
                     </div>
                 </a>
@@ -122,31 +103,33 @@
             {{-- Menu Navigasi --}}
             <nav class="flex-1 px-3 py-6 space-y-2 overflow-y-auto scrollbar-hide">
 
-                {{-- Helper Function untuk Link --}}
                 @php
-                    $navLinkClass =
-                        'flex items-center space-x-3 p-3 rounded-lg transition duration-200 hover:bg-white/20 hover:text-white';
+                    $navLinkClass = 'flex items-center space-x-3 p-3 rounded-lg transition duration-200 hover:bg-white/20 hover:text-white';
                     $activeClass = 'bg-white/20 text-white shadow-inner';
                 @endphp
 
-                <a href="{{ route('dashboard') }}" title="Dashboard"
-                    class="{{ $navLinkClass }} {{ request()->routeIs('dashboard') ? $activeClass : '' }}">
-                    <svg class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                    </svg>
-                    <span x-show="sidebarOpen" class="whitespace-nowrap font-medium">Dashboard</span>
-                </a>
+                {{-- FILTER: Bendahara TIDAK BISA lihat Dashboard & Data Barang --}}
+                @if(Auth::user()->peran !== 'bendahara')
+                    <a href="{{ route('dashboard') }}" title="Dashboard"
+                        class="{{ $navLinkClass }} {{ request()->routeIs('dashboard') ? $activeClass : '' }}">
+                        <svg class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                        </svg>
+                        <span x-show="sidebarOpen" class="whitespace-nowrap font-medium">Dashboard</span>
+                    </a>
 
-                <a href="{{ route('barang.index') }}" title="Barang"
-                    class="{{ $navLinkClass }} {{ request()->routeIs('barang.index') ? $activeClass : '' }}">
-                    <svg class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
-                    <span x-show="sidebarOpen" class="whitespace-nowrap font-medium">Data Barang</span>
-                </a>
+                    <a href="{{ route('barang.index') }}" title="Barang"
+                        class="{{ $navLinkClass }} {{ request()->routeIs('barang.index') ? $activeClass : '' }}">
+                        <svg class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                        <span x-show="sidebarOpen" class="whitespace-nowrap font-medium">Data Barang</span>
+                    </a>
+                @endif
 
+                {{-- Menu RAB (Semua Role Bisa Akses) --}}
                 <a href="{{ route('rab.index') }}" title="RAB"
                     class="{{ $navLinkClass }} {{ request()->routeIs('rab.index') ? $activeClass : '' }}">
                     <svg class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -156,10 +139,10 @@
                     <span x-show="sidebarOpen" class="whitespace-nowrap font-medium">Manajemen RAB</span>
                 </a>
 
+                {{-- Fitur Khusus Kepala Gudang (Admin) --}}
                 @can('kelola-pengguna')
                     <div x-show="sidebarOpen" class="pt-4 pb-1">
-                        <p class="px-3 text-xs font-semibold text-purple-200 uppercase tracking-wider">Fitur Khusus Kepala
-                            Gudang</p>
+                        <p class="px-3 text-xs font-semibold text-purple-200 uppercase tracking-wider">Fitur Khusus Kepala Gudang</p>
                     </div>
                     <hr x-show="!sidebarOpen" class="border-white/20 my-2">
 
@@ -192,7 +175,6 @@
 
                     <a href="{{ route('siswa.index') }}" title="Siswa"
                         class="{{ $navLinkClass }} {{ request()->routeIs('siswa.index') ? $activeClass : '' }}">
-                        {{-- Icon Mortarboard (Topi Wisuda) --}}
                         <svg class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 4L2 9l10 5 10-5-10-5zm0 13v3m0-3c-4.418 0-8-1.79-8-4V9m16 0v4c0 2.21-3.582 4-8 4" />
@@ -219,17 +201,13 @@
             </div>
         </aside>
 
-        {{-- ============================================= --}}
         {{-- KONTEN UTAMA --}}
-        {{-- ============================================= --}}
         <div class="flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300"
             :class="sidebarOpen ? 'md:ml-0' : 'md:ml-0'">
-            {{-- Note: karena sidebar position:relative di desktop, margin-left otomatis diurus flexbox --}}
 
             {{-- Header Atas --}}
             <header class="h-20 bg-primary shadow-sm flex items-center justify-between px-4 lg:px-6 z-10">
                 <div class="flex items-center">
-                    {{-- Tombol Hamburger --}}
                     <button @click="sidebarOpen = !sidebarOpen" class="text-white focus:outline-none lg:hidden">
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -245,25 +223,20 @@
                                 stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
                         </svg>
                     </button>
-
                     <h1 class="text-lg font-semibold text-white ml-2 md:ml-0">{{ $title ?? 'Dashboard' }}</h1>
                 </div>
-
 
                 <div class="flex items-center space-x-4">
                     <livewire:notifications.bell />
 
-                    {{-- Dropdown Profil --}}
                     <div x-data="{ dropdownOpen: false }" class="relative">
                         <button @click="dropdownOpen = !dropdownOpen"
                             class="flex items-center space-x-2 focus:outline-none">
                             <div class="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center">
                                 <span class="font-bold text-sm">{{ substr(Auth::user()->name, 0, 1) }}</span>
                             </div>
-                            <span
-                                class="hidden md:block text-sm font-medium text-white">{{ Auth::user()->name }}</span>
-                            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
+                            <span class="hidden md:block text-sm font-medium text-white">{{ Auth::user()->name }}</span>
+                            <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 9l-7 7-7-7" />
                             </svg>
@@ -282,8 +255,6 @@
                                 <p class="text-sm text-gray-700 font-medium">{{ Auth::user()->name }}</p>
                                 <p class="text-xs text-gray-500">{{ Auth::user()->email }}</p>
                             </div>
-                            {{-- <a href="{{ route('profile.edit') }}"
-                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit Profil</a> --}}
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <a href="{{ route('logout') }}"
@@ -297,7 +268,6 @@
                 </div>
             </header>
 
-            {{-- Area Konten (Scrollable) --}}
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
                 {{ $slot }}
             </main>
@@ -306,5 +276,4 @@
 
     @livewireScripts
 </body>
-
 </html>
