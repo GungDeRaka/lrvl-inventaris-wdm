@@ -46,6 +46,9 @@ class Index extends Component
     // Properti Edit Item (Bendahara)
     public $editingItemId = null;
     public $editJumlah = 0;
+    public $editSumberId;
+    public $isAddingSumber = false; // Status apakah sedang mode tambah sumber dana
+    public $newSumberName = '';     // Menampung nama sumber dana baru
 
     // Properti Input Teknis (Penjaga Gudang - Fase Pengadaan)
     public $procurementItems = []; // Array untuk menampung input kode/kategori/ruang
@@ -167,7 +170,7 @@ class Index extends Component
         $this->closeCreateModal();
     }
 
-    // --- TAMBAHKAN FUNGSI INI ---
+    
     public function resetInput()
     {
         // Mereset semua properti form ke nilai awal
@@ -280,23 +283,68 @@ class Index extends Component
     }
 
     // --- LOGIKA BENDAHARA: EDIT & SETUJU ---
+   
+
+   // Update fungsi edit agar mereset status tambah baru
     public function editItemBendahara($itemId)
     {
         $this->editingItemId = $itemId;
         $item = RabItem::find($itemId);
+        
         $this->editJumlah = $item->jumlah;
+        $this->editSumberId = $item->sumber_dana_id;
+        
+        // Reset mode tambah sumber dana setiap kali ganti item
+        $this->isAddingSumber = false; 
+        $this->newSumberName = '';
+    }
+
+    // Fungsi Toggle (Buka/Tutup Input)
+    public function toggleAddSumber()
+    {
+        $this->isAddingSumber = !$this->isAddingSumber;
+        $this->newSumberName = ''; // Bersihkan input saat di-toggle
+    }
+
+    // Fungsi Simpan Sumber Dana Baru
+    public function saveNewSumber()
+    {
+        $this->validate([
+            'newSumberName' => 'required|string|min:3|unique:sumber_danas,nama_sumber'
+        ]);
+
+        // Buat Sumber Dana Baru
+        $sumber = SumberDana::create([
+            'nama_sumber' => $this->newSumberName
+        ]);
+
+        // Otomatis pilih sumber dana yang baru dibuat
+        $this->editSumberId = $sumber->id;
+        
+        // Kembalikan ke mode dropdown
+        $this->isAddingSumber = false;
+        $this->newSumberName = '';
+
+        // Opsional: Notifikasi kecil (Toast)
+        // $this->dispatch('notify', message: 'Sumber dana baru ditambahkan!'); 
     }
 
     public function saveItemBendahara($itemId)
     {
         $item = RabItem::find($itemId);
+        
         $item->jumlah = $this->editJumlah;
+        // Simpan perubahan sumber dana
+        $item->sumber_dana_id = $this->editSumberId; 
+        
         $item->harga_total = $item->jumlah * $item->harga_satuan; // Hitung ulang total
         $item->save();
+        
         $this->editingItemId = null;
-
-        // Refresh selectedRab
         $this->selectedRab->refresh();
+        $this->isAddingSumber = false;
+        // Opsional: Beri notifikasi kecil
+        // session()->flash('message', 'Item berhasil diperbarui.');
     }
 
     public function hapusItemBendahara($itemId)
@@ -305,18 +353,34 @@ class Index extends Component
         $this->selectedRab->refresh();
     }
 
-    public function setujuiOlehBendahara()
+   public function setujuiOlehBendahara() 
     {
         if (Auth::user()->peran !== 'bendahara') return;
 
+        // --- VALIDASI TAMBAHAN: CEK JUMLAH ITEM ---
+        // Hitung jumlah item di database untuk RAB ini
+        $jumlahItem = $this->selectedRab->items()->count();
+
+        if ($jumlahItem < 1) {
+            // Jika kosong, kirim pesan error dan hentikan proses
+            session()->flash('error', 'Gagal menyetujui! RAB tidak memiliki item barang. Silakan tolak pengajuan ini jika memang tidak valid.');
+            
+            // Opsional: Tutup modal agar user sadar
+            // $this->closeModal(); 
+            return; 
+        }
+        // ------------------------------------------
+
         $this->selectedRab->update([
             'status' => 'disetujui_bendahara',
-            'catatan_kepala' => $this->catatan_kepala // Bendahara bisa update catatan
+            'catatan_kepala' => $this->catatan_kepala 
         ]);
 
         session()->flash('message', 'RAB disetujui. Dikembalikan ke Penjaga Gudang untuk belanja.');
         $this->closeModal();
     }
+
+    
 
     // --- LOGIKA PENJAGA GUDANG: INPUT DATA TEKNIS (FASE PENGADAAN) ---
     public function laporBarangDatang()
@@ -436,7 +500,10 @@ class Index extends Component
             $rabData['rabDiajukan'] = RabPengadaan::where('status', 'menunggu_bendahara')->latest()->paginate(10);
             $rabData['rabDiproses'] = RabPengadaan::where('status', '!=', 'menunggu_bendahara')->latest()->paginate(10);
         } else { // Penjaga Gudang
-            $rabData['rabSaya'] = RabPengadaan::where('user_id', $user->id)->latest()->paginate(10);
+            $rabData['rabSaya'] = RabPengadaan::with(['pengaju', 'peninjau']) // Load data pengaju
+                // ->where('user_id', $user->id) // <--- HAPUS/KOMENTARI BARIS INI
+                ->latest('tanggal_pengajuan')
+                ->paginate(10, ['*'], 'myPage');
         }
         $rabData['barangs'] = Barang::all();
 

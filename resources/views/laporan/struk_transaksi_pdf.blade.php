@@ -96,7 +96,7 @@
 
         /* --- Area Tanda Tangan (Sesuai Request) --- */
         .signature-section {
-            margin-top: 60px;
+            /* margin-top: 60px; */
             width: 100%;
             page-break-inside: avoid; /* Mencegah terpotong antar halaman */
         }

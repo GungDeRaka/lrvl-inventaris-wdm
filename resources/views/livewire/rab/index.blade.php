@@ -169,6 +169,7 @@
                         <th class="px-6 py-3">Tanggal</th>
                         <th class="px-6 py-3">Judul</th>
                         <th class="px-6 py-3">Status Terkini</th>
+                        <th class="px-6 py-3">Diajukan Oleh</th>
                         <th class="px-6 py-3 text-right">Detail</th>
                     </tr>
                 </thead>
@@ -193,6 +194,14 @@
                             <td class="px-6 py-4 font-medium text-gray-700">
                                 {{ $rab->judul }}
                             </td>
+                            <td class="px-6 py-4 text-sm text-gray-600">
+        <div class="flex items-center">
+            <div class="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-700 mr-2">
+                {{ substr($rab->pengaju->name ?? '?', 0, 1) }}
+            </div>
+            <span>{{ $rab->pengaju->name ?? 'Tidak Diketahui' }}</span>
+        </div>
+    </td>
                             <td class="px-6 py-4">
                                 @php
                                     $statusColor = 'bg-gray-100 text-gray-800 border-gray-200';
@@ -420,7 +429,61 @@
                                                 @endif
                                             </td>
                                             <td class="px-4 py-4 text-sm text-blue-600 font-medium">
-                                                {{ \App\Models\SumberDana::find($item->sumber_dana_id)->nama_sumber ?? '-' }}
+                                                @if ($editingItemId === $item->id)
+                                                    {{-- MODE INPUT SUMBER DANA BARU --}}
+                                                    @if ($isAddingSumber)
+                                                        <div class="flex flex-col gap-1">
+                                                            <input type="text" wire:model="newSumberName"
+                                                                placeholder="Nama Sumber Baru..."
+                                                                class="w-full text-xs border-blue-400 rounded focus:ring-blue-500 focus:border-blue-500 py-1 px-2"
+                                                                autofocus>
+
+                                                            <div class="flex gap-1">
+                                                                {{-- Tombol Simpan Sumber Dana --}}
+                                                                <button wire:click="saveNewSumber"
+                                                                    class="bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] hover:bg-blue-700 w-full">
+                                                                    Simpan
+                                                                </button>
+                                                                {{-- Tombol Batal --}}
+                                                                <button wire:click="toggleAddSumber"
+                                                                    class="bg-gray-300 text-gray-700 px-2 py-0.5 rounded text-[10px] hover:bg-gray-400">
+                                                                    Batal
+                                                                </button>
+                                                            </div>
+                                                            @error('newSumberName')
+                                                                <span
+                                                                    class="text-[10px] text-red-500 leading-tight">{{ $message }}</span>
+                                                            @enderror
+                                                        </div>
+
+                                                        {{-- MODE DROPDOWN BIASA --}}
+                                                    @else
+                                                        <div class="flex items-center gap-1">
+                                                            <select wire:model="editSumberId"
+                                                                class="w-full text-xs border-gray-300 rounded focus:ring-indigo-500 focus:border-indigo-500 py-1">
+                                                                @foreach ($sumberDanas as $sumber)
+                                                                    <option value="{{ $sumber->id }}">
+                                                                        {{ $sumber->nama_sumber }}</option>
+                                                                @endforeach
+                                                            </select>
+
+                                                            {{-- Tombol (+) untuk memicu Mode Input --}}
+                                                            <button wire:click="toggleAddSumber"
+                                                                class="p-1 bg-green-100 text-green-700 rounded border border-green-200 hover:bg-green-200 transition"
+                                                                title="Tambah Sumber Dana Baru">
+                                                                <svg class="w-3 h-3" fill="none"
+                                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round"
+                                                                        stroke-linejoin="round" stroke-width="2"
+                                                                        d="M12 4v16m8-8H4" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    @endif
+                                                @else
+                                                    {{-- TAMPILAN READ-ONLY --}}
+                                                    {{ \App\Models\SumberDana::find($item->sumber_dana_id)->nama_sumber ?? '-' }}
+                                                @endif
                                             </td>
                                             <td class="px-4 py-4 text-sm text-center font-bold">
                                                 @if ($editingItemId === $item->id)
@@ -536,10 +599,20 @@
                                 class="w-full sm:w-auto inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:text-sm transition">
                                 Tolak Anggaran
                             </button>
-                            <button wire:click="setujuiOlehBendahara"
-                                class="w-full sm:w-auto inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none sm:text-sm transition">
-                                Setujui Anggaran
-                            </button>
+
+                            {{-- Cek apakah ada item di variable selectedRab --}}
+                            @if ($selectedRab->items->count() > 0)
+                                <button wire:click="setujuiOlehBendahara"
+                                    class="w-full sm:w-auto inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none sm:text-sm transition">
+                                    Setujui Anggaran
+                                </button>
+                            @else
+                                {{-- Tombol Disabled jika Item Kosong --}}
+                                <button disabled
+                                    class="w-full sm:w-auto inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-gray-300 text-base font-medium text-gray-500 cursor-not-allowed sm:text-sm">
+                                    Item Kosong (Tidak Bisa Setuju)
+                                </button>
+                            @endif
 
                             {{-- TOMBOL PENJAGA GUDANG --}}
                         @elseif(auth()->user()->peran == 'penjaga_gudang' && $selectedRab->status == 'disetujui_bendahara')
