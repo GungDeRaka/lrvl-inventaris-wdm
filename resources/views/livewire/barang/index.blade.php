@@ -154,14 +154,18 @@
                                                 </path>
                                             </svg> Edit
                                         </button>
-                                        <button wire:click="openTambahStokModal({{ $barang->id }})"
-                                            class="text-green-600 hover:text-green-900 border border-green-200 bg-green-50 hover:bg-green-100 px-2 py-1 rounded flex items-center gap-1 transition">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                            </svg> Stok
-                                        </button>
+                                        @if (in_array(auth()->user()->peran, ['penjaga_gudang', 'kepala_gudang']))
+                                            <a href="{{ route('rab.index', ['restock_id' => $barang->id]) }}"
+                                                class="text-green-600 hover:text-green-900 border border-green-200 bg-green-50 hover:bg-green-100 px-2 py-1 rounded flex items-center gap-1 transition"
+                                                title="Ajukan Restock via RAB">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                                </svg>
+                                                Stok
+                                            </a>
+                                        @endif
                                         {{-- @can('kelola-pengguna') --}}
                                         <button wire:click="openPindahModal({{ $barang->id }})"
                                             class="text-blue-600 hover:text-blue-900 border border-blue-200 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded flex items-center gap-1 transition">
@@ -990,7 +994,7 @@
 
 
     {{-- Modal Tambah Stok --}}
-    @if ($showTambahStokModal)
+    {{-- @if ($showTambahStokModal)
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
             <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
                 <form wire:submit.prevent="prosesTambahStok">
@@ -1020,7 +1024,7 @@
                             <label class="block text-sm font-medium text-gray-700">Sumber Dana</label>
 
                             @if ($isAddingSumberDana)
-                                {{-- Input Text untuk Sumber Dana Baru --}}
+                                
                                 <div class="flex gap-2 mt-1">
                                     <input type="text" wire:model="sumberDanaBaru"
                                         placeholder="Nama Sumber Dana Baru"
@@ -1034,7 +1038,7 @@
                                     <span class="text-red-500 text-xs">{{ $message }}</span>
                                 @enderror
                             @else
-                                {{-- Dropdown Sumber Dana --}}
+                                
                                 <select wire:model="sumber_dana_id"
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm">
                                     <option value="">Pilih Sumber Dana</option>
@@ -1044,7 +1048,7 @@
 
                                 </select>
 
-                                {{-- Tombol Kecil "Tambah Baru" --}}
+                                
                                 <button type="button" wire:click="toggleSumberDanaBaru"
                                     class="text-xs text-indigo-600 hover:text-indigo-800 mt-1 flex items-center font-semibold focus:outline-none">
                                     <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor"
@@ -1082,7 +1086,7 @@
             </div>
             </form>
         </div>
-    @endif
+    @endif --}}
 
     {{-- Modal Pindahkan Barang --}}
     @if ($showPindahModal && $pindahBarang)

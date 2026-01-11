@@ -72,9 +72,9 @@ class Index extends Component
     public $isAddingSumberDana = false;
 
     // --- PROPERTI TAMBAH STOK ---
-    public $showTambahStokModal = false;
-    public $tambahStokBarangId;
-    public $tambahStokBarangNama;
+    // public $showTambahStokModal = false;
+    // public $tambahStokBarangId;
+    // public $tambahStokBarangNama;
 
     protected function rules()
     {
@@ -264,79 +264,79 @@ class Index extends Component
     }
 
     // --- METHOD TAMBAH STOK ---
-    public function openTambahStokModal($id)
-    {
-        $barang = Barang::findOrFail($id);
-        $this->tambahStokBarangId = $id;
-        $this->tambahStokBarangNama = $barang->nama_barang;
-        $this->reset(['jumlah', 'harga_satuan', 'sumber_dana_id', 'tanggal_pengadaan']);
-        $this->resetErrorBag();
-        $this->showTambahStokModal = true;
-    }
+    // public function openTambahStokModal($id)
+    // {
+    //     $barang = Barang::findOrFail($id);
+    //     $this->tambahStokBarangId = $id;
+    //     $this->tambahStokBarangNama = $barang->nama_barang;
+    //     $this->reset(['jumlah', 'harga_satuan', 'sumber_dana_id', 'tanggal_pengadaan']);
+    //     $this->resetErrorBag();
+    //     $this->showTambahStokModal = true;
+    // }
 
-    public function closeTambahStokModal()
-    {
-        $this->showTambahStokModal = false;
-    }
+    // public function closeTambahStokModal()
+    // {
+    //     $this->showTambahStokModal = false;
+    // }
 
-    public function prosesTambahStok()
-    {
-        $validated = $this->validate([
-            'jumlah' => 'required|integer|min:1',
-            'harga_satuan' => 'required|numeric|min:0',
-            'sumber_dana_id' => 'required|exists:sumber_danas,id',
-            'tanggal_pengadaan' => 'required|date',
-        ]);
+    // public function prosesTambahStok()
+    // {
+    //     $validated = $this->validate([
+    //         'jumlah' => 'required|integer|min:1',
+    //         'harga_satuan' => 'required|numeric|min:0',
+    //         'sumber_dana_id' => 'required|exists:sumber_danas,id',
+    //         'tanggal_pengadaan' => 'required|date',
+    //     ]);
 
-        $user = Auth::user();
+    //     $user = Auth::user();
 
-        try {
-            DB::transaction(function () use ($validated, $user) {
-                $barang = Barang::findOrFail($this->tambahStokBarangId);
+    //     try {
+    //         DB::transaction(function () use ($validated, $user) {
+    //             $barang = Barang::findOrFail($this->tambahStokBarangId);
 
-                if ($user->peran === 'kepala_gudang') {
-                    // Kepala Gudang: Langsung
-                    PengadaanBarang::create([
-                        'barang_id' => $this->tambahStokBarangId,
-                        'sumber_dana_id' => $this->sumber_dana_id,
-                        'jumlah' => $validated['jumlah'],
-                        'harga_satuan' => $validated['harga_satuan'],
-                        'total_harga' => $validated['jumlah'] * $validated['harga_satuan'],
-                        'tanggal_pengadaan' => $validated['tanggal_pengadaan'],
-                        'user_id' => Auth::id(),
-                    ]);
+    //             if ($user->peran === 'kepala_gudang') {
+    //                 // Kepala Gudang: Langsung
+    //                 PengadaanBarang::create([
+    //                     'barang_id' => $this->tambahStokBarangId,
+    //                     'sumber_dana_id' => $this->sumber_dana_id,
+    //                     'jumlah' => $validated['jumlah'],
+    //                     'harga_satuan' => $validated['harga_satuan'],
+    //                     'total_harga' => $validated['jumlah'] * $validated['harga_satuan'],
+    //                     'tanggal_pengadaan' => $validated['tanggal_pengadaan'],
+    //                     'user_id' => Auth::id(),
+    //                 ]);
 
-                    $barang->increment('jumlah_total', $validated['jumlah']);
-                    $barang->increment('jumlah_saat_ini', $validated['jumlah']);
-                    session()->flash('message', 'Stok barang berhasil ditambahkan.');
-                } else {
-                    // Penjaga Gudang: RAB
-                    $rab = RabPengadaan::create([
-                        'user_id' => $user->id,
-                        'judul' => 'Pengajuan Tambah Stok: ' . $barang->nama_barang,
-                        'keterangan' => 'Pengajuan tambah stok untuk: ' . $barang->nama_barang,
-                        'tanggal_pengajuan' => $validated['tanggal_pengadaan'],
-                        'status' => 'diajukan',
-                    ]);
+    //                 $barang->increment('jumlah_total', $validated['jumlah']);
+    //                 $barang->increment('jumlah_saat_ini', $validated['jumlah']);
+    //                 session()->flash('message', 'Stok barang berhasil ditambahkan.');
+    //             } else {
+    //                 // Penjaga Gudang: RAB
+    //                 $rab = RabPengadaan::create([
+    //                     'user_id' => $user->id,
+    //                     'judul' => 'Pengajuan Tambah Stok: ' . $barang->nama_barang,
+    //                     'keterangan' => 'Pengajuan tambah stok untuk: ' . $barang->nama_barang,
+    //                     'tanggal_pengajuan' => $validated['tanggal_pengadaan'],
+    //                     'status' => 'diajukan',
+    //                 ]);
 
-                    RabItem::create([
-                        'rab_pengadaan_id' => $rab->id,
-                        'barang_id' => $barang->id,
-                        'nama_barang_baru' => $barang->nama_barang,
-                        'spesifikasi' => 'Tambah stok',
-                        'jumlah' => $validated['jumlah'],
-                        'harga_satuan' => $validated['harga_satuan'] ?? 0,
-                        'harga_total' => ($validated['jumlah'] * ($validated['harga_satuan'] ?? 0)),
-                        'sumber_dana_id' => $this->sumber_dana_id,
-                    ]);
-                    session()->flash('message', 'Pengajuan tambah stok dikirim ke Kepala Gudang.');
-                }
-            });
-            $this->closeTambahStokModal();
-        } catch (\Exception $e) {
-            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
-        }
-    }
+    //                 RabItem::create([
+    //                     'rab_pengadaan_id' => $rab->id,
+    //                     'barang_id' => $barang->id,
+    //                     'nama_barang_baru' => $barang->nama_barang,
+    //                     'spesifikasi' => 'Tambah stok',
+    //                     'jumlah' => $validated['jumlah'],
+    //                     'harga_satuan' => $validated['harga_satuan'] ?? 0,
+    //                     'harga_total' => ($validated['jumlah'] * ($validated['harga_satuan'] ?? 0)),
+    //                     'sumber_dana_id' => $this->sumber_dana_id,
+    //                 ]);
+    //                 session()->flash('message', 'Pengajuan tambah stok dikirim ke Kepala Gudang.');
+    //             }
+    //         });
+    //         $this->closeTambahStokModal();
+    //     } catch (\Exception $e) {
+    //         session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+    //     }
+    // }
 
     // --- METHOD PEMINDAHAN BARANG ---
     public function openPindahModal($id)

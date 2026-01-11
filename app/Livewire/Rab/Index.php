@@ -123,9 +123,9 @@ class Index extends Component
     {
         // IZINKAN Penjaga Gudang DAN Kepala Gudang
         if (!in_array(Auth::user()->peran, ['penjaga_gudang', 'kepala_gudang'])) return;
-        
+
         $this->validate([
-            'judul' => 'required|min:5', 
+            'judul' => 'required|min:5',
             'items' => 'required|array|min:1'
         ]);
 
@@ -140,8 +140,8 @@ class Index extends Component
                 'judul' => $this->judul,
                 'keterangan' => $this->keterangan,
                 'tanggal_pengajuan' => now(),
-                'status' => $statusAwal, 
-                
+                'status' => $statusAwal,
+
                 // Jika Kepala Gudang yang buat, otomatis kolom 'disetujui_oleh' diisi dirinya sendiri
                 'disetujui_oleh' => (Auth::user()->peran === 'kepala_gudang') ? Auth::id() : null,
             ]);
@@ -166,6 +166,47 @@ class Index extends Component
         session()->flash('message', 'RAB berhasil dibuat dan diteruskan ke ' . ($statusAwal == 'menunggu_bendahara' ? 'Bendahara' : 'Kepala Gudang') . '.');
         $this->closeCreateModal();
     }
+
+    // --- TAMBAHKAN FUNGSI INI ---
+    public function resetInput()
+    {
+        // Mereset semua properti form ke nilai awal
+        $this->reset([
+            'judul', 
+            'keterangan', 
+            'items', 
+            'newItemNama', 
+            'newItemSpec', 
+            'newItemJumlah', 
+            'newItemHarga', 
+            'newItemSumberId', 
+            'modeInput', 
+            'existingBarangId'
+        ]);
+        
+        // Mereset pesan error validasi (jika ada)
+        $this->resetErrorBag();
+    }
+    // ---------------------------
+
+    public function mount()
+    {
+        // Cek apakah ada parameter 'restock_id' di URL
+        if (request()->has('restock_id')) {
+            $this->resetInput(); // <--- SEKARANG INI AKAN BERHASIL
+            
+            $this->modeInput = 'restock';
+            $this->existingBarangId = request()->query('restock_id');
+            $this->showCreateModal = true;
+            
+            // Opsional: Beri judul default
+            $barang = Barang::find($this->existingBarangId);
+            if($barang) {
+                $this->judul = "Restock Barang: " . $barang->nama_barang;
+            }
+        }
+    }
+
 
     // --- 2. FITUR UTAMA: DETAIL & PROSES (SEMUA ROLE) ---
     public function showDetail($id)
@@ -278,14 +319,15 @@ class Index extends Component
     }
 
     // --- LOGIKA PENJAGA GUDANG: INPUT DATA TEKNIS (FASE PENGADAAN) ---
-   public function laporBarangDatang() {
+    public function laporBarangDatang()
+    {
         if (Auth::user()->peran !== 'penjaga_gudang') return;
 
         // Ambil item yang HANYA barang baru (barang_id NULL) untuk divalidasi
         $itemsBaru = $this->selectedRab->items->whereNull('barang_id');
-        
+
         // Jika ada barang baru, validasi input teknisnya
-        if($itemsBaru->count() > 0) {
+        if ($itemsBaru->count() > 0) {
             $this->validate([
                 'procurementItems.*.kode' => 'required|string|unique:barangs,kode_barang',
                 'procurementItems.*.kategori_id' => 'required',
@@ -293,12 +335,12 @@ class Index extends Component
             ]);
         }
 
-        DB::transaction(function() {
+        DB::transaction(function () {
             // Update data teknis HANYA untuk barang baru
-            foreach($this->procurementItems as $itemId => $data) {
+            foreach ($this->procurementItems as $itemId => $data) {
                 // Cek apakah item ini butuh update (barang baru)
                 $item = RabItem::find($itemId);
-                if (!$item->barang_id) { 
+                if (!$item->barang_id) {
                     $item->update([
                         'kode_barang_fix' => $data['kode'],
                         'kategori_id_fix' => $data['kategori_id'],
@@ -306,7 +348,7 @@ class Index extends Component
                     ]);
                 }
             }
-            
+
             $this->selectedRab->update(['status' => 'menunggu_verifikasi']);
         });
 
@@ -315,12 +357,13 @@ class Index extends Component
     }
 
     // --- LOGIKA KEPALA GUDANG: VERIFIKASI AKHIR (INSERT KE BARANG) ---
-    public function verifikasiAkhir() {
+    public function verifikasiAkhir()
+    {
         if (Auth::user()->peran !== 'kepala_gudang') return;
 
-        DB::transaction(function() {
-            foreach($this->selectedRab->items as $item) {
-                
+        DB::transaction(function () {
+            foreach ($this->selectedRab->items as $item) {
+
                 // LOGIKA BARU: CEK APAKAH INI RESTOCK?
                 if ($item->barang_id) {
                     // KASUS 1: RESTOCK (Update Barang Lama)
