@@ -117,21 +117,35 @@ class Index extends Component
         $this->items = array_values($this->items);
     }
 
+    // Cari fungsi ajukanRab() dan ubah menjadi seperti ini:
+
     public function ajukanRab()
     {
-        if (Auth::user()->peran !== 'penjaga_gudang') return;
+        // IZINKAN Penjaga Gudang DAN Kepala Gudang
+        if (!in_array(Auth::user()->peran, ['penjaga_gudang', 'kepala_gudang'])) return;
+        
+        $this->validate([
+            'judul' => 'required|min:5', 
+            'items' => 'required|array|min:1'
+        ]);
 
-        // Validasi utama...
-        $this->validate(['judul' => 'required|min:5', 'items' => 'required|array|min:1']);
+        // LOGIKA STATUS AWAL
+        // Jika Penjaga Gudang -> 'diajukan' (Harus dicek Kepala Gudang dulu)
+        // Jika Kepala Gudang -> 'menunggu_bendahara' (Langsung ke Bendahara)
+        $statusAwal = (Auth::user()->peran === 'kepala_gudang') ? 'menunggu_bendahara' : 'diajukan';
 
-        DB::transaction(function () {
+        DB::transaction(function () use ($statusAwal) {
             $rab = RabPengadaan::create([
                 'user_id' => Auth::id(),
                 'judul' => $this->judul,
                 'keterangan' => $this->keterangan,
                 'tanggal_pengajuan' => now(),
-                'status' => 'diajukan', // Status Awal
+                'status' => $statusAwal, 
+                
+                // Jika Kepala Gudang yang buat, otomatis kolom 'disetujui_oleh' diisi dirinya sendiri
+                'disetujui_oleh' => (Auth::user()->peran === 'kepala_gudang') ? Auth::id() : null,
             ]);
+
             foreach ($this->items as $item) {
                 RabItem::create([
                     'rab_pengadaan_id' => $rab->id,
@@ -141,11 +155,15 @@ class Index extends Component
                     'harga_satuan' => $item['harga'],
                     'harga_total' => $item['total'],
                     'sumber_dana_id' => $item['sumber_dana_id'],
-                    'barang_id' => $item['barang_id'] ?? null,
+                    'barang_id' => $item['barang_id'] ?? null, // Support Restock
                 ]);
             }
+
+            // Opsi Tambahan: Jika Kepala Gudang, langsung redirect WA ke Bendahara (Fitur Opsional)
+            // if(Auth::user()->peran === 'kepala_gudang') { ... logika wa ... }
         });
-        session()->flash('message', 'RAB berhasil diajukan ke Kepala Gudang.');
+
+        session()->flash('message', 'RAB berhasil dibuat dan diteruskan ke ' . ($statusAwal == 'menunggu_bendahara' ? 'Bendahara' : 'Kepala Gudang') . '.');
         $this->closeCreateModal();
     }
 

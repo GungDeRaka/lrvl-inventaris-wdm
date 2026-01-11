@@ -87,150 +87,167 @@
 
     {{-- Tabel Barang --}}
     <div class="mb-16">
-    <div class="bg-white shadow-xl rounded-xl overflow-hidden border border-gray-100 ">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th scope="col"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kode
-                        </th>
-                        <th scope="col"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama
-                            Barang</th>
-                        <th scope="col"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Kategori</th>
-                        <th scope="col"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Lokasi</th>
-                        <th scope="col"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok
-                        </th>
-                        <th scope="col"
-                            class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse ($barangs as $barang)
-                        @php $isStokMenipis = $barang->jumlah_saat_ini <= $barang->stok_minimum; @endphp
-                        <tr class="hover:bg-gray-50 transition duration-150 {{ $isStokMenipis ? 'bg-yellow-50' : '' }}">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {{ $barang->kode_barang }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <button wire:click="$set('detailBarangId', {{ $barang->id }})"
-                                    class="font-semibold text-purple-700 hover:text-purple-900 hover:underline focus:outline-none">
-                                    {{ $barang->nama_barang }}
-                                </button>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $barang->kategori->nama_kategori }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {{ $barang->ruangan->nama_ruangan }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <span
-                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $isStokMenipis ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' }}">
-                                    {{ $barang->jumlah_saat_ini }} / {{ $barang->jumlah_total }}
-                                </span>
-                                @if ($barang->jumlah_rusak > 0)
-                                    <small class="block text-red-600 mt-1 font-semibold">(Rusak:
-                                        {{ $barang->jumlah_rusak }})</small>
-                                @endif
-
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
-                                <div class="flex justify-center space-x-2">
-                                    <button wire:click="edit({{ $barang->id }})"
-                                        class="text-yellow-600 hover:text-yellow-900 border border-yellow-200 bg-yellow-50 hover:bg-yellow-100 px-2 py-1 rounded flex items-center gap-1 transition">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
-                                            </path>
-                                        </svg> Edit
-                                    </button>
-                                    <button wire:click="openTambahStokModal({{ $barang->id }})"
-                                        class="text-green-600 hover:text-green-900 border border-green-200 bg-green-50 hover:bg-green-100 px-2 py-1 rounded flex items-center gap-1 transition">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                        </svg> Stok
-                                    </button>
-                                    {{-- @can('kelola-pengguna') --}}
-                                    <button wire:click="openPindahModal({{ $barang->id }})"
-                                        class="text-blue-600 hover:text-blue-900 border border-blue-200 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded flex items-center gap-1 transition">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-                                        </svg> Pindah
-                                    </button>
-                                    <button wire:click="konfirmasiStatusRusak({{ $barang->id }})"
-                                        class="text-red-600 hover:text-red-900 border border-red-200 bg-red-50 hover:bg-red-100 px-2 py-1 rounded flex items-center gap-1 transition">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
-                                            </path>
-                                        </svg> Rusak
-                                    </button>
-                                    {{-- Tombol Perbaiki (jika ada barang rusak) --}}
-                                    @if ($barang->jumlah_rusak > 0)
-                                        <button wire:click="konfirmasiPerbaikan({{ $barang->id }})"
-                                            class="inline-flex items-center gap-1 border border-emerald-400 text-emerald-600 hover:bg-emerald-50 text-sm font-medium px-3 py-1.5 rounded-md transition duration-150 ease-in-out"
-                                            title="Perbaiki Barang Rusak">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"
-                                                class="w-4 h-4">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M4 16l5 5L20 7M17 7l3 3-9 9-3-3 9-9z" />
-                                            </svg>
-                                            <span>Perbaiki</span>
-                                        </button>
-                                    @endif
-                                    {{-- @endcan --}}
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
+        <div class="bg-white shadow-xl rounded-xl overflow-hidden border border-gray-100 ">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
                         <tr>
-                            <td colspan="6" class="px-6 py-10 text-center text-gray-500">
-                                <div class="flex flex-col items-center justify-center">
-                                    <svg class="h-12 w-12 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24"
-                                        stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
-                                        </path>
-                                    </svg>
-                                    <p class="text-lg font-medium">Tidak ada barang ditemukan.</p>
-                                    <p class="text-sm text-gray-400">Coba kata kunci lain atau tambahkan barang baru.
-                                    </p>
-                                </div>
-                            </td>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Kode
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Nama
+                                Barang</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Kategori</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Lokasi</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Stok
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Aksi</th>
                         </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @forelse ($barangs as $barang)
+                            @php $isStokMenipis = $barang->jumlah_saat_ini <= $barang->stok_minimum; @endphp
+                            <tr
+                                class="hover:bg-gray-50 transition duration-150 {{ $isStokMenipis ? 'bg-yellow-50' : '' }}">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    {{ $barang->kode_barang }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <button wire:click="$set('detailBarangId', {{ $barang->id }})"
+                                        class="font-semibold text-purple-700 hover:text-purple-900 hover:underline focus:outline-none">
+                                        {{ $barang->nama_barang }}
+                                    </button>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ $barang->kategori->nama_kategori }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ $barang->ruangan->nama_ruangan }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <span
+                                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $isStokMenipis ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' }}">
+                                        {{ $barang->jumlah_saat_ini }} / {{ $barang->jumlah_total }}
+                                    </span>
+                                    @if ($barang->jumlah_rusak > 0)
+                                        <small class="block text-red-600 mt-1 font-semibold">(Rusak:
+                                            {{ $barang->jumlah_rusak }})</small>
+                                    @endif
+
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                                    <div class="flex justify-center space-x-2">
+                                        <button wire:click="edit({{ $barang->id }})"
+                                            class="text-yellow-600 hover:text-yellow-900 border border-yellow-200 bg-yellow-50 hover:bg-yellow-100 px-2 py-1 rounded flex items-center gap-1 transition">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
+                                                </path>
+                                            </svg> Edit
+                                        </button>
+                                        <button wire:click="openTambahStokModal({{ $barang->id }})"
+                                            class="text-green-600 hover:text-green-900 border border-green-200 bg-green-50 hover:bg-green-100 px-2 py-1 rounded flex items-center gap-1 transition">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                            </svg> Stok
+                                        </button>
+                                        {{-- @can('kelola-pengguna') --}}
+                                        <button wire:click="openPindahModal({{ $barang->id }})"
+                                            class="text-blue-600 hover:text-blue-900 border border-blue-200 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded flex items-center gap-1 transition">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                            </svg> Pindah
+                                        </button>
+                                        <button wire:click="konfirmasiStatusRusak({{ $barang->id }})"
+                                            class="text-red-600 hover:text-red-900 border border-red-200 bg-red-50 hover:bg-red-100 px-2 py-1 rounded flex items-center gap-1 transition">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                                                </path>
+                                            </svg> Rusak
+                                        </button>
+                                        {{-- Tombol Perbaiki (jika ada barang rusak) --}}
+                                        @if ($barang->jumlah_rusak > 0)
+                                            <button wire:click="konfirmasiPerbaikan({{ $barang->id }})"
+                                                class="inline-flex items-center gap-1 border border-emerald-400 text-emerald-600 hover:bg-emerald-50 text-sm font-medium px-3 py-1.5 rounded-md transition duration-150 ease-in-out"
+                                                title="Perbaiki Barang Rusak">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                    viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"
+                                                    class="w-4 h-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M4 16l5 5L20 7M17 7l3 3-9 9-3-3 9-9z" />
+                                                </svg>
+                                                <span>Perbaiki</span>
+                                            </button>
+                                        @endif
+                                        {{-- @endcan --}}
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-6 py-10 text-center text-gray-500">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <svg class="h-12 w-12 text-gray-300 mb-3" fill="none" viewBox="0 0 24 24"
+                                            stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
+                                            </path>
+                                        </svg>
+                                        <p class="text-lg font-medium">Tidak ada barang ditemukan.</p>
+                                        <p class="text-sm text-gray-400">Coba kata kunci lain atau tambahkan barang
+                                            baru.
+                                        </p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
-    @if ($barangs->hasPages())
-        <div class="bg-gray-50 px-6 py-4 border items-start border-gray-300 shadow-lg w-1/3 rounded-md">
-            <span class="items-start">{{ $barangs->links() }}</span>
-        </div>
-    @endif
+        @if ($barangs->hasPages())
+            <div class="bg-gray-50 px-6 py-4 border items-start border-gray-300 shadow-lg w-1/3 rounded-md">
+                <span class="items-start">{{ $barangs->links() }}</span>
+            </div>
+        @endif
     </div>
 
-    {{-- FAB: Tambah Barang --}}
-    <button wire:click="openModal"
-        class="fixed bottom-8 right-8 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-purple-800 transition transform hover:scale-110 focus:outline-none z-50 flex items-center justify-center"
-        title="Buat Pengajuan RAB Baru">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
-        <span class="mx-2 text-sm font-semibold">Tambah Barang</span>
-    </button>
+    {{-- FAB: Tambah Barang (REDIRECT KE RAB) --}}
+    {{-- Tampilkan untuk Penjaga Gudang DAN Kepala Gudang --}}
+    @if (in_array(auth()->user()->peran, ['penjaga_gudang', 'kepala_gudang']))
+        <a href="{{ route('rab.index') }}"
+            class="fixed bottom-8 right-8 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-purple-800 transition transform hover:scale-110 focus:outline-none z-50 flex items-center justify-center group"
+            title="Ajukan Pengadaan Barang via RAB">
+
+            {{-- Ikon Dokumen Plus --}}
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 group-hover:rotate-12 transition-transform"
+                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+
+            {{-- Teks responsif --}}
+            <span class="mx-2 text-sm font-semibold hidden md:inline">
+                {{ auth()->user()->peran == 'kepala_gudang' ? 'Ajukan Barang (RAB)' : 'Ajukan Barang Baru' }}
+            </span>
+            <span class="mx-2 text-sm font-semibold md:hidden">RAB</span>
+        </a>
+    @endif
 
     {{-- Modal Tambah/Edit Barang --}}
     @if ($showModal)
@@ -1137,97 +1154,121 @@
     @endif
 
     {{-- MODAL PREDIKSI RANKING --}}
-<div id="rankingModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    {{-- Backdrop --}}
-    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeRankingModal()"></div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    <div id="rankingModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title"
+        role="dialog" aria-modal="true">
+        {{-- Backdrop --}}
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
+                onclick="closeRankingModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-        {{-- Panel Modal --}}
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div class="sm:flex sm:items-start">
-                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-fuchsia-100 sm:mx-0 sm:h-10 sm:w-10">
-                        <svg class="h-6 w-6 text-fuchsia-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-                    </div>
-                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Prediksi Barang Terlaris (Besok)</h3>
-                        <p class="text-sm text-gray-500 mt-2">
-                            Sistem AI menganalisa 10 barang teraktif dalam 90 hari terakhir dan memprediksi potensinya.
-                        </p>
-
-                        {{-- Area Loading --}}
-                        <div id="ranking-loading" class="hidden py-8 text-center">
-                            <svg class="animate-spin h-8 w-8 text-fuchsia-600 mx-auto mb-2" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            <p class="text-sm text-gray-500">Sedang melatih model per-item (Mungkin butuh 10-20 detik)...</p>
+            {{-- Panel Modal --}}
+            <div
+                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div
+                            class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-fuchsia-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <svg class="h-6 w-6 text-fuchsia-600" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
                         </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Prediksi Barang
+                                Terlaris (Besok)</h3>
+                            <p class="text-sm text-gray-500 mt-2">
+                                Sistem AI menganalisa 10 barang teraktif dalam 90 hari terakhir dan memprediksi
+                                potensinya.
+                            </p>
 
-                        {{-- Area Hasil --}}
-                        <div id="ranking-content" class="mt-4 hidden">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Barang</th>
-                                        <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">Prediksi</th>
-                                        <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="ranking-table-body" class="bg-white divide-y divide-gray-200">
-                                    {{-- Data diisi via JS --}}
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div id="ranking-empty" class="hidden py-4 text-center text-gray-500 italic text-sm">
-                            Tidak ada barang yang diprediksi memiliki lonjakan signifikan besok.
+                            {{-- Area Loading --}}
+                            <div id="ranking-loading" class="hidden py-8 text-center">
+                                <svg class="animate-spin h-8 w-8 text-fuchsia-600 mx-auto mb-2" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10"
+                                        stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                                <p class="text-sm text-gray-500">Sedang melatih model per-item (Mungkin butuh 10-20
+                                    detik)...</p>
+                            </div>
+
+                            {{-- Area Hasil --}}
+                            <div id="ranking-content" class="mt-4 hidden">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th
+                                                class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                                Barang</th>
+                                            <th
+                                                class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">
+                                                Prediksi</th>
+                                            <th
+                                                class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">
+                                                Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ranking-table-body" class="bg-white divide-y divide-gray-200">
+                                        {{-- Data diisi via JS --}}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div id="ranking-empty" class="hidden py-4 text-center text-gray-500 italic text-sm">
+                                Tidak ada barang yang diprediksi memiliki lonjakan signifikan besok.
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button type="button" onclick="closeRankingModal()" class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
-                    Tutup
-                </button>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" onclick="closeRankingModal()"
+                        class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                        Tutup
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-{{-- SCRIPT KHUSUS RANKING --}}
-<script>
-    function openRankingModal() {
-        document.getElementById('rankingModal').classList.remove('hidden');
-        fetchRankingData(); // Auto fetch saat dibuka
-    }
+    {{-- SCRIPT KHUSUS RANKING --}}
+    <script>
+        function openRankingModal() {
+            document.getElementById('rankingModal').classList.remove('hidden');
+            fetchRankingData(); // Auto fetch saat dibuka
+        }
 
-    function closeRankingModal() {
-        document.getElementById('rankingModal').classList.add('hidden');
-    }
+        function closeRankingModal() {
+            document.getElementById('rankingModal').classList.add('hidden');
+        }
 
-    async function fetchRankingData() {
-        const loading = document.getElementById('ranking-loading');
-        const content = document.getElementById('ranking-content');
-        const empty = document.getElementById('ranking-empty');
-        const tbody = document.getElementById('ranking-table-body');
+        async function fetchRankingData() {
+            const loading = document.getElementById('ranking-loading');
+            const content = document.getElementById('ranking-content');
+            const empty = document.getElementById('ranking-empty');
+            const tbody = document.getElementById('ranking-table-body');
 
-        // Reset UI
-        loading.classList.remove('hidden');
-        content.classList.add('hidden');
-        empty.classList.add('hidden');
-        tbody.innerHTML = '';
+            // Reset UI
+            loading.classList.remove('hidden');
+            content.classList.add('hidden');
+            empty.classList.add('hidden');
+            tbody.innerHTML = '';
 
-        try {
-            // Panggil route ranking
-            const response = await fetch("{{ route('prediksi.ranking') }}");
-            const res = await response.json();
+            try {
+                // Panggil route ranking
+                const response = await fetch("{{ route('prediksi.ranking') }}");
+                const res = await response.json();
 
-            loading.classList.add('hidden');
+                loading.classList.add('hidden');
 
-            if (res.status === 'success' && res.data.length > 0) {
-                content.classList.remove('hidden');
-                
-                res.data.forEach(item => {
-                    const row = `
+                if (res.status === 'success' && res.data.length > 0) {
+                    content.classList.remove('hidden');
+
+                    res.data.forEach(item => {
+                        const row = `
                         <tr>
                             <td class="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900">${item.nama_barang}</td>
                             <td class="px-3 py-3 whitespace-nowrap text-sm text-right font-bold text-fuchsia-600">${item.prediksi} Unit</td>
@@ -1236,18 +1277,18 @@
                             </td>
                         </tr>
                     `;
-                    tbody.innerHTML += row;
-                });
-            } else {
+                        tbody.innerHTML += row;
+                    });
+                } else {
+                    empty.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error(error);
+                loading.classList.add('hidden');
+                empty.innerText = "Gagal memuat data prediksi. Silakan coba lagi.";
                 empty.classList.remove('hidden');
             }
-        } catch (error) {
-            console.error(error);
-            loading.classList.add('hidden');
-            empty.innerText = "Gagal memuat data prediksi. Silakan coba lagi.";
-            empty.classList.remove('hidden');
         }
-    }
-</script>
+    </script>
 
 </div>
