@@ -170,23 +170,23 @@ class Index extends Component
         $this->closeCreateModal();
     }
 
-    
+
     public function resetInput()
     {
         // Mereset semua properti form ke nilai awal
         $this->reset([
-            'judul', 
-            'keterangan', 
-            'items', 
-            'newItemNama', 
-            'newItemSpec', 
-            'newItemJumlah', 
-            'newItemHarga', 
-            'newItemSumberId', 
-            'modeInput', 
+            'judul',
+            'keterangan',
+            'items',
+            'newItemNama',
+            'newItemSpec',
+            'newItemJumlah',
+            'newItemHarga',
+            'newItemSumberId',
+            'modeInput',
             'existingBarangId'
         ]);
-        
+
         // Mereset pesan error validasi (jika ada)
         $this->resetErrorBag();
     }
@@ -197,14 +197,14 @@ class Index extends Component
         // Cek apakah ada parameter 'restock_id' di URL
         if (request()->has('restock_id')) {
             $this->resetInput(); // <--- SEKARANG INI AKAN BERHASIL
-            
+
             $this->modeInput = 'restock';
             $this->existingBarangId = request()->query('restock_id');
             $this->showCreateModal = true;
-            
+
             // Opsional: Beri judul default
             $barang = Barang::find($this->existingBarangId);
-            if($barang) {
+            if ($barang) {
                 $this->judul = "Restock Barang: " . $barang->nama_barang;
             }
         }
@@ -283,19 +283,19 @@ class Index extends Component
     }
 
     // --- LOGIKA BENDAHARA: EDIT & SETUJU ---
-   
 
-   // Update fungsi edit agar mereset status tambah baru
+
+    // Update fungsi edit agar mereset status tambah baru
     public function editItemBendahara($itemId)
     {
         $this->editingItemId = $itemId;
         $item = RabItem::find($itemId);
-        
+
         $this->editJumlah = $item->jumlah;
         $this->editSumberId = $item->sumber_dana_id;
-        
+
         // Reset mode tambah sumber dana setiap kali ganti item
-        $this->isAddingSumber = false; 
+        $this->isAddingSumber = false;
         $this->newSumberName = '';
     }
 
@@ -320,7 +320,7 @@ class Index extends Component
 
         // Otomatis pilih sumber dana yang baru dibuat
         $this->editSumberId = $sumber->id;
-        
+
         // Kembalikan ke mode dropdown
         $this->isAddingSumber = false;
         $this->newSumberName = '';
@@ -332,14 +332,14 @@ class Index extends Component
     public function saveItemBendahara($itemId)
     {
         $item = RabItem::find($itemId);
-        
+
         $item->jumlah = $this->editJumlah;
         // Simpan perubahan sumber dana
-        $item->sumber_dana_id = $this->editSumberId; 
-        
+        $item->sumber_dana_id = $this->editSumberId;
+
         $item->harga_total = $item->jumlah * $item->harga_satuan; // Hitung ulang total
         $item->save();
-        
+
         $this->editingItemId = null;
         $this->selectedRab->refresh();
         $this->isAddingSumber = false;
@@ -353,7 +353,7 @@ class Index extends Component
         $this->selectedRab->refresh();
     }
 
-   public function setujuiOlehBendahara() 
+    public function setujuiOlehBendahara()
     {
         if (Auth::user()->peran !== 'bendahara') return;
 
@@ -364,49 +364,104 @@ class Index extends Component
         if ($jumlahItem < 1) {
             // Jika kosong, kirim pesan error dan hentikan proses
             session()->flash('error', 'Gagal menyetujui! RAB tidak memiliki item barang. Silakan tolak pengajuan ini jika memang tidak valid.');
-            
+
             // Opsional: Tutup modal agar user sadar
             // $this->closeModal(); 
-            return; 
+            return;
         }
         // ------------------------------------------
 
         $this->selectedRab->update([
             'status' => 'disetujui_bendahara',
-            'catatan_kepala' => $this->catatan_kepala 
+            'catatan_kepala' => $this->catatan_kepala
         ]);
 
         session()->flash('message', 'RAB disetujui. Dikembalikan ke Penjaga Gudang untuk belanja.');
         $this->closeModal();
     }
 
-    
+    private function generateKodeBarang($namaBarang)
+    {
+        // A. BERSIHKAN STRING
+        // Ubah ke huruf besar & hapus semua karakter selain huruf (angka/simbol hilang)
+        $cleanName = strtoupper(preg_replace('/[^a-zA-Z]/', '', $namaBarang));
+
+        // B. AMBIL HURUF KONSONAN (Hapus A, I, U, E, O)
+        $consonants = str_replace(['A', 'I', 'U', 'E', 'O'], '', $cleanName);
+
+        // C. TENTUKAN PREFIX (Max 4 Karakter)
+        // Jika konsonan cukup (minimal 2), pakai konsonan. 
+        // Jika nama barang pendek/vokal semua (misal "Audio"), pakai nama asli yang dibersihkan.
+        if (strlen($consonants) >= 2) {
+            $prefix = substr($consonants, 0, 4);
+        } else {
+            // Fallback: Ambil 3-4 huruf pertama dari nama asli jika konsonan habis
+            $prefix = substr($cleanName, 0, 4);
+        }
+
+        // Jika prefix masih kosong (misal nama barang cuma simbol/angka), pakai default
+        if (empty($prefix)) {
+            $prefix = "ITEM";
+        }
+
+        // D. FORMAT: PREFIX-TAHUN-URUTAN (Contoh: MNTR-2026-0001)
+        $year = date('Y');
+        $codeBase = $prefix . '-' . $year . '-';
+
+        // E. CEK URUTAN TERAKHIR DI DATABASE BERDASARKAN PREFIX INI
+        $lastBarang = Barang::where('kode_barang', 'like', $codeBase . '%')
+            ->orderByRaw('LENGTH(kode_barang) DESC') // Urutkan panjang dulu biar 10 tidak dianggap sebelum 2
+            ->orderBy('kode_barang', 'desc')
+            ->first();
+
+        if (!$lastBarang) {
+            $number = 1;
+        } else {
+            // Pecah string kode terakhir berdasarkan strip '-'
+            // Contoh: MNTR-2026-0005 -> diambil 0005
+            $parts = explode('-', $lastBarang->kode_barang);
+            $lastNumber = end($parts); // Ambil elemen terakhir
+            $number = intval($lastNumber) + 1;
+        }
+
+        // Gabungkan semua
+        return $codeBase . str_pad($number, 4, '0', STR_PAD_LEFT);
+    }
 
     // --- LOGIKA PENJAGA GUDANG: INPUT DATA TEKNIS (FASE PENGADAAN) ---
     public function laporBarangDatang()
     {
         if (Auth::user()->peran !== 'penjaga_gudang') return;
 
-        // Ambil item yang HANYA barang baru (barang_id NULL) untuk divalidasi
+        // Validasi input kategori & ruangan saja (Kode barang otomatis)
         $itemsBaru = $this->selectedRab->items->whereNull('barang_id');
 
-        // Jika ada barang baru, validasi input teknisnya
         if ($itemsBaru->count() > 0) {
             $this->validate([
-                'procurementItems.*.kode' => 'required|string|unique:barangs,kode_barang',
                 'procurementItems.*.kategori_id' => 'required',
                 'procurementItems.*.ruangan_id' => 'required',
             ]);
         }
 
         DB::transaction(function () {
-            // Update data teknis HANYA untuk barang baru
             foreach ($this->procurementItems as $itemId => $data) {
-                // Cek apakah item ini butuh update (barang baru)
                 $item = RabItem::find($itemId);
+
+                // Proses hanya untuk barang baru (bukan restock)
                 if (!$item->barang_id) {
+
+                    // --- LOGIKA GENERATE KODE ---
+                    // Kirim nama barang ke fungsi generator
+                    do {
+                        $kodeOtomatis = $this->generateKodeBarang($item->nama_barang_baru);
+
+                        // Cek double protection (memastikan unik)
+                        $exists = Barang::where('kode_barang', $kodeOtomatis)->exists();
+                    } while ($exists);
+                    // -----------------------------
+
                     $item->update([
-                        'kode_barang_fix' => $data['kode'],
+                        'kode_barang_fix' => $kodeOtomatis,
                         'kategori_id_fix' => $data['kategori_id'],
                         'ruangan_id_fix' => $data['ruangan_id'],
                     ]);
@@ -416,7 +471,7 @@ class Index extends Component
             $this->selectedRab->update(['status' => 'menunggu_verifikasi']);
         });
 
-        session()->flash('message', 'Laporan diterima. Stok akan bertambah otomatis setelah verifikasi Kepala Gudang.');
+        session()->flash('message', 'Laporan diterima. Kode Barang (Konsonan) berhasil dibuat otomatis.');
         $this->closeModal();
     }
 

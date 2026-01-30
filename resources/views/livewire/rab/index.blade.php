@@ -195,13 +195,14 @@
                                 {{ $rab->judul }}
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
-        <div class="flex items-center">
-            <div class="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-700 mr-2">
-                {{ substr($rab->pengaju->name ?? '?', 0, 1) }}
-            </div>
-            <span>{{ $rab->pengaju->name ?? 'Tidak Diketahui' }}</span>
-        </div>
-    </td>
+                                <div class="flex items-center">
+                                    <div
+                                        class="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-700 mr-2">
+                                        {{ substr($rab->pengaju->name ?? '?', 0, 1) }}
+                                    </div>
+                                    <span>{{ $rab->pengaju->name ?? 'Tidak Diketahui' }}</span>
+                                </div>
+                            </td>
                             <td class="px-6 py-4">
                                 @php
                                     $statusColor = 'bg-gray-100 text-gray-800 border-gray-200';
@@ -377,23 +378,31 @@
                                                             </p>
                                                         </div>
                                                     @else
-                                                        {{-- TAMPILAN JIKA BARANG BARU (Form Input) --}}
+                                                        {{-- TAMPILAN BARANG BARU (Auto Generate) --}}
                                                         <div
                                                             class="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-md shadow-inner">
-                                                            <p
-                                                                class="text-[10px] font-bold text-orange-700 uppercase mb-2">
-                                                                Wajib Input Data Inventaris Baru
-                                                            </p>
-                                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-                                                                <input type="text"
-                                                                    wire:model="procurementItems.{{ $item->id }}.kode"
-                                                                    class="shadow-sm block w-full sm:text-xs border-gray-300 rounded-md"
-                                                                    placeholder="Kode Barang Unik">
+                                                            <div class="flex justify-between items-center mb-2">
+                                                                <p
+                                                                    class="text-[10px] font-bold text-orange-700 uppercase">
+                                                                    Lengkapi Data Inventaris
+                                                                </p>
+                                                                <span
+                                                                    class="text-[10px] bg-gray-200 text-gray-600 px-2 py-0.5 rounded border border-gray-300">
+                                                                    Kode Barang: <strong>AUTO</strong>
+                                                                </span>
+                                                            </div>
+
+                                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                                {{-- Grid jadi 2 kolom saja --}}
+
+                                                                {{-- Input Kode DIHAPUS atau DI-HIDDEN --}}
+                                                                {{-- <input type="text" wire:model="..." ...>  <-- HAPUS INI --}}
 
                                                                 <select
                                                                     wire:model="procurementItems.{{ $item->id }}.kategori_id"
-                                                                    class="shadow-sm block w-full sm:text-xs border-gray-300 rounded-md">
-                                                                    <option value="">Kategori...</option>
+                                                                    class="shadow-sm block w-full sm:text-xs border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500">
+                                                                    <option value="">-- Pilih Kategori --
+                                                                    </option>
                                                                     @foreach ($kategoris as $k)
                                                                         <option value="{{ $k->id }}">
                                                                             {{ $k->nama_kategori }}</option>
@@ -402,18 +411,20 @@
 
                                                                 <select
                                                                     wire:model="procurementItems.{{ $item->id }}.ruangan_id"
-                                                                    class="shadow-sm block w-full sm:text-xs border-gray-300 rounded-md">
-                                                                    <option value="">Ruangan...</option>
+                                                                    class="shadow-sm block w-full sm:text-xs border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500">
+                                                                    <option value="">-- Pilih Ruangan --</option>
                                                                     @foreach ($ruangans as $r)
                                                                         <option value="{{ $r->id }}">
                                                                             {{ $r->nama_ruangan }}</option>
                                                                     @endforeach
                                                                 </select>
                                                             </div>
+                                                            <p class="text-[10px] text-gray-400 mt-1 italic">*Kode
+                                                                barang akan dibuat otomatis oleh sistem (Cth:
+                                                                INV-2026-0001)</p>
                                                         </div>
                                                     @endif
                                                 @endif
-
                                                 {{-- TAMPILKAN DATA JIKA SUDAH ADA --}}
                                                 @if ($item->kode_barang_fix)
                                                     <div class="mt-1 flex items-center gap-2">

@@ -476,14 +476,14 @@ class Index extends Component
 
     // --- METHOD CETAK LAPORAN PENGADAAN ---
     public function cetakLaporanPengadaan()
-{
-    // Kirim parameter filter ke route cetak
-    return redirect()->route('laporan.pengadaan.cetak', [
-        'sumber_dana' => $this->filterSumberDana,
-        'tgl_mulai' => $this->filterTanggalMulai,
-        'tgl_akhir' => $this->filterTanggalAkhir,
-    ]);
-}
+    {
+        // Kirim parameter filter ke route cetak
+        return redirect()->route('laporan.pengadaan.cetak', [
+            'sumber_dana' => $this->filterSumberDana,
+            'tgl_mulai' => $this->filterTanggalMulai,
+            'tgl_akhir' => $this->filterTanggalAkhir,
+        ]);
+    }
 
     // --- RENDER ---
     public function render()
@@ -561,7 +561,10 @@ class Index extends Component
             ->when($this->filterKategori, function ($query) {
                 $query->where('kategori_id', $this->filterKategori);
             })
-            ->where('jumlah_total', '>', 0)
+            ->where(function ($q) {
+                $q->where('jumlah_total', '>', 0)       // Tampilkan jika punya stok aktif
+                    ->orWhere('jumlah_rusak', '>', 0);
+            })
             ->latest()
             ->paginate(10);
 
