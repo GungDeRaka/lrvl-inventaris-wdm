@@ -421,7 +421,7 @@
                                                             </div>
                                                             <p class="text-[10px] text-gray-400 mt-1 italic">*Kode
                                                                 barang akan dibuat otomatis oleh sistem (Cth:
-                                                                INV-2026-0001)</p>
+                                                                SLMT-2026-0001<small>(Selimut)</small>)</p>
                                                         </div>
                                                     @endif
                                                 @endif

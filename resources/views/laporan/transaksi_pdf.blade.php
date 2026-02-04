@@ -118,10 +118,10 @@
         
         
         <div class="school-info">
-            <div class="school-name">SMK NEGERI CONTOH SISTEM</div>
+            <div class="school-name">SMK Widiatmika</div>
             <div class="school-address">
-                Jl. Pendidikan No. 123, Kota Contoh, Provinsi Sample<br>
-                Telp: (021) 1234567 | Email: info@sekolah.sch.id
+                Jl. Raya Kampus Unud No.8, Jimbaran, Kec. Kuta Sel., Kabupaten Badung, Bali 80361<br>
+                Telp: (0361) 4465612 | Email:  smk@widiatmika.sch.id 
             </div>
         </div>
     </div>
